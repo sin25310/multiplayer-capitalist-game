@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>都市奇幻公司 v3.0 - 银河级企业管理</title>
+    <title>都市奇幻公司 v4.0 - 深度企业帝国</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -206,6 +206,13 @@
             background: rgba(0,0,0,0.3);
             border-radius: 8px;
             border: 1px solid rgba(155,89,182,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            border-color: #9b59b6;
+            transform: translateY(-1px);
         }
         
         .stat-label {
@@ -249,13 +256,13 @@
         .resource.materials { background: linear-gradient(135deg, #8e44ad, #9b59b6); }
         .resource.wood { background: linear-gradient(135deg, #d35400, #e67e22); }
         .resource.stone { background: linear-gradient(135deg, #7f8c8d, #95a5a6); }
-        .resource.fish { background: linear-gradient(135deg, #3498db, #2980b9); }
-        .resource.cloth { background: linear-gradient(135deg, #e67e22, #f39c12); }
         .resource.metal { background: linear-gradient(135deg, #34495e, #2c3e50); }
+        .resource.cloth { background: linear-gradient(135deg, #e67e22, #f39c12); }
         .resource.gems { background: linear-gradient(135deg, #e74c3c, #c0392b); }
         .resource.knowledge { background: linear-gradient(135deg, #3498db, #2980b9); }
         .resource.magic { background: linear-gradient(135deg, #e74c3c, #c0392b); }
         .resource.artifacts { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+        .resource.exp { background: linear-gradient(135deg, #16a085, #1abc9c); }
         
         .main-layout {
             display: grid;
@@ -410,193 +417,92 @@
             display: block;
         }
         
-        /* 战斗界面样式 */
-        .battle-arena {
-            background: linear-gradient(135deg, rgba(231,76,60,0.1), rgba(142,68,173,0.1));
-            border-radius: 15px;
-            padding: 20px;
-            border: 2px solid rgba(231,76,60,0.3);
-            margin-bottom: 20px;
-        }
-        
-        .battle-field {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 30px;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .team-section {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .team-title {
-            text-align: center;
-            font-weight: bold;
-            color: #9b59b6;
-            margin-bottom: 10px;
-        }
-        
-        .fighter-card {
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 8px;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .fighter-card.active {
-            border-color: #27ae60;
-            box-shadow: 0 0 20px rgba(39,174,96,0.3);
-        }
-        
-        .fighter-card.damaged {
-            border-color: #e74c3c;
-            animation: damage-flash 0.5s;
-        }
-        
-        @keyframes damage-flash {
-            0%, 100% { background: rgba(0,0,0,0.5); }
-            50% { background: rgba(231,76,60,0.3); }
-        }
-        
-        .fighter-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        
-        .fighter-name {
-            font-weight: bold;
-            color: #9b59b6;
-        }
-        
-        .fighter-level {
-            background: rgba(155,89,182,0.3);
-            color: #9b59b6;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 10px;
-        }
-        
-        .health-bar {
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            height: 12px;
-            overflow: hidden;
-            margin-bottom: 5px;
-        }
-        
-        .health-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #27ae60, #2ecc71);
-            transition: width 0.5s ease;
-        }
-        
-        .health-fill.low {
-            background: linear-gradient(90deg, #e74c3c, #c0392b);
-        }
-        
-        .health-fill.medium {
-            background: linear-gradient(90deg, #f39c12, #e67e22);
-        }
-        
-        .fighter-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            font-size: 10px;
-        }
-        
-        .vs-section {
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #e74c3c;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-        
-        .battle-log {
-            background: rgba(0,0,0,0.7);
-            border-radius: 10px;
-            padding: 15px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        
-        .battle-log-entry {
-            margin-bottom: 5px;
-            font-size: 12px;
-            line-height: 1.4;
-        }
-        
-        .battle-log-entry.damage {
-            color: #e74c3c;
-        }
-        
-        .battle-log-entry.heal {
-            color: #27ae60;
-        }
-        
-        .battle-log-entry.info {
-            color: #3498db;
-        }
-        
-        /* 进度条样式 */
+        /* 进度条样式 - 全新设计 */
         .progress-container {
-            background: rgba(0,0,0,0.5);
-            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(44,62,80,0.8), rgba(52,73,94,0.8));
+            border-radius: 12px;
             padding: 15px;
             margin-bottom: 15px;
+            border: 2px solid rgba(155,89,182,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            to { left: 100%; }
         }
         
         .progress-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
         }
         
         .progress-title {
             font-weight: bold;
             color: #9b59b6;
+            font-size: 14px;
         }
         
         .progress-time {
-            color: #bdc3c7;
+            color: #e74c3c;
             font-size: 12px;
+            font-weight: bold;
         }
         
         .progress-bar {
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            height: 20px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            height: 24px;
             overflow: hidden;
             position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #3498db, #2980b9);
-            transition: width 0.3s ease;
             position: relative;
+            transition: width 0.3s ease;
+            border-radius: 12px;
         }
         
         .progress-fill.gathering {
-            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            background: linear-gradient(90deg, #27ae60, #2ecc71, #58d68d);
+            box-shadow: 0 0 20px rgba(39,174,96,0.5);
         }
         
         .progress-fill.crafting {
-            background: linear-gradient(90deg, #f39c12, #e67e22);
+            background: linear-gradient(90deg, #f39c12, #e67e22, #f4d03f);
+            box-shadow: 0 0 20px rgba(243,156,18,0.5);
         }
         
         .progress-fill.combat {
-            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            background: linear-gradient(90deg, #e74c3c, #c0392b, #ec7063);
+            box-shadow: 0 0 20px rgba(231,76,60,0.5);
+        }
+        
+        .progress-fill.research {
+            background: linear-gradient(90deg, #3498db, #2980b9, #5dade2);
+            box-shadow: 0 0 20px rgba(52,152,219,0.5);
+        }
+        
+        .progress-fill.training {
+            background: linear-gradient(90deg, #9b59b6, #8e44ad, #bb8fce);
+            box-shadow: 0 0 20px rgba(155,89,182,0.5);
         }
         
         .progress-text {
@@ -607,14 +513,18 @@
             color: white;
             font-size: 12px;
             font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 2;
         }
         
         .progress-rewards {
-            margin-top: 10px;
-            padding: 8px;
+            margin-top: 12px;
+            padding: 10px;
             background: rgba(39,174,96,0.2);
-            border-radius: 6px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+            position: relative;
+            z-index: 1;
         }
         
         .progress-rewards-title {
@@ -626,309 +536,80 @@
         
         .progress-rewards-content {
             color: #ecf0f1;
-            font-size: 10px;
-        }
-        
-        /* 仓库样式 */
-        .warehouse-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-        }
-        
-        .warehouse-item {
-            background: rgba(0,0,0,0.5);
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .warehouse-item:hover {
-            border-color: #9b59b6;
-            transform: translateY(-2px);
-        }
-        
-        .warehouse-item.common {
-            border-left: 4px solid #95a5a6;
-        }
-        
-        .warehouse-item.uncommon {
-            border-left: 4px solid #3498db;
-        }
-        
-        .warehouse-item.rare {
-            border-left: 4px solid #9b59b6;
-        }
-        
-        .warehouse-item.epic {
-            border-left: 4px solid #e67e22;
-        }
-        
-        .warehouse-item.legendary {
-            border-left: 4px solid #f1c40f;
-        }
-        
-        .warehouse-item-icon {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        
-        .warehouse-item-name {
-            font-weight: bold;
-            color: #9b59b6;
-            font-size: 12px;
-            margin-bottom: 3px;
-        }
-        
-        .warehouse-item-quantity {
-            color: #bdc3c7;
             font-size: 11px;
-        }
-        
-        /* 市场样式 */
-        .market-section {
-            background: rgba(0,0,0,0.5);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .market-header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         
-        .market-title {
-            font-weight: bold;
-            color: #9b59b6;
-            font-size: 18px;
-        }
-        
-        .market-filter {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .filter-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            background: rgba(155,89,182,0.3);
-            color: #9b59b6;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.3s ease;
-        }
-        
-        .filter-btn.active {
-            background: #9b59b6;
-            color: white;
-        }
-        
-        .market-listings {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-        }
-        
-        .market-listing {
+        .reward-item {
             background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            padding: 15px;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-        
-        .market-listing:hover {
-            border-color: #9b59b6;
-            transform: translateY(-2px);
-        }
-        
-        .listing-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .listing-item {
-            font-weight: bold;
-            color: #9b59b6;
-        }
-        
-        .listing-seller {
-            color: #bdc3c7;
-            font-size: 12px;
-        }
-        
-        .listing-price {
-            color: #f39c12;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .listing-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        /* 制作界面样式 */
-        .crafting-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .recipe-list {
-            background: rgba(0,0,0,0.5);
-            border-radius: 10px;
-            padding: 15px;
-        }
-        
-        .recipe-item {
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-        
-        .recipe-item:hover {
-            border-color: #9b59b6;
-        }
-        
-        .recipe-item.selected {
-            border-color: #27ae60;
-            background: rgba(39,174,96,0.1);
-        }
-        
-        .recipe-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        
-        .recipe-name {
-            font-weight: bold;
-            color: #9b59b6;
-        }
-        
-        .recipe-level {
-            background: rgba(155,89,182,0.3);
-            color: #9b59b6;
             padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 10px;
+            border-radius: 4px;
+            white-space: nowrap;
         }
         
-        .recipe-materials {
-            color: #bdc3c7;
-            font-size: 11px;
-            margin-bottom: 5px;
-        }
-        
-        .recipe-result {
-            color: #27ae60;
-            font-size: 11px;
-        }
-        
-        .crafting-panel {
-            background: rgba(0,0,0,0.5);
-            border-radius: 10px;
-            padding: 15px;
-        }
-        
-        .crafting-preview {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .crafting-item-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-        
-        .crafting-item-name {
-            font-weight: bold;
-            color: #9b59b6;
-            margin-bottom: 10px;
-        }
-        
-        .crafting-requirements {
-            background: rgba(231,76,60,0.2);
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .crafting-requirements-title {
-            color: #e74c3c;
-            font-weight: bold;
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-        
-        .crafting-requirement {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            margin-bottom: 3px;
-        }
-        
-        .requirement-have {
-            color: #27ae60;
-        }
-        
-        .requirement-need {
-            color: #e74c3c;
-        }
-        
+        /* 员工卡片 - 增强版 */
         .employee-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 15px;
         }
         
         .employee-card {
             background: linear-gradient(135deg, rgba(52,73,94,0.8), rgba(44,62,80,0.8));
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 2px solid transparent;
             transition: all 0.3s ease;
             position: relative;
+            overflow: hidden;
+        }
+        
+        .employee-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(155,89,182,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .employee-card:hover::before {
+            opacity: 1;
         }
         
         .employee-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(155,89,182,0.2);
-            border-color: rgba(155,89,182,0.5);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(155,89,182,0.3);
+            border-color: rgba(155,89,182,0.7);
         }
         
         .employee-card.working {
             border-color: #27ae60;
+            box-shadow: 0 0 20px rgba(39,174,96,0.3);
         }
         
         .employee-card.tired {
             border-color: #f39c12;
+            box-shadow: 0 0 20px rgba(243,156,18,0.3);
         }
         
         .employee-card.unhappy {
             border-color: #e74c3c;
+            box-shadow: 0 0 20px rgba(231,76,60,0.3);
         }
         
         .employee-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
         }
         
         .employee-name {
@@ -937,34 +618,59 @@
             font-size: 16px;
         }
         
-        .employee-race {
+        .employee-level {
             background: rgba(155,89,182,0.3);
             color: #9b59b6;
-            padding: 2px 8px;
-            border-radius: 10px;
+            padding: 4px 8px;
+            border-radius: 12px;
             font-size: 11px;
+            font-weight: bold;
         }
         
         .employee-job {
             color: #3498db;
             font-size: 14px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .employee-progress {
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .exp-bar {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            height: 8px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .exp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #16a085, #1abc9c);
+            transition: width 0.3s ease;
         }
         
         .employee-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 12px;
             font-size: 11px;
+            position: relative;
+            z-index: 1;
         }
         
         .stat-bar {
             background: rgba(0,0,0,0.3);
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
-            height: 12px;
-            margin-top: 2px;
+            height: 10px;
+            margin-top: 3px;
         }
         
         .stat-fill {
@@ -976,14 +682,16 @@
         .stat-fill.intelligence { background: linear-gradient(90deg, #3498db, #2980b9); }
         .stat-fill.magic { background: linear-gradient(90deg, #9b59b6, #8e44ad); }
         .stat-fill.dexterity { background: linear-gradient(90deg, #f39c12, #e67e22); }
-        .stat-fill.mood { background: linear-gradient(90deg, #27ae60, #2ecc71); }
-        .stat-fill.energy { background: linear-gradient(90deg, #f1c40f, #f39c12); }
+        .stat-fill.constitution { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+        .stat-fill.charisma { background: linear-gradient(90deg, #e67e22, #f39c12); }
         
-        .employee-skills {
+        .employee-specializations {
             margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
         }
         
-        .skill-item {
+        .specialization-item {
             display: inline-block;
             background: rgba(52,152,219,0.2);
             color: #3498db;
@@ -991,70 +699,15 @@
             border-radius: 4px;
             font-size: 9px;
             margin: 2px;
-        }
-        
-        .employee-equipment {
-            margin-bottom: 10px;
-        }
-        
-        .equipment-slot {
-            display: inline-block;
-            background: rgba(39,174,96,0.2);
-            color: #27ae60;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 9px;
-            margin: 2px;
-        }
-        
-        .equipment-slot.empty {
-            background: rgba(127,140,141,0.2);
-            color: #7f8c8d;
-        }
-        
-        .employee-traits {
-            margin-bottom: 10px;
-        }
-        
-        .trait-tag {
-            display: inline-block;
-            background: rgba(52,152,219,0.2);
-            color: #3498db;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 9px;
-            margin: 2px;
-        }
-        
-        .trait-tag.positive {
-            background: rgba(39,174,96,0.2);
-            color: #27ae60;
-        }
-        
-        .trait-tag.negative {
-            background: rgba(231,76,60,0.2);
-            color: #e74c3c;
-        }
-        
-        .employee-needs {
-            margin-bottom: 10px;
-        }
-        
-        .need-item {
-            font-size: 10px;
-            color: #bdc3c7;
-            margin-bottom: 2px;
-        }
-        
-        .need-item.urgent {
-            color: #e74c3c;
-            font-weight: bold;
+            border: 1px solid rgba(52,152,219,0.3);
         }
         
         .employee-actions {
             display: flex;
             gap: 5px;
             flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
         }
         
         .btn-small {
@@ -1062,11 +715,15 @@
             min-width: 60px;
             padding: 6px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 10px;
             font-weight: bold;
             transition: all 0.3s ease;
+        }
+        
+        .btn-small:hover {
+            transform: translateY(-1px);
         }
         
         .btn-assign {
@@ -1076,6 +733,11 @@
         
         .btn-rest {
             background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .btn-train {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
             color: white;
         }
         
@@ -1089,184 +751,60 @@
             color: white;
         }
         
-        .recruit-section {
-            background: rgba(0,0,0,0.5);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .recruit-pool {
+        /* 天赋树样式 */
+        .talent-tree {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(5, 1fr);
             gap: 15px;
+            padding: 20px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
         }
         
-        .recruit-card {
-            background: linear-gradient(135deg, rgba(44,62,80,0.6), rgba(52,73,94,0.6));
-            padding: 15px;
-            border-radius: 8px;
-            border: 2px solid rgba(155,89,182,0.3);
+        .talent-node {
+            background: rgba(44,62,80,0.8);
+            border: 2px solid rgba(127,140,141,0.3);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
         }
         
-        .recruit-card:hover {
+        .talent-node:hover {
             border-color: #9b59b6;
             transform: translateY(-2px);
         }
         
-        .facility-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-        }
-        
-        .facility-card {
-            background: linear-gradient(135deg, rgba(52,73,94,0.8), rgba(44,62,80,0.8));
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-        
-        .facility-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(155,89,182,0.5);
-        }
-        
-        .facility-card.affordable {
-            border-color: rgba(39,174,96,0.5);
-        }
-        
-        .facility-card.expensive {
-            border-color: rgba(231,76,60,0.5);
-            opacity: 0.7;
-        }
-        
-        .activity-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 15px;
-        }
-        
-        .activity-card {
-            background: linear-gradient(135deg, rgba(52,73,94,0.8), rgba(44,62,80,0.8));
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .activity-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(155,89,182,0.5);
-        }
-        
-        .activity-card.gathering {
-            border-left: 4px solid #27ae60;
-        }
-        
-        .activity-card.dungeon {
-            border-left: 4px solid #e74c3c;
-        }
-        
-        .activity-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .activity-title {
-            font-weight: bold;
-            color: #9b59b6;
-            font-size: 16px;
-        }
-        
-        .activity-type {
-            background: rgba(155,89,182,0.3);
-            color: #9b59b6;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-        }
-        
-        .activity-description {
-            color: #bdc3c7;
-            font-size: 12px;
-            margin-bottom: 10px;
-        }
-        
-        .activity-requirements {
-            background: rgba(231,76,60,0.2);
-            padding: 8px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-        
-        .activity-rewards {
+        .talent-node.unlocked {
+            border-color: #27ae60;
             background: rgba(39,174,96,0.2);
-            padding: 8px;
-            border-radius: 6px;
-            margin-bottom: 10px;
         }
         
-        .activity-info-title {
-            color: #e74c3c;
-            font-size: 11px;
-            font-weight: bold;
-            margin-bottom: 3px;
+        .talent-node.available {
+            border-color: #f39c12;
+            background: rgba(243,156,18,0.2);
         }
         
-        .activity-rewards .activity-info-title {
-            color: #27ae60;
+        .talent-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
         }
         
-        .btn {
-            background: linear-gradient(135deg, #8e44ad, #9b59b6);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
+        .talent-name {
             font-size: 12px;
             font-weight: bold;
-            transition: all 0.3s ease;
-            margin-top: 8px;
-        }
-        
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(155,89,182,0.4);
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.9);
             color: #9b59b6;
-            padding: 15px 25px;
-            border-radius: 10px;
-            border: 2px solid #9b59b6;
-            z-index: 1000;
-            animation: slideIn 0.3s ease-out;
-            max-width: 350px;
+            margin-bottom: 4px;
         }
         
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .talent-cost {
+            font-size: 10px;
+            color: #bdc3c7;
         }
         
+        /* 模态框样式 */
         .modal {
             position: fixed;
             top: 0;
@@ -1289,13 +827,98 @@
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
         
         .modal-title {
             color: #9b59b6;
             font-size: 20px;
-            margin-bottom: 20px;
-            text-align: center;
+            font-weight: bold;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            background: rgba(231,76,60,0.2);
+            transform: scale(1.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(155,89,182,0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn.success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+        
+        .btn.warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+        
+        .btn.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: #9b59b6;
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 2px solid #9b59b6;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            z-index: 10001;
+            animation: slideIn 0.3s ease-out;
+            max-width: 350px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
         @media (max-width: 1200px) {
@@ -1307,15 +930,6 @@
                 border-left: none;
                 border-top: 2px solid rgba(155,89,182,0.3);
             }
-            
-            .tabs-header {
-                flex-wrap: wrap;
-            }
-            
-            .tab-button {
-                min-width: 80px;
-                font-size: 10px;
-            }
         }
         
         @media (max-width: 768px) {
@@ -1323,28 +937,8 @@
                 grid-template-columns: 1fr;
             }
             
-            .facility-list {
-                grid-template-columns: 1fr;
-            }
-            
-            .recruit-pool {
-                grid-template-columns: 1fr;
-            }
-            
-            .activity-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .warehouse-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            }
-            
-            .market-listings {
-                grid-template-columns: 1fr;
-            }
-            
-            .crafting-section {
-                grid-template-columns: 1fr;
+            .talent-tree {
+                grid-template-columns: repeat(3, 1fr);
             }
         }
     </style>
@@ -1356,97 +950,90 @@
     <!-- 登录界面 -->
     <div class="login-screen" id="loginScreen">
         <div class="login-form">
-            <div class="login-title">🏢✨ 都市奇幻公司 v3.0 ✨🏢</div>
-            <div class="login-subtitle">"银河级企业管理 - 战斗、制作、交易一体化"</div>
+            <div class="login-title">🏢✨ 都市奇幻公司 v4.0 ✨🏢</div>
+            <div class="login-subtitle">"深度企业帝国 - 无限升级之路"</div>
             
             <input type="text" class="login-input" id="companyName" placeholder="输入你的奇幻公司名称" maxlength="25">
             
             <div style="color: #9b59b6; font-weight: bold; margin: 20px 0 10px 0;">选择公司专业方向：</div>
             <div class="company-type-selector">
                 <div class="company-type" data-type="arcane">
-                    <div class="company-type-title">🔮 奥术公司</div>
-                    <div class="company-type-desc">魔法研究与法术服务</div>
+                    <div class="company-type-title">🔮 奥术企业</div>
+                    <div class="company-type-desc">魔法研究与法术开发</div>
                 </div>
                 <div class="company-type" data-type="security">
-                    <div class="company-type-title">⚔️ 安保公司</div>
-                    <div class="company-type-desc">私人武装与战斗承包</div>
+                    <div class="company-type-title">⚔️ 战争集团</div>
+                    <div class="company-type-desc">军事承包与安保服务</div>
                 </div>
                 <div class="company-type" data-type="commerce">
-                    <div class="company-type-title">💰 商贸公司</div>
-                    <div class="company-type-desc">跨界贸易与资源买卖</div>
+                    <div class="company-type-title">💰 贸易帝国</div>
+                    <div class="company-type-desc">跨界商业与资源垄断</div>
                 </div>
                 <div class="company-type" data-type="research">
-                    <div class="company-type-title">🧪 研发公司</div>
-                    <div class="company-type-desc">魔法科技融合研究</div>
+                    <div class="company-type-title">🧪 科研巨头</div>
+                    <div class="company-type-desc">技术创新与知识产权</div>
                 </div>
             </div>
             
-            <button class="login-btn" onclick="joinGame()">开始银河级创业</button>
+            <button class="login-btn" onclick="joinGame()">开始深度企业之旅</button>
             <div style="margin-top: 25px; font-size: 14px; color: #bdc3c7; line-height: 1.5;">
-                🎯 目标：建立银河级奇幻企业帝国<br>
-                👥 员工：招募培养，实时战斗可视化<br>
-                🏭 生产：完整的生产制作循环<br>
-                🛒 交易：与全球玩家自由交易<br>
-                ⚒️ 制作：打造强化装备系统
+                🎯 深度玩法：无限升级路线，天赋树系统<br>
+                👥 员工培养：12种职业，专精系统<br>
+                🔧 装备强化：+15强化系统，套装效果<br>
+                🌳 公司天赋：解锁新技能，提升效率<br>
+                📊 可视化进度：每个行为都有进度条
             </div>
         </div>
     </div>
 
-    <!-- 各种模态框 -->
+    <!-- 任务分配模态框 -->
     <div class="modal" id="assignmentModal">
         <div class="modal-content">
-            <div class="modal-title">选择活动</div>
-            <div class="activity-grid" id="activityList"></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" onclick="closeAssignmentModal()">取消</button>
+            <div class="modal-header">
+                <div class="modal-title">选择活动</div>
+                <button class="modal-close" onclick="game.closeAssignmentModal()">×</button>
             </div>
+            <div id="assignmentContent"></div>
         </div>
     </div>
 
+    <!-- 装备管理模态框 -->
     <div class="modal" id="equipmentModal">
         <div class="modal-content">
-            <div class="modal-title" id="equipmentModalTitle">装备管理</div>
+            <div class="modal-header">
+                <div class="modal-title" id="equipmentModalTitle">装备管理</div>
+                <button class="modal-close" onclick="game.closeEquipmentModal()">×</button>
+            </div>
             <div id="equipmentContent"></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" onclick="closeEquipmentModal()">关闭</button>
-            </div>
         </div>
     </div>
 
-    <div class="modal" id="battleModal">
+    <!-- 公司天赋树模态框 -->
+    <div class="modal" id="talentModal">
         <div class="modal-content">
-            <div class="modal-title">实时战斗</div>
-            <div id="battleContent"></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" onclick="closeBattleModal()">关闭</button>
+            <div class="modal-header">
+                <div class="modal-title">公司天赋树</div>
+                <button class="modal-close" onclick="game.closeTalentModal()">×</button>
             </div>
+            <div id="talentContent"></div>
         </div>
     </div>
 
-    <div class="modal" id="craftingModal">
+    <!-- 员工训练模态框 -->
+    <div class="modal" id="trainingModal">
         <div class="modal-content">
-            <div class="modal-title">装备制作</div>
-            <div id="craftingContent"></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" onclick="closeCraftingModal()">关闭</button>
+            <div class="modal-header">
+                <div class="modal-title">员工训练</div>
+                <button class="modal-close" onclick="game.closeTrainingModal()">×</button>
             </div>
-        </div>
-    </div>
-
-    <div class="modal" id="marketModal">
-        <div class="modal-content">
-            <div class="modal-title">全球市场</div>
-            <div id="marketContent"></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn" onclick="closeMarketModal()">关闭</button>
-            </div>
+            <div id="trainingContent"></div>
         </div>
     </div>
 
     <!-- 游戏主界面 -->
     <div class="game-container" id="gameContainer">
         <div class="header">
-            <div class="company-title">🏢✨ 都市奇幻公司管理系统 v3.0 ✨🏢</div>
+            <div class="company-title">🏢✨ 都市奇幻公司管理系统 v4.0 ✨🏢</div>
             
             <div class="company-info">
                 <div>
@@ -1461,17 +1048,17 @@
                 </div>
                 
                 <div class="company-stats">
-                    <div class="stat-item">
+                    <div class="stat-item" onclick="game.openTalentModal()">
                         <div class="stat-label">公司等级</div>
                         <div class="stat-value" id="companyLevel">1</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">员工数量</div>
-                        <div class="stat-value" id="employeeCount">0</div>
+                        <div class="stat-label">天赋点</div>
+                        <div class="stat-value" id="talentPoints">0</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">在线玩家</div>
-                        <div class="stat-value" id="onlineCount">0</div>
+                        <div class="stat-label">员工数量</div>
+                        <div class="stat-value" id="employeeCount">0</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">公司声望</div>
@@ -1481,18 +1068,18 @@
             </div>
             
             <div class="resources">
-                <div class="resource money">💰 <span id="money">5000</span></div>
-                <div class="resource food">🍖 <span id="food">100</span></div>
-                <div class="resource materials">⚒️ <span id="materials">50</span></div>
-                <div class="resource wood">🪵 <span id="wood">30</span></div>
-                <div class="resource stone">🪨 <span id="stone">20</span></div>
-                <div class="resource fish">🐟 <span id="fish">15</span></div>
-                <div class="resource cloth">🧵 <span id="cloth">10</span></div>
-                <div class="resource metal">🔗 <span id="metal">8</span></div>
-                <div class="resource gems">💎 <span id="gems">5</span></div>
-                <div class="resource knowledge">📚 <span id="knowledge">20</span></div>
-                <div class="resource magic">🔮 <span id="magic">30</span></div>
+                <div class="resource money">💰 <span id="money">10000</span></div>
+                <div class="resource food">🍖 <span id="food">200</span></div>
+                <div class="resource materials">⚒️ <span id="materials">100</span></div>
+                <div class="resource wood">🪵 <span id="wood">50</span></div>
+                <div class="resource stone">🪨 <span id="stone">40</span></div>
+                <div class="resource metal">🔗 <span id="metal">30</span></div>
+                <div class="resource cloth">🧵 <span id="cloth">20</span></div>
+                <div class="resource gems">💎 <span id="gems">10</span></div>
+                <div class="resource knowledge">📚 <span id="knowledge">50</span></div>
+                <div class="resource magic">🔮 <span id="magic">60</span></div>
                 <div class="resource artifacts">✨ <span id="artifacts">0</span></div>
+                <div class="resource exp">⭐ <span id="exp">0</span></div>
             </div>
         </div>
         
@@ -1500,14 +1087,12 @@
             <div class="left-content">
                 <div class="tabs-container">
                     <div class="tabs-header">
-                        <button class="tab-button active" onclick="switchTab('employees')">👥 员工</button>
-                        <button class="tab-button" onclick="switchTab('recruit')">🎯 招募</button>
-                        <button class="tab-button" onclick="switchTab('gathering')">🌲 采集</button>
-                        <button class="tab-button" onclick="switchTab('dungeons')">⚔️ 地牢</button>
-                        <button class="tab-button" onclick="switchTab('warehouse')">📦 仓库</button>
-                        <button class="tab-button" onclick="switchTab('crafting')">🔨 制作</button>
-                        <button class="tab-button" onclick="switchTab('market')">🛒 市场</button>
-                        <button class="tab-button" onclick="switchTab('facilities')">🏗️ 设施</button>
+                        <button class="tab-button active" onclick="game.switchTab('employees')">👥 员工</button>
+                        <button class="tab-button" onclick="game.switchTab('recruit')">🎯 招募</button>
+                        <button class="tab-button" onclick="game.switchTab('activities')">⚡ 活动</button>
+                        <button class="tab-button" onclick="game.switchTab('equipment')">⚔️ 装备</button>
+                        <button class="tab-button" onclick="game.switchTab('research')">🧪 研究</button>
+                        <button class="tab-button" onclick="game.switchTab('facilities')">🏗️ 设施</button>
                     </div>
                     
                     <div class="tab-content active" id="employees-tab">
@@ -1516,62 +1101,48 @@
                     </div>
                     
                     <div class="tab-content" id="recruit-tab">
-                        <div class="recruit-section">
-                            <h3 style="color: #9b59b6; margin-bottom: 15px;">🎯 可招募人才</h3>
-                            <div id="recruitPool" class="recruit-pool"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="tab-content" id="gathering-tab">
-                        <div id="gatheringActivities" class="activity-grid"></div>
-                    </div>
-                    
-                    <div class="tab-content" id="dungeons-tab">
-                        <div id="dungeonActivities" class="activity-grid"></div>
-                    </div>
-                    
-                    <div class="tab-content" id="warehouse-tab">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3 style="color: #9b59b6;">📦 公司仓库</h3>
-                            <div>
-                                <button class="filter-btn active" onclick="filterWarehouse('all')">全部</button>
-                                <button class="filter-btn" onclick="filterWarehouse('materials')">材料</button>
-                                <button class="filter-btn" onclick="filterWarehouse('equipment')">装备</button>
-                                <button class="filter-btn" onclick="filterWarehouse('consumables')">消耗品</button>
-                            </div>
-                        </div>
-                        <div id="warehouseGrid" class="warehouse-grid"></div>
-                    </div>
-                    
-                    <div class="tab-content" id="crafting-tab">
                         <div style="margin-bottom: 20px;">
-                            <h3 style="color: #9b59b6; margin-bottom: 15px;">🔨 装备制作工坊</h3>
-                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                <button class="filter-btn active" onclick="filterCrafting('all')">全部</button>
-                                <button class="filter-btn" onclick="filterCrafting('weapon')">武器</button>
-                                <button class="filter-btn" onclick="filterCrafting('armor')">护甲</button>
-                                <button class="filter-btn" onclick="filterCrafting('accessory')">饰品</button>
-                            </div>
+                            <h3 style="color: #9b59b6; margin-bottom: 15px;">🎯 人才招募中心</h3>
+                            <button class="btn" onclick="game.refreshRecruitPool()">🔄 刷新招募池 (100💰)</button>
                         </div>
-                        <div id="craftingSection" class="crafting-section"></div>
+                        <div id="recruitPool" class="employee-list"></div>
                     </div>
                     
-                    <div class="tab-content" id="market-tab">
+                    <div class="tab-content" id="activities-tab">
                         <div style="margin-bottom: 20px;">
-                            <h3 style="color: #9b59b6; margin-bottom: 15px;">🛒 全球交易市场</h3>
-                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                <button class="filter-btn active" onclick="filterMarket('all')">全部</button>
-                                <button class="filter-btn" onclick="filterMarket('materials')">材料</button>
-                                <button class="filter-btn" onclick="filterMarket('equipment')">装备</button>
-                                <button class="filter-btn" onclick="filterMarket('my_listings')">我的商品</button>
+                            <h3 style="color: #9b59b6;">⚡ 活动中心</h3>
+                            <div style="display: flex; gap: 10px; margin: 15px 0;">
+                                <button class="btn" onclick="game.filterActivities('all')">全部</button>
+                                <button class="btn" onclick="game.filterActivities('gathering')">采集</button>
+                                <button class="btn" onclick="game.filterActivities('combat')">战斗</button>
+                                <button class="btn" onclick="game.filterActivities('research')">研究</button>
                             </div>
-                            <button class="btn" onclick="openSellModal()" style="margin-bottom: 15px;">📤 出售物品</button>
                         </div>
-                        <div id="marketListings" class="market-listings"></div>
+                        <div id="activitiesList"></div>
+                    </div>
+                    
+                    <div class="tab-content" id="equipment-tab">
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #9b59b6;">⚔️ 装备工坊</h3>
+                            <div style="display: flex; gap: 10px; margin: 15px 0;">
+                                <button class="btn" onclick="game.showCraftingRecipes()">制作装备</button>
+                                <button class="btn" onclick="game.showEnhancement()">强化装备</button>
+                                <button class="btn" onclick="game.showSetEffects()">套装效果</button>
+                            </div>
+                        </div>
+                        <div id="equipmentContent"></div>
+                    </div>
+                    
+                    <div class="tab-content" id="research-tab">
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #9b59b6;">🧪 研究中心</h3>
+                            <p style="color: #bdc3c7;">解锁新技术，提升公司整体效率</p>
+                        </div>
+                        <div id="researchContent"></div>
                     </div>
                     
                     <div class="tab-content" id="facilities-tab">
-                        <div id="facilities" class="facility-list"></div>
+                        <div id="facilities"></div>
                     </div>
                 </div>
             </div>
@@ -1579,13 +1150,13 @@
             <div class="right-panel">
                 <div class="chat-section">
                     <div class="chat-header">
-                        💬 都市企业家聊天室
-                        <span style="font-size: 12px; color: #bdc3c7;">银河级CEO交流平台</span>
+                        💬 企业家联盟
+                        <span style="font-size: 12px; color: #bdc3c7;">深度交流平台</span>
                     </div>
                     <div class="chat-messages" id="chatMessages"></div>
                     <div class="chat-input-container">
-                        <input type="text" class="chat-input" id="chatInput" placeholder="分享你的银河级创业经历..." maxlength="200" onkeypress="if(event.key==='Enter') sendMessage()">
-                        <button class="chat-send" onclick="sendMessage()">发送</button>
+                        <input type="text" class="chat-input" id="chatInput" placeholder="分享你的企业发展心得..." maxlength="200" onkeypress="if(event.key==='Enter') game.sendMessage()">
+                        <button class="chat-send" onclick="game.sendMessage()">发送</button>
                     </div>
                 </div>
             </div>
@@ -1602,47 +1173,220 @@
                 this.companyType = 'arcane';
                 this.isConnected = false;
                 this.selectedEmployee = null;
-                this.currentBattle = null;
                 this.activeTasks = new Map();
                 
                 this.gameData = {
                     resources: {
-                        money: 5000,
-                        food: 100,
-                        materials: 50,
-                        wood: 30,
-                        stone: 20,
-                        fish: 15,
-                        cloth: 10,
-                        metal: 8,
-                        gems: 5,
-                        knowledge: 20,
-                        magic: 30,
-                        artifacts: 0
+                        money: 10000,
+                        food: 200,
+                        materials: 100,
+                        wood: 50,
+                        stone: 40,
+                        metal: 30,
+                        cloth: 20,
+                        gems: 10,
+                        knowledge: 50,
+                        magic: 60,
+                        artifacts: 0,
+                        exp: 0
                     },
                     employees: [],
-                    facilities: {
-                        dormitory: 0,
-                        cafeteria: 0,
-                        library: 0,
-                        workshop: 0,
-                        laboratory: 0,
-                        armory: 0,
-                        market_stall: 0,
-                        forge: 0
-                    },
                     companyLevel: 1,
+                    talentPoints: 0,
                     reputation: 100,
                     companyType: 'arcane',
-                    warehouse: [],
-                    marketListings: [],
-                    craftingQueue: []
+                    unlockedTalents: [],
+                    facilities: {},
+                    research: {},
+                    equipment: []
                 };
                 
                 this.recruitPool = [];
-                this.globalMarket = [];
                 this.chatMessages = [];
                 this.selectedCompanyType = 'arcane';
+                
+                // 12种职业定义
+                this.professions = {
+                    warrior: { 
+                        name: '战士', 
+                        emoji: '⚔️', 
+                        specializations: ['守护者', '狂战士', '圣骑士'],
+                        primaryStats: ['strength', 'constitution'],
+                        bonuses: { strength: 10, constitution: 5 }
+                    },
+                    mage: { 
+                        name: '法师', 
+                        emoji: '🧙', 
+                        specializations: ['元素师', '召唤师', '附魔师'],
+                        primaryStats: ['magic', 'intelligence'],
+                        bonuses: { magic: 10, intelligence: 5 }
+                    },
+                    archer: { 
+                        name: '弓箭手', 
+                        emoji: '🏹', 
+                        specializations: ['神射手', '游侠', '猎人'],
+                        primaryStats: ['dexterity', 'strength'],
+                        bonuses: { dexterity: 10, strength: 3 }
+                    },
+                    rogue: { 
+                        name: '盗贼', 
+                        emoji: '🗡️', 
+                        specializations: ['刺客', '间谍', '宝藏猎人'],
+                        primaryStats: ['dexterity', 'charisma'],
+                        bonuses: { dexterity: 8, charisma: 5 }
+                    },
+                    priest: { 
+                        name: '牧师', 
+                        emoji: '⛪', 
+                        specializations: ['治疗师', '神官', '驱魔师'],
+                        primaryStats: ['magic', 'charisma'],
+                        bonuses: { magic: 8, charisma: 7 }
+                    },
+                    engineer: { 
+                        name: '工程师', 
+                        emoji: '🔧', 
+                        specializations: ['机械师', '建筑师', '发明家'],
+                        primaryStats: ['intelligence', 'dexterity'],
+                        bonuses: { intelligence: 10, dexterity: 5 }
+                    },
+                    alchemist: { 
+                        name: '炼金术师', 
+                        emoji: '⚗️', 
+                        specializations: ['药剂师', '毒师', '变化师'],
+                        primaryStats: ['intelligence', 'magic'],
+                        bonuses: { intelligence: 8, magic: 7 }
+                    },
+                    merchant: { 
+                        name: '商人', 
+                        emoji: '💰', 
+                        specializations: ['贸易商', '拍卖师', '投资家'],
+                        primaryStats: ['charisma', 'intelligence'],
+                        bonuses: { charisma: 10, intelligence: 5 }
+                    },
+                    scholar: { 
+                        name: '学者', 
+                        emoji: '📚', 
+                        specializations: ['研究员', '考古学家', '史学家'],
+                        primaryStats: ['intelligence', 'magic'],
+                        bonuses: { intelligence: 12, magic: 3 }
+                    },
+                    beastmaster: { 
+                        name: '驯兽师', 
+                        emoji: '🐺', 
+                        specializations: ['动物伙伴', '野兽召唤', '自然守护'],
+                        primaryStats: ['charisma', 'constitution'],
+                        bonuses: { charisma: 8, constitution: 7 }
+                    },
+                    necromancer: { 
+                        name: '死灵法师', 
+                        emoji: '💀', 
+                        specializations: ['亡灵召唤', '诅咒师', '灵魂法师'],
+                        primaryStats: ['magic', 'intelligence'],
+                        bonuses: { magic: 12, intelligence: 8 }
+                    },
+                    artificer: { 
+                        name: '工匠大师', 
+                        emoji: '🔨', 
+                        specializations: ['武器锻造', '防具制作', '魔法物品'],
+                        primaryStats: ['dexterity', 'intelligence'],
+                        bonuses: { dexterity: 10, intelligence: 8 }
+                    }
+                };
+                
+                // 公司天赋树
+                this.companyTalents = {
+                    // 效率分支
+                    efficiency_1: { name: '工作效率I', cost: 1, effect: '所有工作效率+10%', unlocked: false, icon: '⚡' },
+                    efficiency_2: { name: '工作效率II', cost: 2, effect: '所有工作效率+20%', requires: ['efficiency_1'], unlocked: false, icon: '⚡' },
+                    efficiency_3: { name: '工作效率III', cost: 3, effect: '所有工作效率+30%', requires: ['efficiency_2'], unlocked: false, icon: '⚡' },
+                    
+                    // 资源分支
+                    resource_1: { name: '资源收集I', cost: 1, effect: '资源收集+15%', unlocked: false, icon: '📦' },
+                    resource_2: { name: '资源收集II', cost: 2, effect: '资源收集+30%', requires: ['resource_1'], unlocked: false, icon: '📦' },
+                    resource_3: { name: '资源收集III', cost: 3, effect: '资源收集+50%', requires: ['resource_2'], unlocked: false, icon: '📦' },
+                    
+                    // 经验分支
+                    exp_1: { name: '经验加成I', cost: 1, effect: '经验获得+25%', unlocked: false, icon: '⭐' },
+                    exp_2: { name: '经验加成II', cost: 2, effect: '经验获得+50%', requires: ['exp_1'], unlocked: false, icon: '⭐' },
+                    exp_3: { name: '经验加成III', cost: 3, effect: '经验获得+100%', requires: ['exp_2'], unlocked: false, icon: '⭐' },
+                    
+                    // 特殊分支
+                    automation: { name: '自动化系统', cost: 5, effect: '解锁自动执行功能', requires: ['efficiency_2', 'resource_2'], unlocked: false, icon: '🤖' },
+                    legendary_craft: { name: '传说工艺', cost: 4, effect: '解锁传说级装备制作', requires: ['resource_3'], unlocked: false, icon: '✨' },
+                    time_mastery: { name: '时间掌控', cost: 6, effect: '所有任务时间-25%', requires: ['efficiency_3', 'exp_3'], unlocked: false, icon: '⏰' }
+                };
+                
+                // 活动定义
+                this.activities = {
+                    // 采集活动
+                    wood_gathering: {
+                        name: '🪵 魔法森林伐木',
+                        type: 'gathering',
+                        description: '在充满魔力的古老森林中采集珍贵木材',
+                        duration: 180000, // 3分钟
+                        requirements: { strength: 20, level: 1 },
+                        rewards: { wood: 15, exp: 50, money: 200 },
+                        unlockLevel: 1
+                    },
+                    stone_mining: {
+                        name: '🪨 龙脊山脉采石',
+                        type: 'gathering',
+                        description: '在危险的龙脊山脉开采坚硬的魔法石材',
+                        duration: 240000, // 4分钟
+                        requirements: { strength: 30, constitution: 25, level: 2 },
+                        rewards: { stone: 12, gems: 2, exp: 75, money: 300 },
+                        unlockLevel: 2
+                    },
+                    metal_extraction: {
+                        name: '🔗 深渊矿井挖掘',
+                        type: 'gathering',
+                        description: '深入地下矿井挖掘稀有金属矿石',
+                        duration: 300000, // 5分钟
+                        requirements: { strength: 40, constitution: 35, level: 3 },
+                        rewards: { metal: 10, artifacts: 1, exp: 100, money: 500 },
+                        unlockLevel: 3
+                    },
+                    
+                    // 战斗活动
+                    goblin_raid: {
+                        name: '👹 哥布林营地清剿',
+                        type: 'combat',
+                        description: '清理威胁商路的哥布林营地',
+                        duration: 300000, // 5分钟
+                        requirements: { strength: 35, level: 2 },
+                        rewards: { money: 800, exp: 120, artifacts: 2 },
+                        unlockLevel: 2
+                    },
+                    dragon_challenge: {
+                        name: '🐲 古龙试炼',
+                        type: 'combat',
+                        description: '挑战传说中的古龙，获得无上荣耀',
+                        duration: 900000, // 15分钟
+                        requirements: { strength: 80, magic: 60, level: 10 },
+                        rewards: { money: 5000, exp: 1000, artifacts: 10, gems: 5 },
+                        unlockLevel: 10
+                    },
+                    
+                    // 研究活动
+                    basic_research: {
+                        name: '📚 基础魔法研究',
+                        type: 'research',
+                        description: '研究基础魔法理论，提升知识储备',
+                        duration: 240000, // 4分钟
+                        requirements: { intelligence: 30, level: 1 },
+                        rewards: { knowledge: 20, magic: 10, exp: 80 },
+                        unlockLevel: 1
+                    },
+                    advanced_research: {
+                        name: '🧪 高级法术开发',
+                        type: 'research',
+                        description: '开发新型法术，突破魔法极限',
+                        duration: 600000, // 10分钟
+                        requirements: { intelligence: 60, magic: 50, level: 5 },
+                        rewards: { knowledge: 50, magic: 30, exp: 200, artifacts: 3 },
+                        unlockLevel: 5
+                    }
+                };
                 
                 this.init();
             }
@@ -1651,7 +1395,7 @@
                 this.createStarField();
                 this.setupCompanyTypeSelector();
                 this.setupSocketListeners();
-                this.generateInitialData();
+                this.generateInitialRecruitPool();
                 this.startGameLoop();
             }
             
@@ -1695,19 +1439,8 @@
                 
                 this.socket.on('gameState', (data) => {
                     this.recruitPool = data.recruitPool || [];
-                    this.globalMarket = data.globalMarket || [];
                     this.chatMessages = data.chatMessages || [];
                     this.renderAll();
-                });
-                
-                this.socket.on('recruitPoolUpdate', (pool) => {
-                    this.recruitPool = pool;
-                    this.renderRecruitPool();
-                });
-                
-                this.socket.on('marketUpdate', (market) => {
-                    this.globalMarket = market;
-                    this.renderMarket();
                 });
                 
                 this.socket.on('chatMessage', (message) => {
@@ -1717,109 +1450,57 @@
                     }
                     this.renderChat();
                 });
-                
-                this.socket.on('battleStart', (battleData) => {
-                    this.currentBattle = battleData;
-                    this.openBattleModal();
-                });
-                
-                this.socket.on('battleUpdate', (battleData) => {
-                    if (this.currentBattle) {
-                        this.currentBattle = battleData;
-                        this.updateBattleDisplay();
-                    }
-                });
-                
-                this.socket.on('companyJoined', (company) => {
-                    this.showNotification(`🏢 ${company.name} 加入了银河商业网络！`);
-                });
             }
             
-            generateInitialData() {
-                // 生成初始仓库物品
-                this.gameData.warehouse = [
-                    { id: 'basic_sword', name: '基础剑', type: 'weapon', rarity: 'common', quantity: 2, stats: { strength: 5 } },
-                    { id: 'leather_armor', name: '皮甲', type: 'armor', rarity: 'common', quantity: 1, stats: { constitution: 3 } },
-                    { id: 'health_potion', name: '生命药水', type: 'consumable', rarity: 'common', quantity: 5, effect: 'heal_50' },
-                    { id: 'iron_ore', name: '铁矿石', type: 'material', rarity: 'common', quantity: 20 },
-                    { id: 'wood_plank', name: '木板', type: 'material', rarity: 'common', quantity: 15 }
-                ];
-                
-                // 生成初始招募池
+            generateInitialRecruitPool() {
                 this.recruitPool = [];
-                for (let i = 0; i < 6; i++) {
+                for (let i = 0; i < 8; i++) {
                     this.recruitPool.push(this.generateRandomEmployee());
                 }
             }
             
             generateRandomEmployee() {
-                const races = {
-                    human: { name: '人类', emoji: '👤', bonuses: { intelligence: 5, dexterity: 5 } },
-                    elf: { name: '精灵', emoji: '🧝', bonuses: { magic: 10, intelligence: 5 } },
-                    dwarf: { name: '矮人', emoji: '🧔', bonuses: { strength: 10, constitution: 5 } },
-                    orc: { name: '兽人', emoji: '👹', bonuses: { strength: 15, constitution: 10 } },
-                    halfling: { name: '半身人', emoji: '🧒', bonuses: { dexterity: 10, luck: 10 } },
-                    dragon: { name: '龙族', emoji: '🐲', bonuses: { magic: 20, strength: 10 } }
-                };
+                const races = ['human', 'elf', 'dwarf', 'orc', 'halfling', 'dragon'];
+                const professionKeys = Object.keys(this.professions);
                 
-                const jobs = {
-                    warrior: { name: '战士', emoji: '⚔️', skills: ['combat', 'defense'] },
-                    mage: { name: '法师', emoji: '🧙', skills: ['spellcasting', 'enchanting'] },
-                    crafter: { name: '工匠', emoji: '🔨', skills: ['crafting', 'smithing'] },
-                    gatherer: { name: '采集者', emoji: '🌿', skills: ['gathering', 'mining'] },
-                    merchant: { name: '商人', emoji: '💰', skills: ['trading', 'negotiation'] }
-                };
-                
-                const raceKeys = Object.keys(races);
-                const jobKeys = Object.keys(jobs);
-                const race = raceKeys[Math.floor(Math.random() * raceKeys.length)];
-                const job = jobKeys[Math.floor(Math.random() * jobKeys.length)];
+                const race = races[Math.floor(Math.random() * races.length)];
+                const profession = professionKeys[Math.floor(Math.random() * professionKeys.length)];
+                const professionData = this.professions[profession];
                 
                 const employee = {
                     id: 'emp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                     name: this.generateRandomName(race),
                     race: race,
-                    job: job,
-                    level: Math.floor(Math.random() * 5) + 1,
+                    profession: profession,
+                    level: 1,
+                    experience: 0,
+                    specialization: null,
                     stats: {
-                        strength: Math.floor(Math.random() * 50) + 30,
-                        intelligence: Math.floor(Math.random() * 50) + 30,
-                        magic: Math.floor(Math.random() * 50) + 30,
-                        dexterity: Math.floor(Math.random() * 50) + 30,
-                        constitution: Math.floor(Math.random() * 50) + 30,
-                        charisma: Math.floor(Math.random() * 50) + 30
+                        strength: Math.floor(Math.random() * 30) + 20,
+                        intelligence: Math.floor(Math.random() * 30) + 20,
+                        magic: Math.floor(Math.random() * 30) + 20,
+                        dexterity: Math.floor(Math.random() * 30) + 20,
+                        constitution: Math.floor(Math.random() * 30) + 20,
+                        charisma: Math.floor(Math.random() * 30) + 20
                     },
                     status: {
                         health: 100,
-                        maxHealth: 100,
-                        mood: Math.floor(Math.random() * 40) + 60,
-                        energy: Math.floor(Math.random() * 40) + 60
+                        energy: 100,
+                        mood: Math.floor(Math.random() * 40) + 60
                     },
-                    skills: {},
                     equipment: {
                         weapon: null,
                         armor: null,
                         accessory: null
                     },
-                    traits: [],
-                    salary: Math.floor(Math.random() * 200) + 100,
+                    salary: Math.floor(Math.random() * 300) + 200,
                     currentTask: null,
-                    taskEndTime: null,
-                    experience: 0
+                    taskEndTime: null
                 };
                 
-                // 应用种族加成
-                const raceInfo = races[race];
-                Object.keys(raceInfo.bonuses).forEach(stat => {
-                    if (employee.stats[stat]) {
-                        employee.stats[stat] += raceInfo.bonuses[stat];
-                    }
-                });
-                
-                // 初始化职业技能
-                const jobInfo = jobs[job];
-                jobInfo.skills.forEach(skill => {
-                    employee.skills[skill] = Math.floor(Math.random() * 30) + 20;
+                // 应用职业加成
+                Object.keys(professionData.bonuses).forEach(stat => {
+                    employee.stats[stat] += professionData.bonuses[stat];
                 });
                 
                 return employee;
@@ -1827,11 +1508,11 @@
             
             generateRandomName(race) {
                 const names = {
-                    human: ['艾伦', '莉莉', '约翰', '玛丽', '大卫', '艾米'],
-                    elf: ['埃隆迪尔', '加拉德瑞尔', '勒戈拉斯', '阿尔文'],
-                    dwarf: ['金雳', '巴林', '德瓦林', '朵力'],
-                    orc: ['格罗什', '乌鲁克', '萨鲁曼', '布格'],
-                    halfling: ['佛罗多', '山姆', '梅里', '皮平'],
+                    human: ['艾伦', '莉莉', '约翰', '玛丽', '大卫', '艾米', '杰克', '索菲亚'],
+                    elf: ['埃隆迪尔', '加拉德瑞尔', '勒戈拉斯', '阿尔文', '凯兰崔尔'],
+                    dwarf: ['金雳', '巴林', '德瓦林', '朵力', '诺力', '索林'],
+                    orc: ['格罗什', '乌鲁克', '萨鲁曼', '布格', '鲁格'],
+                    halfling: ['佛罗多', '山姆', '梅里', '皮平', '比尔博'],
                     dragon: ['巴哈姆特', '提亚马特', '金龙王', '红龙女王']
                 };
                 
@@ -1854,7 +1535,7 @@
                 this.playerId = 'company_' + Date.now();
                 
                 // 加载本地存档
-                const savedData = localStorage.getItem('fantasyCompany_v3_' + name);
+                const savedData = localStorage.getItem('fantasyCompany_v4_' + name);
                 if (savedData) {
                     try {
                         const saved = JSON.parse(savedData);
@@ -1877,42 +1558,40 @@
                 });
                 
                 this.renderAll();
-                this.showNotification(`🎉 欢迎来到银河级奇幻都市，${this.companyName}！`);
+                this.showNotification(`🎉 欢迎来到深度企业世界，${this.companyName}！`);
             }
             
             switchTab(tabName) {
                 document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-                document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+                document.querySelector(`[onclick="game.switchTab('${tabName}')"]`).classList.add('active');
                 
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 document.getElementById(`${tabName}-tab`).classList.add('active');
                 
-                // 渲染特定内容
+                // 渲染对应内容
                 switch(tabName) {
-                    case 'warehouse':
-                        this.renderWarehouse();
+                    case 'recruit':
+                        this.renderRecruitPool();
                         break;
-                    case 'crafting':
-                        this.renderCrafting();
+                    case 'activities':
+                        this.renderActivities();
                         break;
-                    case 'market':
-                        this.renderMarket();
+                    case 'equipment':
+                        this.renderEquipmentTab();
                         break;
-                    case 'gathering':
-                        this.renderGatheringActivities();
+                    case 'research':
+                        this.renderResearchTab();
                         break;
-                    case 'dungeons':
-                        this.renderDungeonActivities();
+                    case 'facilities':
+                        this.renderFacilities();
                         break;
                 }
             }
             
             renderAll() {
                 this.renderEmployees();
-                this.renderRecruitPool();
-                this.renderFacilities();
-                this.renderChat();
                 this.renderProgressBars();
+                this.renderChat();
                 this.updateDisplay();
             }
             
@@ -1935,64 +1614,78 @@
                     const div = document.createElement('div');
                     div.className = 'employee-card';
                     
-                    const races = {
-                        human: { name: '人类', emoji: '👤' },
-                        elf: { name: '精灵', emoji: '🧝' },
-                        dwarf: { name: '矮人', emoji: '🧔' },
-                        orc: { name: '兽人', emoji: '👹' },
-                        halfling: { name: '半身人', emoji: '🧒' },
-                        dragon: { name: '龙族', emoji: '🐲' }
-                    };
+                    if (employee.currentTask) {
+                        div.classList.add('working');
+                    } else if (employee.status.energy < 30) {
+                        div.classList.add('tired');
+                    } else if (employee.status.mood < 40) {
+                        div.classList.add('unhappy');
+                    }
                     
-                    const jobs = {
-                        warrior: { name: '战士', emoji: '⚔️' },
-                        mage: { name: '法师', emoji: '🧙' },
-                        crafter: { name: '工匠', emoji: '🔨' },
-                        gatherer: { name: '采集者', emoji: '🌿' },
-                        merchant: { name: '商人', emoji: '💰' }
-                    };
-                    
-                    const raceInfo = races[employee.race];
-                    const jobInfo = jobs[employee.job];
+                    const professionData = this.professions[employee.profession];
+                    const expNeeded = this.calculateExpNeeded(employee.level);
+                    const expProgress = (employee.experience / expNeeded) * 100;
                     
                     div.innerHTML = `
                         <div class="employee-header">
-                            <div class="employee-name">${raceInfo.emoji} ${employee.name}</div>
-                            <div class="employee-race">Lv.${employee.level}</div>
+                            <div class="employee-name">${this.getRaceEmoji(employee.race)} ${employee.name}</div>
+                            <div class="employee-level">Lv.${employee.level}</div>
                         </div>
-                        <div class="employee-job">${jobInfo.emoji} ${jobInfo.name}</div>
+                        <div class="employee-job">${professionData.emoji} ${professionData.name}</div>
                         
-                        <div class="health-bar" style="margin-bottom: 10px;">
-                            <div class="health-fill ${employee.status.health < 30 ? 'low' : employee.status.health < 70 ? 'medium' : ''}" 
-                                 style="width: ${(employee.status.health / employee.status.maxHealth) * 100}%"></div>
+                        <div class="employee-progress">
+                            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                                <span>经验值</span>
+                                <span>${employee.experience}/${expNeeded}</span>
+                            </div>
+                            <div class="exp-bar">
+                                <div class="exp-fill" style="width: ${expProgress}%"></div>
+                            </div>
                         </div>
                         
                         <div class="employee-stats">
-                            <div>💪 力量: ${employee.stats.strength}</div>
-                            <div>🧠 智力: ${employee.stats.intelligence}</div>
-                            <div>🔮 魔力: ${employee.stats.magic}</div>
-                            <div>⚡ 敏捷: ${employee.stats.dexterity}</div>
-                            <div>🛡️ 体质: ${employee.stats.constitution}</div>
-                            <div>💬 魅力: ${employee.stats.charisma}</div>
+                            <div>
+                                <div style="color: #e74c3c;">💪 力量: ${employee.stats.strength}</div>
+                                <div class="stat-bar"><div class="stat-fill strength" style="width: ${Math.min(100, employee.stats.strength)}%"></div></div>
+                            </div>
+                            <div>
+                                <div style="color: #3498db;">🧠 智力: ${employee.stats.intelligence}</div>
+                                <div class="stat-bar"><div class="stat-fill intelligence" style="width: ${Math.min(100, employee.stats.intelligence)}%"></div></div>
+                            </div>
+                            <div>
+                                <div style="color: #9b59b6;">🔮 魔力: ${employee.stats.magic}</div>
+                                <div class="stat-bar"><div class="stat-fill magic" style="width: ${Math.min(100, employee.stats.magic)}%"></div></div>
+                            </div>
+                            <div>
+                                <div style="color: #f39c12;">⚡ 敏捷: ${employee.stats.dexterity}</div>
+                                <div class="stat-bar"><div class="stat-fill dexterity" style="width: ${Math.min(100, employee.stats.dexterity)}%"></div></div>
+                            </div>
+                            <div>
+                                <div style="color: #27ae60;">🛡️ 体质: ${employee.stats.constitution}</div>
+                                <div class="stat-bar"><div class="stat-fill constitution" style="width: ${Math.min(100, employee.stats.constitution)}%"></div></div>
+                            </div>
+                            <div>
+                                <div style="color: #e67e22;">💬 魅力: ${employee.stats.charisma}</div>
+                                <div class="stat-bar"><div class="stat-fill charisma" style="width: ${Math.min(100, employee.stats.charisma)}%"></div></div>
+                            </div>
                         </div>
                         
-                        <div class="employee-skills">
-                            技能: ${Object.keys(employee.skills).map(skill => 
-                                `${skill}:${employee.skills[skill]}`
-                            ).join(', ')}
-                        </div>
-                        
-                        <div class="employee-equipment">
-                            装备: ${Object.values(employee.equipment).filter(e => e).map(e => e.name).join(', ') || '无'}
+                        <div class="employee-specializations">
+                            <div style="font-size: 11px; color: #9b59b6; margin-bottom: 5px;">可选专精:</div>
+                            ${professionData.specializations.map(spec => 
+                                `<span class="specialization-item">${spec}</span>`
+                            ).join('')}
                         </div>
                         
                         ${employee.currentTask ? `
-                            <div style="background: rgba(39,174,96,0.2); padding: 8px; border-radius: 4px; margin: 10px 0;">
-                                <div style="color: #27ae60; font-size: 11px;">🔄 任务中</div>
+                            <div style="background: rgba(39,174,96,0.2); padding: 8px; border-radius: 6px; margin: 10px 0;">
+                                <div style="color: #27ae60; font-size: 11px; font-weight: bold;">🔄 执行任务中</div>
+                                <div style="color: #ecf0f1; font-size: 10px;">${this.getActivityName(employee.currentTask)}</div>
                             </div>
                         ` : `
                             <div class="employee-actions">
-                                <button class="btn-small btn-assign" onclick="game.openTaskAssignment('${employee.id}')">分配</button>
+                                <button class="btn-small btn-assign" onclick="game.openTaskAssignment('${employee.id}')">任务</button>
+                                <button class="btn-small btn-train" onclick="game.openTrainingModal('${employee.id}')">训练</button>
                                 <button class="btn-small btn-rest" onclick="game.restEmployee('${employee.id}')">休息</button>
                                 <button class="btn-small btn-equipment" onclick="game.openEquipmentModal('${employee.id}')">装备</button>
                                 <button class="btn-small btn-dismiss" onclick="game.dismissEmployee('${employee.id}')">解雇</button>
@@ -2010,28 +1703,39 @@
                 
                 this.gameData.employees.forEach(employee => {
                     if (employee.currentTask && employee.taskEndTime) {
-                        const progress = this.calculateProgress(employee.taskEndTime);
+                        const activity = this.activities[employee.currentTask];
+                        if (!activity) return;
+                        
+                        const totalDuration = activity.duration;
+                        const startTime = employee.taskEndTime - totalDuration;
+                        const now = Date.now();
+                        const elapsed = now - startTime;
+                        const progress = Math.min(100, (elapsed / totalDuration) * 100);
+                        
+                        const remainingTime = Math.max(0, employee.taskEndTime - now);
+                        const minutes = Math.floor(remainingTime / 60000);
+                        const seconds = Math.floor((remainingTime % 60000) / 1000);
                         
                         const div = document.createElement('div');
                         div.className = 'progress-container';
                         
-                        const remainingTime = Math.max(0, employee.taskEndTime - Date.now());
-                        const minutes = Math.floor(remainingTime / 60000);
-                        const seconds = Math.floor((remainingTime % 60000) / 1000);
-                        
                         div.innerHTML = `
                             <div class="progress-header">
-                                <div class="progress-title">${employee.name} - ${this.getTaskName(employee.currentTask)}</div>
+                                <div class="progress-title">${employee.name} - ${activity.name}</div>
                                 <div class="progress-time">${minutes}:${seconds.toString().padStart(2, '0')}</div>
                             </div>
                             <div class="progress-bar">
-                                <div class="progress-fill ${this.getTaskType(employee.currentTask)}" style="width: ${progress}%">
+                                <div class="progress-fill ${activity.type}" style="width: ${progress}%">
                                     <div class="progress-text">${Math.round(progress)}%</div>
                                 </div>
                             </div>
                             <div class="progress-rewards">
                                 <div class="progress-rewards-title">预期奖励:</div>
-                                <div class="progress-rewards-content">${this.getTaskRewards(employee.currentTask)}</div>
+                                <div class="progress-rewards-content">
+                                    ${Object.keys(activity.rewards).map(resource => 
+                                        `<span class="reward-item">${this.getResourceEmoji(resource)} ${activity.rewards[resource]}</span>`
+                                    ).join('')}
+                                </div>
                             </div>
                         `;
                         
@@ -2040,786 +1744,332 @@
                 });
             }
             
-            calculateProgress(endTime) {
-                const now = Date.now();
-                if (now >= endTime) return 100;
-                
-                const totalDuration = 300000; // 5分钟默认
-                const remaining = endTime - now;
-                return Math.max(0, ((totalDuration - remaining) / totalDuration) * 100);
-            }
-            
-            getTaskName(taskKey) {
-                const tasks = {
-                    'gathering_wood': '伐木作业',
-                    'gathering_stone': '采石作业',
-                    'gathering_metal': '采矿作业',
-                    'dungeon_goblin': '哥布林洞穴',
-                    'dungeon_dragon': '巨龙巢穴',
-                    'crafting_sword': '制作武器',
-                    'crafting_armor': '制作护甲'
-                };
-                return tasks[taskKey] || '未知任务';
-            }
-            
-            getTaskType(taskKey) {
-                if (taskKey.includes('gathering')) return 'gathering';
-                if (taskKey.includes('dungeon')) return 'combat';
-                if (taskKey.includes('crafting')) return 'crafting';
-                return '';
-            }
-            
-            getTaskRewards(taskKey) {
-                const rewards = {
-                    'gathering_wood': '🪵 木材 +15, 💰 金币 +100',
-                    'gathering_stone': '🪨 石材 +12, 💰 金币 +120',
-                    'gathering_metal': '🔗 金属 +8, 💰 金币 +150',
-                    'dungeon_goblin': '💰 金币 +300, ✨ 神器 +1',
-                    'dungeon_dragon': '💰 金币 +1000, ✨ 神器 +3',
-                    'crafting_sword': '⚔️ 武器装备',
-                    'crafting_armor': '🛡️ 防具装备'
-                };
-                return rewards[taskKey] || '未知奖励';
-            }
-            
-            renderWarehouse() {
-                const container = document.getElementById('warehouseGrid');
-                container.innerHTML = '';
-                
-                if (this.gameData.warehouse.length === 0) {
-                    container.innerHTML = `
-                        <div style="grid-column: 1 / -1; text-align: center; color: #bdc3c7; margin-top: 50px;">
-                            <div style="font-size: 48px; margin-bottom: 20px;">📦</div>
-                            <div style="font-size: 20px; margin-bottom: 10px;">仓库空空如也</div>
-                            <div style="font-size: 14px;">去采集一些材料或制作一些物品吧！</div>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                this.gameData.warehouse.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = `warehouse-item ${item.rarity}`;
-                    
-                    const icons = {
-                        weapon: '⚔️',
-                        armor: '🛡️',
-                        accessory: '💍',
-                        material: '⚒️',
-                        consumable: '💊'
-                    };
-                    
-                    div.innerHTML = `
-                        <div class="warehouse-item-icon">${icons[item.type] || '📦'}</div>
-                        <div class="warehouse-item-name">${item.name}</div>
-                        <div class="warehouse-item-quantity">x${item.quantity}</div>
-                    `;
-                    
-                    div.onclick = () => this.showItemDetails(item);
-                    
-                    container.appendChild(div);
-                });
-            }
-            
-            renderCrafting() {
-                const container = document.getElementById('craftingSection');
-                container.innerHTML = `
-                    <div class="recipe-list">
-                        <h4 style="color: #9b59b6; margin-bottom: 15px;">配方列表</h4>
-                        <div id="recipeList"></div>
-                    </div>
-                    <div class="crafting-panel">
-                        <h4 style="color: #9b59b6; margin-bottom: 15px;">制作详情</h4>
-                        <div id="craftingDetails">选择一个配方开始制作</div>
-                    </div>
-                `;
-                
-                const recipes = [
-                    {
-                        id: 'iron_sword',
-                        name: '铁剑',
-                        type: 'weapon',
-                        level: 1,
-                        materials: { metal: 5, wood: 2 },
-                        result: { type: 'weapon', stats: { strength: 15 }, rarity: 'common' }
-                    },
-                    {
-                        id: 'steel_armor',
-                        name: '钢甲',
-                        type: 'armor',
-                        level: 2,
-                        materials: { metal: 8, cloth: 3 },
-                        result: { type: 'armor', stats: { constitution: 12 }, rarity: 'uncommon' }
-                    },
-                    {
-                        id: 'magic_ring',
-                        name: '魔法戒指',
-                        type: 'accessory',
-                        level: 3,
-                        materials: { gems: 2, metal: 3, magic: 10 },
-                        result: { type: 'accessory', stats: { magic: 10 }, rarity: 'rare' }
-                    }
-                ];
-                
-                const recipeList = document.getElementById('recipeList');
-                recipes.forEach(recipe => {
-                    const div = document.createElement('div');
-                    div.className = 'recipe-item';
-                    
-                    const canCraft = this.canCraftRecipe(recipe);
-                    
-                    div.innerHTML = `
-                        <div class="recipe-header">
-                            <div class="recipe-name">${recipe.name}</div>
-                            <div class="recipe-level">Lv.${recipe.level}</div>
-                        </div>
-                        <div class="recipe-materials">
-                            需要: ${Object.keys(recipe.materials).map(mat => 
-                                `${mat} ${recipe.materials[mat]}`
-                            ).join(', ')}
-                        </div>
-                        <div class="recipe-result" style="color: ${canCraft ? '#27ae60' : '#e74c3c'};">
-                            ${canCraft ? '✅ 可制作' : '❌ 材料不足'}
-                        </div>
-                    `;
-                    
-                    if (canCraft) {
-                        div.onclick = () => this.selectRecipe(recipe);
-                    }
-                    
-                    recipeList.appendChild(div);
-                });
-            }
-            
-            canCraftRecipe(recipe) {
-                return Object.keys(recipe.materials).every(material => {
-                    return this.gameData.resources[material] >= recipe.materials[material];
-                });
-            }
-            
-            selectRecipe(recipe) {
-                const details = document.getElementById('craftingDetails');
-                
-                details.innerHTML = `
-                    <div class="crafting-preview">
-                        <div class="crafting-item-icon">${this.getItemIcon(recipe.type)}</div>
-                        <div class="crafting-item-name">${recipe.name}</div>
-                    </div>
-                    
-                    <div class="crafting-requirements">
-                        <div class="crafting-requirements-title">所需材料:</div>
-                        ${Object.keys(recipe.materials).map(material => {
-                            const have = this.gameData.resources[material] || 0;
-                            const need = recipe.materials[material];
-                            return `
-                                <div class="crafting-requirement">
-                                    <span>${material}: ${have}/${need}</span>
-                                    <span class="${have >= need ? 'requirement-have' : 'requirement-need'}">
-                                        ${have >= need ? '✅' : '❌'}
-                                    </span>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                    
-                    <button class="btn" onclick="game.craftItem('${recipe.id}')" 
-                        ${this.canCraftRecipe(recipe) ? '' : 'disabled'} style="width: 100%;">
-                        开始制作
-                    </button>
-                `;
-            }
-            
-            getItemIcon(type) {
-                const icons = {
-                    weapon: '⚔️',
-                    armor: '🛡️',
-                    accessory: '💍'
-                };
-                return icons[type] || '📦';
-            }
-            
-            craftItem(recipeId) {
-                // 这里会启动制作流程
-                this.showNotification('制作开始！请等待完成...');
-            }
-            
-            renderMarket() {
-                const container = document.getElementById('marketListings');
-                container.innerHTML = '';
-                
-                // 模拟一些市场商品
-                const marketItems = [
-                    {
-                        id: 'market_1',
-                        item: '钢剑',
-                        price: 500,
-                        seller: '铁匠小王',
-                        type: 'weapon',
-                        rarity: 'uncommon'
-                    },
-                    {
-                        id: 'market_2',
-                        item: '魔法药水',
-                        price: 150,
-                        seller: '炼金术师',
-                        type: 'consumable',
-                        rarity: 'common'
-                    },
-                    {
-                        id: 'market_3',
-                        item: '龙鳞护甲',
-                        price: 2000,
-                        seller: '传奇铁匠',
-                        type: 'armor',
-                        rarity: 'legendary'
-                    }
-                ];
-                
-                marketItems.forEach(listing => {
-                    const div = document.createElement('div');
-                    div.className = 'market-listing';
-                    
-                    div.innerHTML = `
-                        <div class="listing-header">
-                            <div class="listing-item">${listing.item}</div>
-                            <div class="listing-seller">${listing.seller}</div>
-                        </div>
-                        <div class="listing-price">💰 ${listing.price} 金币</div>
-                        <div class="listing-actions">
-                            <button class="btn" onclick="game.buyItem('${listing.id}')" style="flex: 1;">
-                                购买
-                            </button>
-                        </div>
-                    `;
-                    
-                    container.appendChild(div);
-                });
-            }
-            
-            renderGatheringActivities() {
-                const container = document.getElementById('gatheringActivities');
-                container.innerHTML = '';
-                
-                const activities = [
-                    {
-                        id: 'wood_gathering',
-                        name: '🪵 伐木作业',
-                        description: '前往魔法森林采集珍贵木材',
-                        requirements: { strength: 25 },
-                        rewards: { wood: 15, money: 100 },
-                        duration: 300
-                    },
-                    {
-                        id: 'stone_gathering', 
-                        name: '🪨 采石作业',
-                        description: '在山脉中开采坚固的石材',
-                        requirements: { strength: 30, constitution: 20 },
-                        rewards: { stone: 12, money: 120 },
-                        duration: 360
-                    },
-                    {
-                        id: 'metal_mining',
-                        name: '⛏️ 金属开采',
-                        description: '深入矿洞挖掘稀有金属',
-                        requirements: { strength: 35, constitution: 25 },
-                        rewards: { metal: 8, money: 150 },
-                        duration: 420
-                    }
-                ];
-                
-                activities.forEach(activity => {
-                    const div = document.createElement('div');
-                    div.className = 'activity-card gathering';
-                    
-                    div.innerHTML = `
-                        <div class="activity-header">
-                            <div class="activity-title">${activity.name}</div>
-                            <div class="activity-type">采集</div>
-                        </div>
-                        <div class="activity-description">${activity.description}</div>
-                        <div class="activity-requirements">
-                            <div class="activity-info-title">要求:</div>
-                            <div>${Object.keys(activity.requirements).map(req => 
-                                `${req}: ${activity.requirements[req]}`
-                            ).join(', ')}</div>
-                        </div>
-                        <div class="activity-rewards">
-                            <div class="activity-info-title">奖励:</div>
-                            <div>${this.formatRewards(activity.rewards)}</div>
-                        </div>
-                        <button class="btn" onclick="game.selectActivity('${activity.id}')" style="width: 100%;">
-                            开始采集
-                        </button>
-                    `;
-                    
-                    container.appendChild(div);
-                });
-            }
-            
-            renderDungeonActivities() {
-                const container = document.getElementById('dungeonActivities');
-                container.innerHTML = '';
-                
-                const dungeons = [
-                    {
-                        id: 'goblin_cave',
-                        name: '👹 哥布林洞穴',
-                        description: '清理被哥布林占据的洞穴',
-                        difficulty: 'easy',
-                        requirements: { strength: 30, dexterity: 20 },
-                        rewards: { money: 300, artifacts: 1 },
-                        duration: 600
-                    },
-                    {
-                        id: 'dragon_lair',
-                        name: '🐲 巨龙巢穴',
-                        description: '挑战传说中的古龙',
-                        difficulty: 'hard',
-                        requirements: { strength: 60, magic: 50, intelligence: 40 },
-                        rewards: { money: 2000, artifacts: 5, gems: 3 },
-                        duration: 1200
-                    }
-                ];
-                
-                dungeons.forEach(dungeon => {
-                    const div = document.createElement('div');
-                    div.className = 'activity-card dungeon';
-                    
-                    const difficultyColors = {
-                        easy: '#27ae60',
-                        medium: '#f39c12',
-                        hard: '#e74c3c'
-                    };
-                    
-                    div.innerHTML = `
-                        <div class="activity-header">
-                            <div class="activity-title">${dungeon.name}</div>
-                            <div class="activity-type" style="color: ${difficultyColors[dungeon.difficulty]};">
-                                ${dungeon.difficulty.toUpperCase()}
-                            </div>
-                        </div>
-                        <div class="activity-description">${dungeon.description}</div>
-                        <div class="activity-requirements">
-                            <div class="activity-info-title">要求:</div>
-                            <div>${Object.keys(dungeon.requirements).map(req => 
-                                `${req}: ${dungeon.requirements[req]}`
-                            ).join(', ')}</div>
-                        </div>
-                        <div class="activity-rewards">
-                            <div class="activity-info-title">奖励:</div>
-                            <div>${this.formatRewards(dungeon.rewards)}</div>
-                        </div>
-                        <button class="btn" onclick="game.selectDungeon('${dungeon.id}')" style="width: 100%;">
-                            挑战地牢
-                        </button>
-                    `;
-                    
-                    container.appendChild(div);
-                });
-            }
-            
-            formatRewards(rewards) {
-                const icons = {
-                    money: '💰',
-                    wood: '🪵',
-                    stone: '🪨',
-                    metal: '🔗',
-                    gems: '💎',
-                    artifacts: '✨',
-                    food: '🍖',
-                    cloth: '🧵'
-                };
-                
-                return Object.keys(rewards).map(resource => 
-                    `${icons[resource] || '❓'} ${rewards[resource]}`
-                ).join(' ');
-            }
-            
-            selectActivity(activityId) {
-                this.openTaskAssignment(null, 'gathering', activityId);
-            }
-            
-            selectDungeon(dungeonId) {
-                this.openTaskAssignment(null, 'dungeon', dungeonId);
-            }
-            
-            openTaskAssignment(employeeId, type = null, activityId = null) {
-                const modal = document.getElementById('assignmentModal');
-                const activityList = document.getElementById('activityList');
-                activityList.innerHTML = '';
-                
-                if (type && activityId) {
-                    // 显示可分配的员工
-                    modal.querySelector('.modal-title').textContent = '选择员工';
-                    
-                    this.gameData.employees.filter(e => !e.currentTask).forEach(employee => {
-                        const div = document.createElement('div');
-                        div.className = 'activity-card';
-                        
-                        const races = {
-                            human: { emoji: '👤' }, elf: { emoji: '🧝' }, dwarf: { emoji: '🧔' },
-                            orc: { emoji: '👹' }, halfling: { emoji: '🧒' }, dragon: { emoji: '🐲' }
-                        };
-                        
-                        const jobs = {
-                            warrior: { emoji: '⚔️' }, mage: { emoji: '🧙' }, crafter: { emoji: '🔨' },
-                            gatherer: { emoji: '🌿' }, merchant: { emoji: '💰' }
-                        };
-                        
-                        div.innerHTML = `
-                            <div class="activity-header">
-                                <div class="activity-title">${races[employee.race].emoji} ${employee.name}</div>
-                                <div class="activity-type">${jobs[employee.job].emoji} Lv.${employee.level}</div>
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
-                                <div>💪 ${employee.stats.strength}</div>
-                                <div>🧠 ${employee.stats.intelligence}</div>
-                                <div>🔮 ${employee.stats.magic}</div>
-                                <div>⚡ ${employee.stats.dexterity}</div>
-                            </div>
-                        `;
-                        
-                        div.onclick = () => {
-                            this.assignTask(employee.id, type, activityId);
-                            this.closeAssignmentModal();
-                        };
-                        
-                        activityList.appendChild(div);
-                    });
-                } else {
-                    // 显示所有活动给特定员工
-                    modal.querySelector('.modal-title').textContent = '选择活动';
-                    // 这里添加活动列表逻辑
-                }
-                
-                modal.style.display = 'flex';
-            }
-            
-            assignTask(employeeId, type, activityId) {
-                const employee = this.gameData.employees.find(e => e.id === employeeId);
-                if (!employee) return;
-                
-                const taskKey = `${type}_${activityId}`;
-                const duration = type === 'gathering' ? 300000 : 600000; // 5分钟或10分钟
-                
-                employee.currentTask = taskKey;
-                employee.taskEndTime = Date.now() + duration;
-                employee.status.energy = Math.max(10, employee.status.energy - 20);
-                
-                this.showNotification(`${employee.name} 开始执行任务！`);
-                
-                // 如果是地牢任务，启动战斗
-                if (type === 'dungeon') {
-                    this.startBattle(employee, activityId);
-                }
-                
-                this.renderAll();
-                this.saveGame();
-            }
-            
-            startBattle(employee, dungeonId) {
-                // 生成敌人
-                const enemies = this.generateEnemies(dungeonId);
-                
-                this.currentBattle = {
-                    id: 'battle_' + Date.now(),
-                    team1: [employee],
-                    team2: enemies,
-                    turn: 0,
-                    log: [],
-                    status: 'active'
-                };
-                
-                this.openBattleModal();
-                this.simulateBattle();
-            }
-            
-            generateEnemies(dungeonId) {
-                const enemyTemplates = {
-                    goblin_cave: [
-                        { name: '哥布林战士', health: 80, attack: 15, defense: 5 },
-                        { name: '哥布林法师', health: 60, attack: 20, defense: 3 }
-                    ],
-                    dragon_lair: [
-                        { name: '古龙', health: 300, attack: 50, defense: 20 }
-                    ]
-                };
-                
-                const templates = enemyTemplates[dungeonId] || enemyTemplates.goblin_cave;
-                return templates.map(template => ({
-                    ...template,
-                    id: 'enemy_' + Math.random().toString(36).substr(2, 9),
-                    maxHealth: template.health
-                }));
-            }
-            
-            openBattleModal() {
-                const modal = document.getElementById('battleModal');
-                const content = document.getElementById('battleContent');
-                
-                content.innerHTML = `
-                    <div class="battle-arena">
-                        <div class="battle-field" id="battleField">
-                            <!-- 战斗场地将由JavaScript渲染 -->
-                        </div>
-                        <div class="battle-log" id="battleLog">
-                            <!-- 战斗日志 -->
-                        </div>
-                    </div>
-                `;
-                
-                modal.style.display = 'flex';
-                this.updateBattleDisplay();
-            }
-            
-            updateBattleDisplay() {
-                if (!this.currentBattle) return;
-                
-                const battleField = document.getElementById('battleField');
-                if (!battleField) return;
-                
-                battleField.innerHTML = `
-                    <div class="team-section">
-                        <div class="team-title">我方队伍</div>
-                        ${this.currentBattle.team1.map(fighter => this.renderFighter(fighter)).join('')}
-                    </div>
-                    
-                    <div class="vs-section">VS</div>
-                    
-                    <div class="team-section">
-                        <div class="team-title">敌方队伍</div>
-                        ${this.currentBattle.team2.map(fighter => this.renderFighter(fighter)).join('')}
-                    </div>
-                `;
-                
-                this.updateBattleLog();
-            }
-            
-            renderFighter(fighter) {
-                const healthPercent = (fighter.health / fighter.maxHealth) * 100;
-                
-                return `
-                    <div class="fighter-card ${fighter.health <= 0 ? 'defeated' : ''}">
-                        <div class="fighter-info">
-                            <div class="fighter-name">${fighter.name}</div>
-                            <div class="fighter-level">Lv.${fighter.level || 1}</div>
-                        </div>
-                        <div class="health-bar">
-                            <div class="health-fill ${healthPercent < 30 ? 'low' : healthPercent < 70 ? 'medium' : ''}" 
-                                 style="width: ${healthPercent}%"></div>
-                        </div>
-                        <div class="fighter-stats">
-                            <div>❤️ ${fighter.health}/${fighter.maxHealth}</div>
-                            <div>⚔️ ${fighter.attack || fighter.stats?.strength || 0}</div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            updateBattleLog() {
-                const battleLog = document.getElementById('battleLog');
-                if (!battleLog || !this.currentBattle) return;
-                
-                battleLog.innerHTML = this.currentBattle.log.map(entry => 
-                    `<div class="battle-log-entry ${entry.type}">${entry.message}</div>`
-                ).join('');
-                
-                battleLog.scrollTop = battleLog.scrollHeight;
-            }
-            
-            simulateBattle() {
-                if (!this.currentBattle || this.currentBattle.status !== 'active') return;
-                
-                const interval = setInterval(() => {
-                    if (this.currentBattle.status !== 'active') {
-                        clearInterval(interval);
-                        return;
-                    }
-                    
-                    this.processBattleTurn();
-                    this.updateBattleDisplay();
-                    
-                    // 检查战斗结束条件
-                    const team1Alive = this.currentBattle.team1.some(f => f.health > 0);
-                    const team2Alive = this.currentBattle.team2.some(f => f.health > 0);
-                    
-                    if (!team1Alive || !team2Alive) {
-                        this.currentBattle.status = 'finished';
-                        this.currentBattle.winner = team1Alive ? 'team1' : 'team2';
-                        this.endBattle();
-                        clearInterval(interval);
-                    }
-                }, 2000); // 每2秒一回合
-            }
-            
-            processBattleTurn() {
-                const allFighters = [...this.currentBattle.team1, ...this.currentBattle.team2]
-                    .filter(f => f.health > 0)
-                    .sort((a, b) => (b.stats?.dexterity || 50) - (a.stats?.dexterity || 50));
-                
-                allFighters.forEach(attacker => {
-                    if (attacker.health <= 0) return;
-                    
-                    const enemyTeam = this.currentBattle.team1.includes(attacker) 
-                        ? this.currentBattle.team2 
-                        : this.currentBattle.team1;
-                    
-                    const targets = enemyTeam.filter(f => f.health > 0);
-                    if (targets.length === 0) return;
-                    
-                    const target = targets[Math.floor(Math.random() * targets.length)];
-                    this.executeAttack(attacker, target);
-                });
-                
-                this.currentBattle.turn++;
-            }
-            
-            executeAttack(attacker, target) {
-                const attackPower = attacker.attack || attacker.stats?.strength || 20;
-                const defense = target.defense || target.stats?.constitution || 5;
-                
-                const damage = Math.max(1, attackPower - defense + Math.floor(Math.random() * 10) - 5);
-                target.health = Math.max(0, target.health - damage);
-                
-                // 添加战斗记录
-                this.currentBattle.log.push({
-                    type: 'damage',
-                    message: `${attacker.name} 对 ${target.name} 造成了 ${damage} 点伤害！`
-                });
-                
-                if (target.health <= 0) {
-                    this.currentBattle.log.push({
-                        type: 'info',
-                        message: `${target.name} 被击败了！`
-                    });
-                }
-            }
-            
-            endBattle() {
-                const victory = this.currentBattle.winner === 'team1';
-                
-                this.currentBattle.log.push({
-                    type: victory ? 'heal' : 'damage',
-                    message: victory ? '🎉 胜利！你的队伍获得了丰厚奖励！' : '💀 失败了...但经验是宝贵的财富。'
-                });
-                
-                if (victory) {
-                    // 给予奖励
-                    this.gameData.resources.money += 500;
-                    this.gameData.resources.artifacts += 1;
-                    this.showNotification('战斗胜利！获得奖励！');
-                }
-                
-                this.updateBattleDisplay();
-                this.saveGame();
-            }
-            
-            closeBattleModal() {
-                document.getElementById('battleModal').style.display = 'none';
-                this.currentBattle = null;
-            }
-            
-            closeAssignmentModal() {
-                document.getElementById('assignmentModal').style.display = 'none';
-            }
-            
-            openEquipmentModal(employeeId) {
-                // 装备管理逻辑
-                this.showNotification('装备管理功能开发中...');
-            }
-            
-            closeEquipmentModal() {
-                document.getElementById('equipmentModal').style.display = 'none';
-            }
-            
-            restEmployee(employeeId) {
-                const employee = this.gameData.employees.find(e => e.id === employeeId);
-                if (!employee) return;
-                
-                employee.status.energy = Math.min(100, employee.status.energy + 30);
-                employee.status.mood = Math.min(100, employee.status.mood + 10);
-                employee.status.health = Math.min(employee.status.maxHealth, employee.status.health + 20);
-                
-                this.showNotification(`${employee.name} 得到了充分休息！`);
-                this.renderEmployees();
-                this.saveGame();
-            }
-            
-            dismissEmployee(employeeId) {
-                const employee = this.gameData.employees.find(e => e.id === employeeId);
-                if (!employee) return;
-                
-                if (confirm(`确定要解雇 ${employee.name} 吗？`)) {
-                    this.gameData.employees = this.gameData.employees.filter(e => e.id !== employeeId);
-                    this.showNotification(`${employee.name} 已被解雇`);
-                    this.renderEmployees();
-                    this.updateDisplay();
-                    this.saveGame();
-                }
-            }
-            
             renderRecruitPool() {
                 const container = document.getElementById('recruitPool');
                 container.innerHTML = '';
                 
                 this.recruitPool.forEach(employee => {
                     const div = document.createElement('div');
-                    div.className = 'recruit-card';
+                    div.className = 'employee-card';
                     
-                    const races = {
-                        human: { name: '人类', emoji: '👤' },
-                        elf: { name: '精灵', emoji: '🧝' },
-                        dwarf: { name: '矮人', emoji: '🧔' },
-                        orc: { name: '兽人', emoji: '👹' },
-                        halfling: { name: '半身人', emoji: '🧒' },
-                        dragon: { name: '龙族', emoji: '🐲' }
-                    };
-                    
-                    const jobs = {
-                        warrior: { name: '战士', emoji: '⚔️' },
-                        mage: { name: '法师', emoji: '🧙' },
-                        crafter: { name: '工匠', emoji: '🔨' },
-                        gatherer: { name: '采集者', emoji: '🌿' },
-                        merchant: { name: '商人', emoji: '💰' }
-                    };
-                    
-                    const raceInfo = races[employee.race];
-                    const jobInfo = jobs[employee.job];
+                    const professionData = this.professions[employee.profession];
                     const cost = employee.salary * 5;
                     const canAfford = this.gameData.resources.money >= cost;
                     
                     div.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <div style="font-weight: bold; color: #9b59b6;">${raceInfo.emoji} ${employee.name}</div>
-                            <div style="color: #3498db;">Lv.${employee.level}</div>
+                        <div class="employee-header">
+                            <div class="employee-name">${this.getRaceEmoji(employee.race)} ${employee.name}</div>
+                            <div class="employee-level">Lv.${employee.level}</div>
                         </div>
-                        <div style="color: #e67e22; margin-bottom: 10px;">${jobInfo.emoji} ${jobInfo.name}</div>
+                        <div class="employee-job">${professionData.emoji} ${professionData.name}</div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px; font-size: 11px;">
+                        <div class="employee-stats">
                             <div>💪 ${employee.stats.strength}</div>
                             <div>🧠 ${employee.stats.intelligence}</div>
                             <div>🔮 ${employee.stats.magic}</div>
                             <div>⚡ ${employee.stats.dexterity}</div>
+                            <div>🛡️ ${employee.stats.constitution}</div>
+                            <div>💬 ${employee.stats.charisma}</div>
                         </div>
                         
-                        <div style="font-size: 11px; color: #3498db; margin-bottom: 10px;">
-                            技能: ${Object.keys(employee.skills).map(skill => 
-                                `${skill}:${employee.skills[skill]}`
-                            ).join(', ')}
+                        <div class="employee-specializations">
+                            <div style="font-size: 11px; color: #9b59b6; margin-bottom: 5px;">可选专精:</div>
+                            ${professionData.specializations.map(spec => 
+                                `<span class="specialization-item">${spec}</span>`
+                            ).join('')}
                         </div>
                         
-                        <div style="font-size: 12px; color: #f39c12; margin-bottom: 15px;">
-                            招募费用: ${cost} 💰 | 工资: ${employee.salary}/天
+                        <div style="font-size: 12px; color: #f39c12; margin: 15px 0; text-align: center;">
+                            招募费用: ${cost} 💰<br>
+                            月薪: ${employee.salary} 💰
                         </div>
                         
-                        <button class="btn" onclick="game.recruitEmployee('${employee.id}')" 
-                            ${canAfford ? '' : 'disabled'} style="width: 100%;">
+                        <button class="btn ${canAfford ? 'success' : ''}" 
+                                onclick="game.recruitEmployee('${employee.id}')" 
+                                ${canAfford ? '' : 'disabled'} 
+                                style="width: 100%;">
                             ${canAfford ? '招募' : '资金不足'}
                         </button>
                     `;
                     
                     container.appendChild(div);
                 });
+            }
+            
+            renderActivities() {
+                const container = document.getElementById('activitiesList');
+                container.innerHTML = '';
+                
+                Object.keys(this.activities).forEach(activityKey => {
+                    const activity = this.activities[activityKey];
+                    
+                    // 检查解锁条件
+                    if (this.gameData.companyLevel < activity.unlockLevel) return;
+                    
+                    const div = document.createElement('div');
+                    div.className = `activity-card ${activity.type}`;
+                    
+                    const difficultyColor = this.getDifficultyColor(activity.requirements);
+                    
+                    div.innerHTML = `
+                        <div class="activity-header">
+                            <div class="activity-title">${activity.name}</div>
+                            <div class="activity-type" style="background: ${difficultyColor}20; color: ${difficultyColor};">
+                                ${activity.type.toUpperCase()}
+                            </div>
+                        </div>
+                        
+                        <div style="color: #bdc3c7; font-size: 12px; margin-bottom: 10px;">
+                            ${activity.description}
+                        </div>
+                        
+                        <div style="background: rgba(231,76,60,0.2); padding: 8px; border-radius: 6px; margin-bottom: 10px;">
+                            <div style="color: #e74c3c; font-size: 11px; font-weight: bold;">要求:</div>
+                            <div style="color: #ecf0f1; font-size: 10px;">
+                                ${Object.keys(activity.requirements).map(req => 
+                                    `${req}: ${activity.requirements[req]}`
+                                ).join(' | ')}
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(39,174,96,0.2); padding: 8px; border-radius: 6px; margin-bottom: 10px;">
+                            <div style="color: #27ae60; font-size: 11px; font-weight: bold;">奖励:</div>
+                            <div style="color: #ecf0f1; font-size: 10px;">
+                                ${Object.keys(activity.rewards).map(resource => 
+                                    `${this.getResourceEmoji(resource)} ${activity.rewards[resource]}`
+                                ).join(' ')}
+                            </div>
+                        </div>
+                        
+                        <div style="color: #bdc3c7; font-size: 10px; margin-bottom: 10px;">
+                            ⏱️ 持续时间: ${Math.floor(activity.duration / 60000)} 分钟
+                        </div>
+                        
+                        <button class="btn" onclick="game.selectActivity('${activityKey}')" style="width: 100%;">
+                            选择此活动
+                        </button>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+            
+            openTaskAssignment(employeeId) {
+                this.selectedEmployee = employeeId;
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                if (!employee) return;
+                
+                const modal = document.getElementById('assignmentModal');
+                const content = document.getElementById('assignmentContent');
+                
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #9b59b6;">为 ${employee.name} 选择活动</h4>
+                        <p style="color: #bdc3c7; font-size: 12px;">Lv.${employee.level} ${this.professions[employee.profession].name}</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                        ${Object.keys(this.activities).map(activityKey => {
+                            const activity = this.activities[activityKey];
+                            const suitable = this.checkActivityRequirements(employee, activity);
+                            
+                            return `
+                                <div class="activity-card ${activity.type} ${suitable ? '' : 'unsuitable'}" 
+                                     onclick="${suitable ? `game.assignActivity('${employeeId}', '${activityKey}')` : ''}">
+                                    <div class="activity-header">
+                                        <div class="activity-title">${activity.name}</div>
+                                        <div class="activity-type">${activity.type}</div>
+                                    </div>
+                                    <div style="font-size: 11px; color: ${suitable ? '#27ae60' : '#e74c3c'}; margin: 10px 0;">
+                                        ${suitable ? '✅ 符合要求' : '❌ 要求不足'}
+                                    </div>
+                                    <div style="color: #bdc3c7; font-size: 10px;">
+                                        ${Object.keys(activity.requirements).map(req => 
+                                            `${req}: ${employee.stats[req] || employee.level}/${activity.requirements[req]}`
+                                        ).join(' | ')}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+            }
+            
+            openTrainingModal(employeeId) {
+                this.selectedEmployee = employeeId;
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                if (!employee) return;
+                
+                const modal = document.getElementById('trainingModal');
+                const content = document.getElementById('trainingContent');
+                
+                const professionData = this.professions[employee.profession];
+                const trainingCost = employee.level * 500;
+                const canAfford = this.gameData.resources.money >= trainingCost;
+                
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #9b59b6;">${employee.name} 的训练选项</h4>
+                        <p style="color: #bdc3c7; font-size: 12px;">提升属性或解锁专精</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <h5 style="color: #3498db; margin-bottom: 10px;">属性训练</h5>
+                            ${Object.keys(employee.stats).map(stat => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                                    <span>${this.getStatName(stat)}: ${employee.stats[stat]}</span>
+                                    <button class="btn-small" onclick="game.trainStat('${employeeId}', '${stat}')" 
+                                            ${canAfford ? '' : 'disabled'}>
+                                        训练 (${trainingCost}💰)
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div>
+                            <h5 style="color: #e67e22; margin-bottom: 10px;">专精解锁</h5>
+                            ${professionData.specializations.map(spec => `
+                                <div style="padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px; margin-bottom: 8px;">
+                                    <div style="font-weight: bold; color: #9b59b6;">${spec}</div>
+                                    <div style="font-size: 11px; color: #bdc3c7; margin: 5px 0;">解锁等级: ${this.getSpecializationRequirement(spec)}</div>
+                                    <button class="btn-small" onclick="game.unlockSpecialization('${employeeId}', '${spec}')" 
+                                            ${employee.level >= this.getSpecializationRequirement(spec) ? '' : 'disabled'}>
+                                        ${employee.specialization === spec ? '已解锁' : '解锁'}
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+            }
+            
+            openTalentModal() {
+                const modal = document.getElementById('talentModal');
+                const content = document.getElementById('talentContent');
+                
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #9b59b6;">公司天赋树</h4>
+                        <p style="color: #bdc3c7;">可用天赋点: <span style="color: #f39c12;">${this.gameData.talentPoints}</span></p>
+                    </div>
+                    
+                    <div class="talent-tree">
+                        ${Object.keys(this.companyTalents).map(talentKey => {
+                            const talent = this.companyTalents[talentKey];
+                            const canUnlock = this.canUnlockTalent(talentKey);
+                            const isUnlocked = talent.unlocked;
+                            
+                            return `
+                                <div class="talent-node ${isUnlocked ? 'unlocked' : canUnlock ? 'available' : ''}" 
+                                     onclick="${canUnlock && !isUnlocked ? `game.unlockTalent('${talentKey}')` : ''}">
+                                    <div class="talent-icon">${talent.icon}</div>
+                                    <div class="talent-name">${talent.name}</div>
+                                    <div class="talent-cost">${isUnlocked ? '已解锁' : `${talent.cost} 点`}</div>
+                                    <div style="font-size: 9px; color: #bdc3c7; margin-top: 5px;">${talent.effect}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+            }
+            
+            // 修复所有关闭模态框的函数
+            closeAssignmentModal() {
+                document.getElementById('assignmentModal').style.display = 'none';
+                this.selectedEmployee = null;
+            }
+            
+            closeEquipmentModal() {
+                document.getElementById('equipmentModal').style.display = 'none';
+                this.selectedEmployee = null;
+            }
+            
+            closeTalentModal() {
+                document.getElementById('talentModal').style.display = 'none';
+            }
+            
+            closeTrainingModal() {
+                document.getElementById('trainingModal').style.display = 'none';
+                this.selectedEmployee = null;
+            }
+            
+            // 游戏逻辑函数
+            selectActivity(activityKey) {
+                // 显示可用员工列表
+                const modal = document.getElementById('assignmentModal');
+                const content = document.getElementById('assignmentContent');
+                
+                const activity = this.activities[activityKey];
+                const availableEmployees = this.gameData.employees.filter(e => !e.currentTask);
+                
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #9b59b6;">选择员工执行: ${activity.name}</h4>
+                        <p style="color: #bdc3c7; font-size: 12px;">${activity.description}</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+                        ${availableEmployees.map(employee => {
+                            const suitable = this.checkActivityRequirements(employee, activity);
+                            
+                            return `
+                                <div class="employee-card ${suitable ? '' : 'unsuitable'}" 
+                                     onclick="${suitable ? `game.assignActivity('${employee.id}', '${activityKey}')` : ''}">
+                                    <div class="employee-header">
+                                        <div class="employee-name">${this.getRaceEmoji(employee.race)} ${employee.name}</div>
+                                        <div class="employee-level">Lv.${employee.level}</div>
+                                    </div>
+                                    <div style="font-size: 11px; color: ${suitable ? '#27ae60' : '#e74c3c'}; margin: 10px 0;">
+                                        ${suitable ? '✅ 符合要求' : '❌ 要求不足'}
+                                    </div>
+                                    <div style="font-size: 10px; color: #bdc3c7;">
+                                        ${Object.keys(activity.requirements).map(req => 
+                                            `${req}: ${employee.stats[req] || employee.level}/${activity.requirements[req]}`
+                                        ).join(' | ')}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+            }
+            
+            assignActivity(employeeId, activityKey) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                const activity = this.activities[activityKey];
+                
+                if (!employee || !activity) return;
+                
+                employee.currentTask = activityKey;
+                employee.taskEndTime = Date.now() + activity.duration;
+                employee.status.energy = Math.max(10, employee.status.energy - 20);
+                
+                this.showNotification(`${employee.name} 开始执行 ${activity.name}！`);
+                this.closeAssignmentModal();
+                this.renderAll();
+                this.saveGame();
+            }
+            
+            restEmployee(employeeId) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                if (!employee) return;
+                
+                employee.status.energy = Math.min(100, employee.status.energy + 40);
+                employee.status.mood = Math.min(100, employee.status.mood + 20);
+                employee.status.health = 100;
+                
+                this.showNotification(`${employee.name} 得到了充分休息！`);
+                this.renderEmployees();
+                this.saveGame();
             }
             
             recruitEmployee(employeeId) {
@@ -2844,79 +2094,146 @@
                 this.saveGame();
             }
             
+            refreshRecruitPool() {
+                if (this.gameData.resources.money < 100) {
+                    this.showNotification('资金不足，无法刷新招募池！');
+                    return;
+                }
+                
+                this.gameData.resources.money -= 100;
+                this.generateInitialRecruitPool();
+                this.renderRecruitPool();
+                this.showNotification('招募池已刷新！');
+                this.saveGame();
+            }
+            
+            trainStat(employeeId, stat) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                if (!employee) return;
+                
+                const cost = employee.level * 500;
+                if (this.gameData.resources.money < cost) {
+                    this.showNotification('资金不足，无法训练！');
+                    return;
+                }
+                
+                this.gameData.resources.money -= cost;
+                employee.stats[stat] += Math.floor(Math.random() * 5) + 3; // 增加3-7点属性
+                
+                this.showNotification(`${employee.name} 的 ${this.getStatName(stat)} 得到了提升！`);
+                this.openTrainingModal(employeeId); // 刷新界面
+                this.saveGame();
+            }
+            
+            unlockTalent(talentKey) {
+                const talent = this.companyTalents[talentKey];
+                if (!talent || talent.unlocked || this.gameData.talentPoints < talent.cost) return;
+                
+                this.gameData.talentPoints -= talent.cost;
+                talent.unlocked = true;
+                this.gameData.unlockedTalents.push(talentKey);
+                
+                this.showNotification(`解锁公司天赋: ${talent.name}！`);
+                this.openTalentModal(); // 刷新界面
+                this.saveGame();
+            }
+            
+            // 辅助函数
+            calculateExpNeeded(level) {
+                return level * 100 + Math.pow(level, 2) * 50;
+            }
+            
+            checkActivityRequirements(employee, activity) {
+                return Object.keys(activity.requirements).every(req => {
+                    if (req === 'level') {
+                        return employee.level >= activity.requirements[req];
+                    }
+                    return employee.stats[req] >= activity.requirements[req];
+                });
+            }
+            
+            canUnlockTalent(talentKey) {
+                const talent = this.companyTalents[talentKey];
+                if (talent.unlocked || this.gameData.talentPoints < talent.cost) return false;
+                
+                if (!talent.requires) return true;
+                
+                return talent.requires.every(req => this.companyTalents[req].unlocked);
+            }
+            
+            getActivityName(activityKey) {
+                return this.activities[activityKey]?.name || '未知活动';
+            }
+            
+            getRaceEmoji(race) {
+                const emojis = {
+                    human: '👤', elf: '🧝', dwarf: '🧔', orc: '👹', 
+                    halfling: '🧒', dragon: '🐲'
+                };
+                return emojis[race] || '👤';
+            }
+            
+            getResourceEmoji(resource) {
+                const emojis = {
+                    money: '💰', food: '🍖', materials: '⚒️', wood: '🪵',
+                    stone: '🪨', metal: '🔗', cloth: '🧵', gems: '💎',
+                    knowledge: '📚', magic: '🔮', artifacts: '✨', exp: '⭐'
+                };
+                return emojis[resource] || '❓';
+            }
+            
+            getStatName(stat) {
+                const names = {
+                    strength: '力量', intelligence: '智力', magic: '魔力',
+                    dexterity: '敏捷', constitution: '体质', charisma: '魅力'
+                };
+                return names[stat] || stat;
+            }
+            
+            getDifficultyColor(requirements) {
+                const totalReq = Object.values(requirements).reduce((a, b) => a + b, 0);
+                if (totalReq < 50) return '#27ae60';
+                if (totalReq < 100) return '#f39c12';
+                return '#e74c3c';
+            }
+            
+            getSpecializationRequirement(spec) {
+                // 专精解锁等级要求
+                return Math.floor(Math.random() * 5) + 3; // 3-7级
+            }
+            
+            // 渲染其他标签页的函数
+            renderEquipmentTab() {
+                const container = document.getElementById('equipmentContent');
+                container.innerHTML = `
+                    <div style="text-align: center; color: #bdc3c7; margin-top: 100px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">⚔️</div>
+                        <div style="font-size: 20px; margin-bottom: 10px;">装备系统开发中</div>
+                        <div style="font-size: 14px;">敬请期待强化+15系统和套装效果！</div>
+                    </div>
+                `;
+            }
+            
+            renderResearchTab() {
+                const container = document.getElementById('researchContent');
+                container.innerHTML = `
+                    <div style="text-align: center; color: #bdc3c7; margin-top: 100px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🧪</div>
+                        <div style="font-size: 20px; margin-bottom: 10px;">研究系统开发中</div>
+                        <div style="font-size: 14px;">解锁新技术，提升公司整体效率！</div>
+                    </div>
+                `;
+            }
+            
             renderFacilities() {
                 const container = document.getElementById('facilities');
-                container.innerHTML = '';
-                
-                const facilityTypes = {
-                    dormitory: { name: '员工宿舍', emoji: '🏠', cost: { money: 2000, materials: 20 } },
-                    cafeteria: { name: '员工食堂', emoji: '🍽️', cost: { money: 1500, food: 50 } },
-                    workshop: { name: '工艺工坊', emoji: '🔨', cost: { money: 2500, materials: 30 } },
-                    market_stall: { name: '市场摊位', emoji: '🛒', cost: { money: 3000, materials: 25 } },
-                    forge: { name: '锻造炉', emoji: '⚒️', cost: { money: 4000, metal: 20 } }
-                };
-                
-                Object.keys(facilityTypes).forEach(key => {
-                    const facility = facilityTypes[key];
-                    const currentLevel = this.gameData.facilities[key] || 0;
-                    const cost = this.calculateFacilityCost(facility.cost, currentLevel + 1);
-                    const canAfford = this.canAfford(cost);
-                    
-                    const div = document.createElement('div');
-                    div.className = `facility-card ${canAfford ? 'affordable' : 'expensive'}`;
-                    
-                    div.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <div style="font-weight: bold; color: #9b59b6;">
-                                ${facility.emoji} ${facility.name}
-                            </div>
-                            <div style="background: rgba(155,89,182,0.3); color: #9b59b6; padding: 4px 8px; border-radius: 10px; font-size: 12px;">
-                                Lv.${currentLevel}
-                            </div>
-                        </div>
-                        
-                        <div style="background: rgba(231,76,60,0.2); padding: 8px; border-radius: 6px; margin-bottom: 10px;">
-                            <div style="color: #e74c3c; font-size: 11px; font-weight: bold;">升级费用:</div>
-                            <div style="color: #ecf0f1; font-size: 10px;">${this.formatCost(cost)}</div>
-                        </div>
-                        
-                        <button class="btn" onclick="game.upgradeFacility('${key}')" 
-                            ${canAfford ? '' : 'disabled'} style="width: 100%;">
-                            ${canAfford ? '升级设施' : '资源不足'}
-                        </button>
-                    `;
-                    
-                    container.appendChild(div);
-                });
-            }
-            
-            calculateFacilityCost(baseCost, level) {
-                const cost = {};
-                Object.keys(baseCost).forEach(resource => {
-                    cost[resource] = Math.floor(baseCost[resource] * Math.pow(1.5, level - 1));
-                });
-                return cost;
-            }
-            
-            canAfford(cost) {
-                return Object.keys(cost).every(resource => 
-                    this.gameData.resources[resource] >= cost[resource]);
-            }
-            
-            formatCost(cost) {
-                const icons = {
-                    money: '💰', food: '🍖', materials: '⚒️', wood: '🪵', stone: '🪨',
-                    metal: '🔗', cloth: '🧵', gems: '💎'
-                };
-                
-                return Object.keys(cost).map(r => 
-                    `${icons[r] || '❓'} ${cost[r]}`
-                ).join(' ');
-            }
-            
-            upgradeFacility(facilityKey) {
-                // 设施升级逻辑
-                this.showNotification('设施升级功能开发中...');
+                container.innerHTML = `
+                    <div style="text-align: center; color: #bdc3c7; margin-top: 100px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🏗️</div>
+                        <div style="font-size: 20px; margin-bottom: 10px;">设施系统开发中</div>
+                        <div style="font-size: 14px;">建设各种设施，提升员工效率！</div>
+                    </div>
+                `;
             }
             
             renderChat() {
@@ -2975,7 +2292,7 @@
             }
             
             saveGame() {
-                localStorage.setItem('fantasyCompany_v3_' + this.companyName, JSON.stringify(this.gameData));
+                localStorage.setItem('fantasyCompany_v4_' + this.companyName, JSON.stringify(this.gameData));
             }
             
             updateDisplay() {
@@ -2987,6 +2304,7 @@
                 });
                 
                 document.getElementById('companyLevel').textContent = this.gameData.companyLevel;
+                document.getElementById('talentPoints').textContent = this.gameData.talentPoints;
                 document.getElementById('employeeCount').textContent = this.gameData.employees.length;
                 document.getElementById('reputation').textContent = this.gameData.reputation;
             }
@@ -3013,34 +2331,24 @@
             }
             
             completeTask(employee) {
-                const [type, activityId] = employee.currentTask.split('_');
+                const activity = this.activities[employee.currentTask];
+                if (!activity) return;
                 
-                // 根据任务类型给予奖励
-                if (type === 'gathering') {
-                    const rewards = {
-                        wood: { wood: 15, money: 100 },
-                        stone: { stone: 12, money: 120 },
-                        metal: { metal: 8, money: 150 }
-                    };
-                    
-                    const reward = rewards[activityId];
-                    if (reward) {
-                        Object.keys(reward).forEach(resource => {
-                            this.gameData.resources[resource] += reward[resource];
-                        });
-                    }
-                } else if (type === 'dungeon') {
-                    // 地牢奖励
-                    this.gameData.resources.money += 500;
-                    this.gameData.resources.artifacts += 1;
-                }
+                // 给予奖励
+                Object.keys(activity.rewards).forEach(resource => {
+                    this.gameData.resources[resource] += activity.rewards[resource];
+                });
                 
-                // 增加经验
-                employee.experience += 20;
-                if (employee.experience >= employee.level * 100) {
+                // 给予经验
+                employee.experience += activity.rewards.exp || 50;
+                
+                // 检查升级
+                const expNeeded = this.calculateExpNeeded(employee.level);
+                if (employee.experience >= expNeeded) {
                     employee.level++;
                     employee.experience = 0;
-                    this.showNotification(`${employee.name} 升级到 Lv.${employee.level}！`);
+                    this.gameData.talentPoints += 1; // 每级获得1天赋点
+                    this.showNotification(`${employee.name} 升级到 Lv.${employee.level}！获得1天赋点！`);
                 }
                 
                 // 清除任务状态
@@ -3048,8 +2356,25 @@
                 employee.taskEndTime = null;
                 employee.status.energy = Math.max(0, employee.status.energy - 15);
                 
-                this.showNotification(`${employee.name} 完成了任务！`);
+                this.showNotification(`${employee.name} 完成了 ${activity.name}！`);
                 this.renderAll();
+            }
+            
+            dismissEmployee(employeeId) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                if (!employee) return;
+                
+                if (confirm(`确定要解雇 ${employee.name} 吗？`)) {
+                    this.gameData.employees = this.gameData.employees.filter(e => e.id !== employeeId);
+                    this.showNotification(`${employee.name} 已被解雇`);
+                    this.renderEmployees();
+                    this.updateDisplay();
+                    this.saveGame();
+                }
+            }
+            
+            openEquipmentModal(employeeId) {
+                this.showNotification('装备系统正在开发中，敬请期待！');
             }
         }
         
@@ -3061,14 +2386,6 @@
                 game = new FantasyCompany();
             }
             game.joinGame();
-        }
-        
-        function sendMessage() {
-            if (game) game.sendMessage();
-        }
-        
-        function switchTab(tabName) {
-            if (game) game.switchTab(tabName);
         }
         
         // 初始化
