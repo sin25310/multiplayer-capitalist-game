@@ -2,7 +2,7 @@
   "name": "fantasy-company-game",
   "version": "1.0.0",
   "description": "幻想公司经营游戏",
-  "main": "index.html",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
