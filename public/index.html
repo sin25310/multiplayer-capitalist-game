@@ -1324,6 +1324,115 @@
                 this.globalEvent = null;
                 this.alliances = [];
                 
+                // 公司类型配置
+                this.companyTypes = {
+                    tech: {
+                        name: '科技公司',
+                        emoji: '💻',
+                        bonuses: { technology: 30, data: 20 },
+                        specialization: '数据和科技产出+50%'
+                    },
+                    manufacturing: {
+                        name: '制造公司',
+                        emoji: '🏭',
+                        bonuses: { materials: 80, energy: 50 },
+                        specialization: '材料和能源产出+50%'
+                    },
+                    finance: {
+                        name: '金融公司',
+                        emoji: '💳',
+                        bonuses: { money: 500000, influence: 20 },
+                        specialization: '金钱产出+50%，股票交易费用-50%'
+                    },
+                    retail: {
+                        name: '零售公司',
+                        emoji: '🛒',
+                        bonuses: { reputation: 80, workforce: 30 },
+                        specialization: '声誉和人力招聘+50%'
+                    }
+                };
+                
+                // 部门生产配置
+                this.departmentData = {
+                    hr: { 
+                        production: { workforce: 2, money: 10000 }, 
+                        consumption: { money: 5000 },
+                        description: '招聘人力，基础收入'
+                    },
+                    manufacturing: { 
+                        production: { materials: 8, money: 25000 }, 
+                        consumption: { workforce: 3, energy: 5 },
+                        description: '生产材料，稳定收入'
+                    },
+                    rd: { 
+                        production: { technology: 3, data: 4, money: 30000 }, 
+                        consumption: { workforce: 5, money: 8000 },
+                        description: '研发科技，高价值产出'
+                    },
+                    marketing: { 
+                        production: { reputation: 4, money: 35000 }, 
+                        consumption: { workforce: 4, money: 10000, data: 2 },
+                        description: '提升声誉，品牌价值'
+                    },
+                    finance: { 
+                        production: { money: 80000, influence: 2 }, 
+                        consumption: { workforce: 8, data: 6 },
+                        description: '金融投资，高额回报'
+                    }
+                };
+                
+                // 策略配置
+                this.strategies = {
+                    market_manipulation: {
+                        name: '市场操控',
+                        cost: { money: 500000, influence: 15 },
+                        cooldown: 300, // 5分钟
+                        target: 'self',
+                        description: '操控股价，提升自己市值20%',
+                        effect: '暂时提升市值，获得额外收益'
+                    },
+                    industrial_espionage: {
+                        name: '工业间谍',
+                        cost: { money: 300000, influence: 10 },
+                        cooldown: 240, // 4分钟
+                        target: 'other',
+                        description: '窃取竞争对手技术和数据',
+                        effect: '获得目标公司的科技和数据资源'
+                    },
+                    hostile_takeover: {
+                        name: '恶意收购',
+                        cost: { money: 2000000, influence: 50 },
+                        cooldown: 600, // 10分钟
+                        target: 'other',
+                        description: '强行收购竞争对手部分资产',
+                        effect: '降低目标市值，获得其资源'
+                    },
+                    media_campaign: {
+                        name: '媒体造势',
+                        cost: { money: 200000, reputation: 20 },
+                        cooldown: 180, // 3分钟
+                        target: 'self',
+                        description: '大规模宣传，提升声誉和影响力',
+                        effect: '大幅提升声誉，影响市场价格'
+                    },
+                    price_war: {
+                        name: '价格战',
+                        cost: { money: 800000, materials: 100 },
+                        cooldown: 420, // 7分钟
+                        target: 'market',
+                        description: '发起价格战，冲击整个市场',
+                        effect: '降低市场价格，影响所有竞争者'
+                    },
+                    regulatory_bribery: {
+                        name: '监管贿赂',
+                        cost: { money: 1000000, influence: 30 },
+                        cooldown: 480, // 8分钟
+                        target: 'self',
+                        description: '贿赂监管机构，获得政策优势',
+                        effect: '降低成本，提升效率，影响法规'
+                    }
+                };
+                
                 // 攻击系统配置
                 this.attackTypes = {
                     spy: {
@@ -1361,6 +1470,20 @@
                 this.initCharts();
                 this.startGameLoop();
                 this.startNewsUpdate();
+            }
+            
+            setupCompanyTypeSelector() {
+                const types = document.querySelectorAll('.company-type');
+                types.forEach(type => {
+                    type.addEventListener('click', () => {
+                        types.forEach(t => t.classList.remove('selected'));
+                        type.classList.add('selected');
+                        this.selectedCompanyType = type.dataset.type;
+                    });
+                });
+                
+                // 默认选择科技公司
+                document.querySelector('.company-type[data-type="tech"]').classList.add('selected');
             }
             
             initCharts() {
@@ -1768,79 +1891,6 @@
                 });
             }
 
-            // 原有方法保持不变，只是增加一些调用
-            setupCompanyTypeSelector() {
-                const types = document.querySelectorAll('.company-type');
-                types.forEach(type => {
-                    type.addEventListener('click', () => {
-                        types.forEach(t => t.classList.remove('selected'));
-                        type.classList.add('selected');
-                        this.selectedCompanyType = type.dataset.type;
-                    });
-                });
-                
-                document.querySelector('.company-type[data-type="tech"]').classList.add('selected');
-            }
-            
-            setupSocketListeners() {
-                this.socket.on('connect', () => {
-                    this.isConnected = true;
-                    this.updateConnectionStatus();
-                    console.log('🔗 连接到商业帝国服务器');
-                });
-                
-                this.socket.on('disconnect', () => {
-                    this.isConnected = false;
-                    this.updateConnectionStatus();
-                    console.log('💔 与服务器断开连接');
-                });
-                
-                this.socket.on('gameState', (data) => {
-                    this.globalMarket = data.globalMarket;
-                    this.marketContracts = data.marketContracts || [];
-                    this.leaderboard = data.leaderboard;
-                    this.chatMessages = data.chatMessages;
-                    this.globalEvent = data.globalEvent;
-                    this.alliances = data.alliances || [];
-                    this.renderAll();
-                    this.updateGlobalEvent();
-                    console.log('📊 接收到全球商业数据');
-                });
-                
-                this.socket.on('marketUpdate', (market) => {
-                    this.globalMarket = market;
-                    this.renderMarket();
-                });
-                
-                this.socket.on('leaderboardUpdate', (leaderboard) => {
-                    this.leaderboard = leaderboard;
-                    this.renderLeaderboard();
-                    this.updateCompanyStats();
-                    this.updateKlineChart();
-                });
-                
-                this.socket.on('attackResult', (data) => {
-                    this.showNotification(`⚔️ ${data.message}`);
-                    if (data.resourceChanges) {
-                        Object.keys(data.resourceChanges).forEach(resource => {
-                            this.gameData.resources[resource] = data.resourceChanges[resource];
-                        });
-                        this.updateDisplay();
-                    }
-                });
-
-                this.socket.on('insiderInfo', (data) => {
-                    this.showNotification(`🕵️ 内幕消息：${data.info}`);
-                });
-
-                this.socket.on('allianceUpdate', (alliances) => {
-                    this.alliances = alliances;
-                    this.renderAlliances();
-                });
-                
-                // 其他原有的socket监听器...
-            }
-
             updateKlineChart() {
                 const now = new Date();
                 const timeLabel = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
@@ -1876,7 +1926,134 @@
                 this.klineChart.update();
             }
 
-            // 其他原有方法保持不变...
+            setupSocketListeners() {
+                this.socket.on('connect', () => {
+                    this.isConnected = true;
+                    this.updateConnectionStatus();
+                    console.log('🔗 连接到商业帝国服务器');
+                });
+                
+                this.socket.on('disconnect', () => {
+                    this.isConnected = false;
+                    this.updateConnectionStatus();
+                    console.log('💔 与服务器断开连接');
+                });
+                
+                this.socket.on('gameState', (data) => {
+                    this.globalMarket = data.globalMarket;
+                    this.marketContracts = data.marketContracts || [];
+                    this.leaderboard = data.leaderboard;
+                    this.chatMessages = data.chatMessages;
+                    this.globalEvent = data.globalEvent;
+                    this.alliances = data.alliances || [];
+                    this.renderAll();
+                    this.updateGlobalEvent();
+                    console.log('📊 接收到全球商业数据');
+                });
+                
+                this.socket.on('marketUpdate', (market) => {
+                    this.globalMarket = market;
+                    this.renderMarket();
+                });
+                
+                this.socket.on('contractsUpdate', (contracts) => {
+                    this.marketContracts = contracts;
+                    this.renderContracts();
+                });
+                
+                this.socket.on('leaderboardUpdate', (leaderboard) => {
+                    this.leaderboard = leaderboard;
+                    this.renderLeaderboard();
+                    this.updateCompanyStats();
+                    this.updateKlineChart();
+                });
+                
+                this.socket.on('globalEvent', (event) => {
+                    this.globalEvent = event;
+                    this.updateGlobalEvent();
+                    this.showNotification(`🌍 全球事件：${event.name}`);
+                });
+                
+                this.socket.on('strategyEffect', (data) => {
+                    this.showNotification(`🎭 ${data.message}`);
+                    if (data.cooldown) {
+                        this.strategyCooldowns[data.strategyId] = Date.now() + (data.cooldown * 1000);
+                    }
+                    if (data.resourceChanges) {
+                        Object.keys(data.resourceChanges).forEach(resource => {
+                            this.gameData.resources[resource] = data.resourceChanges[resource];
+                        });
+                        this.updateDisplay();
+                    }
+                });
+
+                this.socket.on('attackResult', (data) => {
+                    this.showNotification(`⚔️ ${data.message}`);
+                    if (data.resourceChanges) {
+                        Object.keys(data.resourceChanges).forEach(resource => {
+                            this.gameData.resources[resource] = data.resourceChanges[resource];
+                        });
+                        this.updateDisplay();
+                    }
+                });
+
+                this.socket.on('insiderInfo', (data) => {
+                    this.showNotification(`🕵️ 内幕消息：${data.info}`);
+                });
+
+                this.socket.on('allianceUpdate', (alliances) => {
+                    this.alliances = alliances;
+                    this.renderAlliances();
+                });
+                
+                this.socket.on('chatMessage', (message) => {
+                    this.chatMessages.push(message);
+                    if (this.chatMessages.length > 50) {
+                        this.chatMessages.shift();
+                    }
+                    this.renderChat();
+                });
+                
+                this.socket.on('companyJoined', (company) => {
+                    this.showNotification(`🏢 ${company.name} 进入了商业战场！`);
+                });
+                
+                this.socket.on('companyLeft', (company) => {
+                    this.showNotification(`👋 ${company.name} 退出了竞争`);
+                });
+                
+                this.socket.on('tradeSuccess', (data) => {
+                    this.showNotification(`💰 交易成功！${data.message}`);
+                    if (data.resourceData) {
+                        Object.keys(data.resourceData).forEach(resource => {
+                            this.gameData.resources[resource] = data.resourceData[resource];
+                        });
+                        this.updateDisplay();
+                    }
+                    this.renderMarket();
+                });
+                
+                this.socket.on('stockTradeSuccess', (data) => {
+                    this.showNotification(`📈 股票交易成功！${data.message}`);
+                    if (data.playerData) {
+                        this.gameData.resources.money = data.playerData.money;
+                        this.gameData.stocks = data.playerData.stocks || {};
+                        this.gameData.shortPositions = data.playerData.shortPositions || {};
+                        this.updateDisplay();
+                        this.renderStocksAdvanced();
+                    }
+                });
+            }
+
+            applyCompanyTypeBonus() {
+                const typeConfig = this.companyTypes[this.selectedCompanyType];
+                if (typeConfig && typeConfig.bonuses) {
+                    Object.keys(typeConfig.bonuses).forEach(resource => {
+                        this.gameData.resources[resource] += typeConfig.bonuses[resource];
+                    });
+                }
+            }
+
             joinGame() {
                 const companyInput = document.getElementById('companyName');
                 const name = companyInput.value.trim();
@@ -1886,11 +2063,20 @@
                     return;
                 }
                 
+                if (name.length > 25) {
+                    alert('公司名称太长了！请控制在25个字符内');
+                    return;
+                }
+                
                 this.companyName = name;
                 this.companyType = this.selectedCompanyType;
                 this.playerName = name + ' CEO';
+                this.playerId = 'company_' + Date.now();
+                
+                // 应用公司类型初始加成
                 this.applyCompanyTypeBonus();
                 
+                // 尝试加载本地存档
                 const savedData = localStorage.getItem('corporateCapitalist_' + name);
                 if (savedData) {
                     try {
@@ -1905,11 +2091,13 @@
                         if (saved.departments) this.gameData.departments = saved.departments;
                         if (saved.stocks) this.gameData.stocks = saved.stocks;
                         if (saved.shortPositions) this.gameData.shortPositions = saved.shortPositions;
+                        if (saved.options) this.gameData.options = saved.options;
                         if (saved.corruptionIndex !== undefined) this.gameData.corruptionIndex = saved.corruptionIndex;
                         if (saved.exploitationIndex !== undefined) this.gameData.exploitationIndex = saved.exploitationIndex;
                         if (saved.pollutionIndex !== undefined) this.gameData.pollutionIndex = saved.pollutionIndex;
                         if (saved.manipulationIndex !== undefined) this.gameData.manipulationIndex = saved.manipulationIndex;
                         if (saved.isPublicCompany !== undefined) this.gameData.isPublicCompany = saved.isPublicCompany;
+                        console.log('💾 加载公司存档成功');
                     } catch (e) {
                         console.error('❌ 存档损坏，使用新数据', e);
                     }
@@ -1923,6 +2111,7 @@
                 document.getElementById('companyType').textContent = `(${this.companyTypes[this.companyType].name})`;
                 document.getElementById('playerName').textContent = this.playerName;
                 
+                // 发送加入游戏请求
                 this.socket.emit('joinGame', {
                     companyName: this.companyName,
                     playerName: this.playerName,
@@ -1934,139 +2123,12 @@
                 this.showNotification(`🎉 欢迎来到商业战场，${this.companyName}！`);
             }
 
-            renderAll() {
-                this.renderDepartments();
-                this.renderMarket();
-                this.renderStocksAdvanced();
-                this.renderStrategies();
-                this.renderContracts();
-                this.renderLeaderboard();
-                this.renderChat();
-                this.renderAttackTargets();
-                this.renderAlliances();
-                this.updateDisplay();
-                this.updateCorruptionIndices();
-                this.updateCompanyLevel();
-            }
-
-            startGameLoop() {
-                setInterval(() => {
-                    if (!this.companyName) return;
-                    
-                    // 生产循环（原有逻辑）
-                    Object.keys(this.gameData.departments).forEach(key => {
-                        const dept = this.gameData.departments[key];
-                        const deptData = this.departmentData[key];
-                        
-                        if (dept.count > 0 && deptData) {
-                            // 增加邪恶指数
-                            switch(key) {
-                                case 'manufacturing':
-                                    this.gameData.pollutionIndex += dept.count * 0.01;
-                                    this.gameData.exploitationIndex += dept.count * 0.015;
-                                    break;
-                                case 'finance':
-                                    this.gameData.corruptionIndex += dept.count * 0.02;
-                                    break;
-                                case 'marketing':
-                                    this.gameData.manipulationIndex += dept.count * 0.01;
-                                    break;
-                            }
-                            
-                            // 生产
-                            if (deptData.production) {
-                                Object.keys(deptData.production).forEach(resource => {
-                                    this.gameData.resources[resource] += deptData.production[resource] * dept.count / 10;
-                                });
-                            }
-                            
-                            // 消耗
-                            if (deptData.consumption) {
-                                Object.keys(deptData.consumption).forEach(resource => {
-                                    const consumption = deptData.consumption[resource] * dept.count / 10;
-                                    const actualConsumption = Math.min(consumption, this.gameData.resources[resource] * 0.8);
-                                    this.gameData.resources[resource] -= actualConsumption;
-                                    this.gameData.resources[resource] = Math.max(0, this.gameData.resources[resource]);
-                                });
-                            }
-                        }
-                    });
-                    
-                    // 限制邪恶指数最大值
-                    this.gameData.corruptionIndex = Math.min(100, this.gameData.corruptionIndex);
-                    this.gameData.exploitationIndex = Math.min(100, this.gameData.exploitationIndex);
-                    this.gameData.pollutionIndex = Math.min(100, this.gameData.pollutionIndex);
-                    this.gameData.manipulationIndex = Math.min(100, this.gameData.manipulationIndex);
-                    
-                    this.updateDisplay();
-                    this.updateCorruptionIndices();
-                    
-                    if (Date.now() - this.gameData.lastUpdate > 15000) {
-                        this.saveGame();
-                        this.socket.emit('updateGameData', this.gameData);
-                        this.gameData.lastUpdate = Date.now();
-                    }
-                }, 200);
-            }
-
-            // 其他原有方法保持不变，这里省略...
-            // 包括: applyCompanyTypeBonus, switchTab, updateGlobalEvent, updateConnectionStatus, 
-            // showNotification, renderDepartments, renderMarket, renderStrategies, renderContracts,
-            // renderLeaderboard, renderChat, updateCompanyStats, calculateCompanyValue, 
-            // calculateIncomePerSecond, setQuantity, expandDepartment, buyResource, sellResource,
-            // buyStock, sellStock, executeStrategy, fulfillContract, sendMessage, saveGame,
-            // updateDisplay, canAfford, payCost, formatNumber, getResourceEmoji, getResourceName,
-            // getDepartmentEmoji, formatCost
-
-            // 为了完整性，这里提供一些关键的原有方法
-            companyTypes = {
-                tech: { name: '科技公司', emoji: '💻', bonuses: { technology: 30, data: 20 } },
-                manufacturing: { name: '制造公司', emoji: '🏭', bonuses: { materials: 80, energy: 50 } },
-                finance: { name: '金融公司', emoji: '💳', bonuses: { money: 500000, influence: 20 } },
-                retail: { name: '零售公司', emoji: '🛒', bonuses: { reputation: 80, workforce: 30 } }
-            };
-
-            departmentData = {
-                hr: { 
-                    production: { workforce: 2, money: 10000 }, 
-                    consumption: { money: 5000 },
-                    description: '招聘人力，基础收入'
-                },
-                manufacturing: { 
-                    production: { materials: 8, money: 25000 }, 
-                    consumption: { workforce: 3, energy: 5 },
-                    description: '生产材料，稳定收入'
-                },
-                rd: { 
-                    production: { technology: 3, data: 4, money: 30000 }, 
-                    consumption: { workforce: 5, money: 8000 },
-                    description: '研发科技，高价值产出'
-                },
-                marketing: { 
-                    production: { reputation: 4, money: 35000 }, 
-                    consumption: { workforce: 4, money: 10000, data: 2 },
-                    description: '提升声誉，品牌价值'
-                },
-                finance: { 
-                    production: { money: 80000, influence: 2 }, 
-                    consumption: { workforce: 8, data: 6 },
-                    description: '金融投资，高额回报'
-                }
-            };
-
-            applyCompanyTypeBonus() {
-                const typeConfig = this.companyTypes[this.selectedCompanyType];
-                if (typeConfig && typeConfig.bonuses) {
-                    Object.keys(typeConfig.bonuses).forEach(resource => {
-                        this.gameData.resources[resource] += typeConfig.bonuses[resource];
-                    });
-                }
-            }
-
             switchTab(tabName) {
+                // 更新按钮状态
                 document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
                 document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
                 
+                // 更新内容显示
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 document.getElementById(`${tabName}-tab`).classList.add('active');
             }
@@ -2105,6 +2167,483 @@
                 }, 4000);
             }
 
+            renderAll() {
+                this.renderDepartments();
+                this.renderMarket();
+                this.renderStocksAdvanced();
+                this.renderStrategies();
+                this.renderContracts();
+                this.renderLeaderboard();
+                this.renderChat();
+                this.renderAttackTargets();
+                this.renderAlliances();
+                this.updateDisplay();
+                this.updateCorruptionIndices();
+                this.updateCompanyLevel();
+            }
+
+            renderDepartments() {
+                const container = document.getElementById('departments');
+                container.innerHTML = '';
+                
+                Object.keys(this.gameData.departments).forEach(key => {
+                    const dept = this.gameData.departments[key];
+                    const deptData = this.departmentData[key];
+                    const div = document.createElement('div');
+                    
+                    const canAfford = this.canAfford(dept.cost);
+                    div.className = `department ${canAfford ? '' : 'insufficient'}`;
+                    
+                    const productionText = deptData.production ? 
+                        Object.keys(deptData.production).map(r => `+${this.formatNumber(deptData.production[r])}/s ${this.getResourceEmoji(r)}`).join(' ') : '';
+                    const consumptionText = deptData.consumption && Object.keys(deptData.consumption).length > 0 ?
+                        Object.keys(deptData.consumption).map(r => `-${this.formatNumber(deptData.consumption[r])}/s ${this.getResourceEmoji(r)}`).join(' ') : '';
+                    
+                    // 计算净收益
+                    const netProfit = this.calculateDepartmentProfit(key);
+                    
+                    div.innerHTML = `
+                        <div class="department-header">
+                            <div class="department-name">${this.getDepartmentEmoji(key)} ${dept.name}</div>
+                            <div class="department-count">${dept.count}</div>
+                        </div>
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 10px;">${deptData.description}</div>
+                        <div class="department-stats">
+                            <div class="cost-display">扩建: ${this.formatCost(dept.cost)}</div>
+                            ${consumptionText ? `<div class="cost-display">消耗: ${consumptionText}</div>` : '<div></div>'}
+                            ${productionText ? `<div class="production-display">产出: ${productionText}</div>` : '<div></div>'}
+                            <div class="profit-indicator ${netProfit >= 0 ? 'positive' : 'negative'}">
+                                净收益: ${netProfit >= 0 ? '+' : ''}${this.formatNumber(netProfit)}/s 💰
+                            </div>
+                        </div>
+                    `;
+                    
+                    div.onclick = () => this.expandDepartment(key);
+                    container.appendChild(div);
+                });
+            }
+
+            calculateDepartmentProfit(key) {
+                const deptData = this.departmentData[key];
+                let profit = 0;
+                
+                if (deptData.production && deptData.production.money) {
+                    profit += deptData.production.money;
+                }
+                
+                if (deptData.consumption && deptData.consumption.money) {
+                    profit -= deptData.consumption.money;
+                }
+                
+                return profit;
+            }
+
+            renderMarket() {
+                const container = document.getElementById('market');
+                container.innerHTML = '';
+                
+                Object.keys(this.globalMarket).forEach(resource => {
+                    if (resource === 'money') return;
+                    
+                    const market = this.globalMarket[resource];
+                    const div = document.createElement('div');
+                    
+                    const canBuy = this.gameData.resources.money >= market.price;
+                    const canSell = this.gameData.resources[resource] >= 1;
+                    
+                    // 检查是否有高需求
+                    const isHighDemand = market.demand > market.supply * 1.5;
+                    
+                    div.className = `market-item ${canBuy ? '' : 'expensive'} ${isHighDemand ? 'high-demand' : ''}`;
+                    
+                    const trendIcon = market.trend > 0 ? '📈' : market.trend < 0 ? '📉' : '➡️';
+                    
+                    div.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: bold; color: #fdcb6e;">${this.getResourceEmoji(resource)} ${this.getResourceName(resource)}</span>
+                            <span class="market-trend">${trendIcon}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #ddd; margin-bottom: 6px;">
+                            价格: ${this.formatNumber(market.price)} 💰
+                        </div>
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
+                            库存: ${this.formatNumber(this.gameData.resources[resource])}
+                        </div>
+                        <div style="font-size: 10px; color: #888; margin-bottom: 8px;">
+                            需求: ${this.formatNumber(market.demand)} | 供应: ${this.formatNumber(market.supply)}
+                        </div>
+                        ${isHighDemand ? '<div class="demand-indicator">🔥 高需求市场</div>' : ''}
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn buy" style="flex: 1; padding: 6px;" 
+                                onclick="game.buyResource('${resource}')" 
+                                ${canBuy ? '' : 'disabled'}>
+                                买入
+                            </button>
+                            <button class="btn sell" style="flex: 1; padding: 6px;" 
+                                onclick="game.sellResource('${resource}')" 
+                                ${canSell ? '' : 'disabled'}>
+                                卖出
+                            </button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            renderStrategies() {
+                const container = document.getElementById('strategies');
+                container.innerHTML = '';
+                
+                Object.keys(this.strategies).forEach(key => {
+                    const strategy = this.strategies[key];
+                    const div = document.createElement('div');
+                    
+                    const canAfford = this.canAfford(strategy.cost);
+                    const onCooldown = this.strategyCooldowns[key] && this.strategyCooldowns[key] > Date.now();
+                    const cooldownRemaining = onCooldown ? Math.ceil((this.strategyCooldowns[key] - Date.now()) / 1000) : 0;
+                    
+                    div.className = `strategy-item ${canAfford && !onCooldown ? '' : 'insufficient'}`;
+                    
+                    div.innerHTML = `
+                        <div style="font-weight: bold; color: #fdcb6e; margin-bottom: 6px;">
+                            🎭 ${strategy.name}
+                        </div>
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
+                            ${strategy.description}
+                        </div>
+                        <div style="font-size: 10px; color: #888; margin-bottom: 6px;">
+                            目标: ${strategy.target === 'self' ? '自己' : strategy.target === 'other' ? '竞争对手' : '整个市场'}
+                        </div>
+                        <div class="cost-display" style="margin-bottom: 6px;">
+                            费用: ${this.formatCost(strategy.cost)}
+                        </div>
+                        <div style="font-size: 10px; color: #777; margin-bottom: 8px;">
+                            冷却: ${Math.floor(strategy.cooldown / 60)}分钟
+                        </div>
+                        ${onCooldown ? `
+                            <div class="strategy-cooldown">
+                                冷却中: ${Math.floor(cooldownRemaining / 60)}:${(cooldownRemaining % 60).toString().padStart(2, '0')}
+                            </div>
+                        ` : ''}
+                        <button class="btn" onclick="game.executeStrategy('${key}')" 
+                            ${canAfford && !onCooldown ? '' : 'disabled'} style="width: 100%;">
+                            执行策略
+                        </button>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            renderContracts() {
+                const container = document.getElementById('contracts');
+                container.innerHTML = '';
+                
+                if (this.marketContracts.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">暂无市场合约</div>';
+                    return;
+                }
+                
+                this.marketContracts.forEach(contract => {
+                    const div = document.createElement('div');
+                    
+                    const canFulfill = this.canAfford(contract.required);
+                    const isExpired = Date.now() > contract.expiry;
+                    
+                    div.className = `contract-item ${canFulfill && !isExpired ? '' : 'insufficient'} ${contract.fulfilled ? 'fulfilled' : ''}`;
+                    
+                    const timeRemaining = Math.max(0, contract.expiry - Date.now());
+                    const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
+                    const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    div.innerHTML = `
+                        <div style="font-weight: bold; color: #fdcb6e; margin-bottom: 6px;">
+                            📋 ${contract.name}
+                        </div>
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
+                            ${contract.description}
+                        </div>
+                        <div style="font-size: 12px; color: #ddd; margin-bottom: 6px;">
+                            需求: ${this.formatCost(contract.required)}
+                        </div>
+                        <div style="font-size: 12px; color: #00b894; margin-bottom: 8px;">
+                            奖励: ${this.formatCost(contract.reward)}
+                        </div>
+                        <div style="font-size: 10px; color: ${isExpired ? '#e74c3c' : '#bbb'}; margin-bottom: 8px;">
+                            ${isExpired ? '已过期' : `剩余时间: ${hoursRemaining}h ${minutesRemaining}m`}
+                        </div>
+                        ${contract.fulfilled ? 
+                            '<div style="font-size: 11px; color: #00b894;">✅ 已完成</div>' :
+                            `<button class="btn" onclick="game.fulfillContract('${contract.id}')" 
+                                ${canFulfill && !isExpired ? '' : 'disabled'} style="width: 100%;">
+                                完成合约
+                            </button>`
+                        }
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            renderLeaderboard() {
+                const container = document.getElementById('leaderboard');
+                container.innerHTML = '';
+                
+                // 添加自己到排行榜
+                const myValue = this.calculateCompanyValue();
+                const allCompanies = [...this.leaderboard];
+                
+                // 查找是否已经包含自己
+                const myIndex = allCompanies.findIndex(c => c.name === this.companyName);
+                if (myIndex === -1) {
+                    allCompanies.push({
+                        id: this.playerId,
+                        name: this.companyName,
+                        isPlayer: true,
+                        value: myValue,
+                        trend: 0,
+                        companyType: this.gameData.companyType
+                    });
+                } else {
+                    allCompanies[myIndex].value = myValue;
+                    allCompanies[myIndex].isPlayer = true;
+                    allCompanies[myIndex].companyType = this.gameData.companyType;
+                }
+                
+                // 按市值排序
+                allCompanies.sort((a, b) => b.value - a.value);
+                
+                allCompanies.slice(0, 10).forEach((company, index) => {
+                    const div = document.createElement('div');
+                    div.className = `company-rank ${company.isPlayer ? 'player' : 'ai'} ${company.underAttack ? 'under-attack' : ''}`;
+                    
+                    const trendIcon = company.trend > 0 ? '📈' : company.trend < 0 ? '📉' : '➡️';
+                    const typeEmoji = this.companyTypes[company.companyType] ? this.companyTypes[company.companyType].emoji : '🏢';
+                    
+                    div.innerHTML = `
+                        <div class="rank-number">#${index + 1}</div>
+                        <div class="rank-info">
+                            <div class="rank-name">
+                                ${typeEmoji} ${company.name} ${company.isPlayer ? '(你)' : ''}
+                                ${company.underAttack ? '⚔️' : ''}
+                            </div>
+                            <div class="rank-value">
+                                市值: ${this.formatNumber(company.value)} 💰
+                            </div>
+                        </div>
+                        <div class="rank-trend">${trendIcon}</div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            renderChat() {
+                const container = document.getElementById('chatMessages');
+                container.innerHTML = '';
+                
+                this.chatMessages.slice(-15).forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = 'chat-message';
+                    
+                    const time = new Date(msg.timestamp).toLocaleTimeString().slice(0, 5);
+                    const isSystem = msg.player === '系统' || msg.player === '市场快讯' || msg.player === '全球事件';
+                    
+                    div.innerHTML = `
+                        <span class="chat-time">[${time}]</span>
+                        <span class="chat-player" style="color: ${isSystem ? '#e17055' : '#fdcb6e'};">${msg.player}:</span>
+                        <span class="chat-text">${msg.message}</span>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+                
+                container.scrollTop = container.scrollHeight;
+            }
+
+            updateCompanyStats() {
+                // 更新排名
+                const myRank = this.leaderboard.findIndex(c => c.name === this.companyName) + 1;
+                document.getElementById('globalRank').textContent = myRank > 0 ? `#${myRank}` : '#-';
+                
+                // 更新在线人数
+                const onlineCount = this.leaderboard.filter(c => c.isPlayer && c.online !== false).length;
+                document.getElementById('onlineCount').textContent = onlineCount;
+                
+                // 更新市值
+                const marketValue = this.calculateCompanyValue();
+                document.getElementById('marketValue').textContent = this.formatNumber(marketValue);
+                
+                // 更新每秒收益
+                const incomePerSecond = this.calculateIncomePerSecond();
+                document.getElementById('incomePerSecond').textContent = `+${this.formatNumber(incomePerSecond)}`;
+            }
+
+            calculateCompanyValue() {
+                let value = this.gameData.resources.money || 0;
+                
+                // 资源价值
+                Object.keys(this.gameData.resources).forEach(resource => {
+                    if (resource !== 'money' && this.globalMarket[resource]) {
+                        value += (this.gameData.resources[resource] || 0) * this.globalMarket[resource].price;
+                    }
+                });
+                
+                // 部门价值
+                Object.keys(this.gameData.departments).forEach(key => {
+                    const dept = this.gameData.departments[key];
+                    value += dept.count * 100000; // 每个部门价值10万
+                });
+                
+                // 股票价值
+                if (this.gameData.stocks) {
+                    Object.keys(this.gameData.stocks).forEach(companyId => {
+                        const shares = this.gameData.stocks[companyId];
+                        const company = this.leaderboard.find(c => c.id === companyId);
+                        if (company && shares > 0) {
+                            const sharePrice = Math.floor(company.value / 1000000) || 1;
+                            value += shares * sharePrice;
+                        }
+                    });
+                }
+                
+                return Math.max(0, value);
+            }
+
+            calculateIncomePerSecond() {
+                let income = 0;
+                
+                Object.keys(this.gameData.departments).forEach(key => {
+                    const dept = this.gameData.departments[key];
+                    const deptData = this.departmentData[key];
+                    const profit = this.calculateDepartmentProfit(key);
+                    income += profit * dept.count;
+                });
+                
+                // 股票分红（简化）
+                if (this.gameData.stocks) {
+                    Object.keys(this.gameData.stocks).forEach(companyId => {
+                        const shares = this.gameData.stocks[companyId];
+                        income += shares * 100; // 每股每秒100金币分红
+                    });
+                }
+                
+                return income;
+            }
+
+            setQuantity(quantity) {
+                this.selectedQuantity = quantity;
+                this.renderStocksAdvanced();
+            }
+
+            expandDepartment(type) {
+                const dept = this.gameData.departments[type];
+                if (this.canAfford(dept.cost)) {
+                    this.payCost(dept.cost);
+                    dept.count++;
+                    
+                    // 动态提升成本
+                    Object.keys(dept.cost).forEach(resource => {
+                        dept.cost[resource] = Math.floor(dept.cost[resource] * 1.12);
+                    });
+                    
+                    this.showNotification(`🏢 扩建了${dept.name}！开始更大规模的剥削！`);
+                    this.updateDisplay();
+                    this.renderDepartments();
+                    this.saveGame();
+                    
+                    // 同步到服务器
+                    this.socket.emit('updateGameData', this.gameData);
+                }
+            }
+
+            buyResource(resource) {
+                this.socket.emit('marketTrade', {
+                    action: 'buy',
+                    resource: resource,
+                    amount: 1
+                });
+            }
+
+            sellResource(resource) {
+                this.socket.emit('marketTrade', {
+                    action: 'sell',
+                    resource: resource,
+                    amount: 1
+                });
+            }
+
+            buyStock(companyId) {
+                this.socket.emit('stockTrade', {
+                    action: 'buy',
+                    companyId: companyId,
+                    shares: this.selectedQuantity
+                });
+            }
+
+            sellStock(companyId) {
+                this.socket.emit('stockTrade', {
+                    action: 'sell',
+                    companyId: companyId,
+                    shares: this.selectedQuantity
+                });
+            }
+
+            executeStrategy(strategyId) {
+                const strategy = this.strategies[strategyId];
+                if (this.canAfford(strategy.cost) && (!this.strategyCooldowns[strategyId] || this.strategyCooldowns[strategyId] <= Date.now())) {
+                    this.socket.emit('executeStrategy', {
+                        strategyId: strategyId,
+                        targetType: strategy.target
+                    });
+                }
+            }
+
+            fulfillContract(contractId) {
+                const contract = this.marketContracts.find(c => c.id === contractId);
+                if (contract && this.canAfford(contract.required) && !contract.fulfilled && Date.now() <= contract.expiry) {
+                    this.socket.emit('fulfillContract', {
+                        contractId: contractId
+                    });
+                }
+            }
+
+            sendMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                
+                if (message && this.companyName) {
+                    this.socket.emit('chatMessage', message);
+                    input.value = '';
+                }
+            }
+
+            saveGame() {
+                this.gameData.lastUpdate = Date.now();
+                localStorage.setItem('corporateCapitalist_' + this.companyName, JSON.stringify(this.gameData));
+            }
+
+            updateDisplay() {
+                Object.keys(this.gameData.resources).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.textContent = this.formatNumber(this.gameData.resources[key]);
+                    }
+                });
+            }
+
+            canAfford(cost) {
+                return Object.keys(cost).every(resource => 
+                    this.gameData.resources[resource] >= cost[resource]);
+            }
+
+            payCost(cost) {
+                Object.keys(cost).forEach(resource => {
+                    this.gameData.resources[resource] -= cost[resource];
+                });
+            }
+
             formatNumber(num) {
                 if (num >= 1000000000) {
                     return (num / 1000000000).toFixed(1) + 'B';
@@ -2125,24 +2664,87 @@
                 return emojis[resource] || '❓';
             }
 
-            // 其他方法为了节省空间省略，但在实际使用中需要完整实现
-            renderDepartments() { /* 原有实现 */ }
-            renderMarket() { /* 原有实现 */ }
-            renderStrategies() { /* 原有实现 */ }
-            renderContracts() { /* 原有实现 */ }
-            renderLeaderboard() { /* 原有实现 */ }
-            renderChat() { /* 原有实现 */ }
-            updateCompanyStats() { /* 原有实现 */ }
-            calculateCompanyValue() { return 1000000; /* 原有实现 */ }
-            calculateIncomePerSecond() { return 0; /* 原有实现 */ }
-            canAfford(cost) { return true; /* 原有实现 */ }
-            payCost(cost) { /* 原有实现 */ }
-            updateDisplay() { /* 原有实现 */ }
-            saveGame() { /* 原有实现 */ }
+            getResourceName(resource) {
+                const names = {
+                    money: '资金', workforce: '人力', materials: '原料', technology: '科技',
+                    energy: '能源', data: '数据', reputation: '声誉', influence: '影响力'
+                };
+                return names[resource] || resource;
+            }
+
+            getDepartmentEmoji(key) {
+                const emojis = {
+                    hr: '👥', manufacturing: '🏭', rd: '🔬', marketing: '📢', finance: '💳'
+                };
+                return emojis[key] || '🏢';
+            }
+
+            formatCost(cost) {
+                return Object.keys(cost).map(r => 
+                    `${this.formatNumber(cost[r])}${this.getResourceEmoji(r)}`).join(' ');
+            }
+
+            startGameLoop() {
+                setInterval(() => {
+                    if (!this.companyName) return;
+                    
+                    // 生产循环
+                    Object.keys(this.gameData.departments).forEach(key => {
+                        const dept = this.gameData.departments[key];
+                        const deptData = this.departmentData[key];
+                        
+                        if (dept.count > 0) {
+                            // 增加邪恶指数
+                            switch(key) {
+                                case 'manufacturing':
+                                    this.gameData.pollutionIndex = Math.min(100, (this.gameData.pollutionIndex || 0) + dept.count * 0.01);
+                                    this.gameData.exploitationIndex = Math.min(100, (this.gameData.exploitationIndex || 0) + dept.count * 0.015);
+                                    break;
+                                case 'finance':
+                                    this.gameData.corruptionIndex = Math.min(100, (this.gameData.corruptionIndex || 0) + dept.count * 0.02);
+                                    break;
+                                case 'marketing':
+                                    this.gameData.manipulationIndex = Math.min(100, (this.gameData.manipulationIndex || 0) + dept.count * 0.01);
+                                    break;
+                            }
+                            
+                            // 生产
+                            if (deptData.production) {
+                                Object.keys(deptData.production).forEach(resource => {
+                                    this.gameData.resources[resource] = (this.gameData.resources[resource] || 0) + deptData.production[resource] * dept.count / 10;
+                                });
+                            }
+                            
+                            // 消耗（优化：确保挂机游戏大部分时候都是正收益）
+                            if (deptData.consumption) {
+                                Object.keys(deptData.consumption).forEach(resource => {
+                                    const consumption = deptData.consumption[resource] * dept.count / 10;
+                                    // 如果资源不足，降低消耗而不是停止生产
+                                    const actualConsumption = Math.min(consumption, this.gameData.resources[resource] * 0.8);
+                                    this.gameData.resources[resource] -= actualConsumption;
+                                    this.gameData.resources[resource] = Math.max(0, this.gameData.resources[resource]);
+                                });
+                            }
+                        }
+                    });
+                    
+                    this.updateDisplay();
+                    this.updateCorruptionIndices();
+                    
+                    // 定期保存和同步
+                    if (Date.now() - this.gameData.lastUpdate > 15000) {
+                        this.saveGame();
+                        this.socket.emit('updateGameData', this.gameData);
+                        this.gameData.lastUpdate = Date.now();
+                    }
+                }, 200);
+            }
         }
         
+        // 全局变量
         let game;
         
+        // 全局函数
         function joinGame() {
             if (!game) {
                 game = new CorporateCapitalist();
@@ -2166,6 +2768,7 @@
             game = new CorporateCapitalist();
         };
         
+        // 防止意外关闭
         window.onbeforeunload = () => {
             if (game && game.companyName) {
                 game.saveGame();
