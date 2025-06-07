@@ -17,12 +17,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 主页路由
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 健康检查路由
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
@@ -32,62 +30,68 @@ const gameState = {
     companies: new Map(),
     aiCompanies: [
         {
+            id: 'ai_apple',
             name: '咬一口科技',
-            value: 15800000,
+            value: 25800000,
             trend: 1,
             sector: '科技',
             companyType: 'tech',
-            evilQuote: '创新就是把用户隐私包装成个性化服务'
+            evilQuote: '隐私？那是什么？我们只是在"改善用户体验"'
         },
         {
+            id: 'ai_microsoft',
             name: '巨硬垄断集团',
-            value: 14200000,
+            value: 24200000,
             trend: 0,
             sector: '软件',
             companyType: 'tech',
-            evilQuote: '开源？那是什么？能赚钱吗？'
+            evilQuote: '拥抱、扩展、消灭 - 我们的永恒战略'
         },
         {
+            id: 'ai_google',
             name: '狗狗搜索引擎',
-            value: 13600000,
+            value: 23600000,
             trend: -1,
             sector: '互联网',
             companyType: 'tech',
-            evilQuote: '不作恶？我们早就删掉这个口号了'
+            evilQuote: '"不作恶"？那个口号早就删了'
         },
         {
+            id: 'ai_amazon',
             name: '压马逊剥削物流',
-            value: 12800000,
+            value: 22800000,
             trend: 1,
             sector: '电商',
             companyType: 'retail',
-            evilQuote: '员工的眼泪是最好的包装材料'
+            evilQuote: '员工的眼泪是最好的润滑剂'
         },
         {
-            name: '脸书社交监控',
-            value: 11400000,
-            trend: -1,
-            sector: '社交',
-            companyType: 'tech',
-            evilQuote: '元宇宙就是现实世界不够糟，我们再造一个'
-        },
-        {
+            id: 'ai_tesla',
             name: '特死啦忽悠汽车',
-            value: 10200000,
+            value: 18200000,
             trend: 1,
             sector: '汽车',
             companyType: 'manufacturing',
-            evilQuote: '全自动驾驶：让机器来承担撞死人的责任'
+            evilQuote: '自动驾驶：让机器承担撞死人的责任'
+        },
+        {
+            id: 'ai_goldman',
+            name: '高盛吸血银行',
+            value: 16600000,
+            trend: 0,
+            sector: '金融',
+            companyType: 'finance',
+            evilQuote: '经济危机？那是我们的发财机会！'
         }
     ],
     globalMarket: {
-        workforce: { price: 25000, trend: 0, volume: 0 },
-        materials: { price: 18000, trend: 1, volume: 0 },
-        technology: { price: 80000, trend: -1, volume: 0 },
-        energy: { price: 35000, trend: 0, volume: 0 },
-        data: { price: 45000, trend: 1, volume: 0 },
-        reputation: { price: 60000, trend: 0, volume: 0 },
-        influence: { price: 150000, trend: 1, volume: 0 }
+        workforce: { price: 15000, trend: 0, volume: 0, supply: 0, demand: 0 },
+        materials: { price: 12000, trend: 1, volume: 0, supply: 0, demand: 0 },
+        technology: { price: 35000, trend: -1, volume: 0, supply: 0, demand: 0 },
+        energy: { price: 18000, trend: 0, volume: 0, supply: 0, demand: 0 },
+        data: { price: 25000, trend: 1, volume: 0, supply: 0, demand: 0 },
+        reputation: { price: 30000, trend: 0, volume: 0, supply: 0, demand: 0 },
+        influence: { price: 75000, trend: 1, volume: 0, supply: 0, demand: 0 }
     },
     chatMessages: [],
     serverStartTime: Date.now()
@@ -141,12 +145,7 @@ io.on('connection', (socket) => {
                 name: companyName
             });
             
-            const companyTypeNames = {
-                tech: '科技', manufacturing: '制造', finance: '金融',
-                retail: '零售', entertainment: '娱乐', pharma: '制药'
-            };
-            
-            addChatMessage('系统', `${companyName}(${companyTypeNames[companyType] || '未知'})进入了商业战场！`);
+            addChatMessage('系统', `${companyName} 进入了商业战场！又来一个黑心企业！`);
             console.log(`🏢 公司 ${companyName}(${companyType}) 加入游戏`);
         } catch (error) {
             console.error('joinGame error:', error);
@@ -181,80 +180,107 @@ io.on('connection', (socket) => {
             if (action === 'buy' && company.gameData.resources.money >= market.price * tradeAmount) {
                 company.gameData.resources.money -= market.price * tradeAmount;
                 company.gameData.resources[resource] = (company.gameData.resources[resource] || 0) + tradeAmount;
+                
+                // 更新市场供需
+                market.demand += tradeAmount;
                 market.volume += tradeAmount;
                 
-                market.price = Math.max(5000, market.price + Math.floor(tradeAmount * market.price * 0.02));
+                // 动态价格调整
+                market.price = Math.max(5000, market.price + Math.floor(tradeAmount * market.price * 0.01));
                 
                 socket.emit('tradeSuccess', { 
                     action, resource, amount: tradeAmount, 
-                    message: `购买了${tradeAmount}单位${resource}` 
+                    message: `购买了${tradeAmount}单位${resource}`,
+                    resourceData: company.gameData.resources
                 });
+                
                 io.emit('marketUpdate', gameState.globalMarket);
+                console.log(`💰 ${company.name} 购买了 ${tradeAmount} 个 ${resource}`);
             }
             else if (action === 'sell' && (company.gameData.resources[resource] || 0) >= tradeAmount) {
+                const sellPrice = Math.floor(market.price * 0.95); // 卖价比买价低5%
                 company.gameData.resources[resource] -= tradeAmount;
-                company.gameData.resources.money += market.price * tradeAmount;
+                company.gameData.resources.money += sellPrice * tradeAmount;
+                
+                // 更新市场供需
+                market.supply += tradeAmount;
                 market.volume += tradeAmount;
                 
-                market.price = Math.max(5000, market.price - Math.floor(tradeAmount * market.price * 0.015));
+                // 动态价格调整
+                market.price = Math.max(5000, market.price - Math.floor(tradeAmount * market.price * 0.005));
                 
                 socket.emit('tradeSuccess', { 
                     action, resource, amount: tradeAmount, 
-                    message: `卖出了${tradeAmount}单位${resource}` 
+                    message: `卖出了${tradeAmount}单位${resource}，获得${sellPrice * tradeAmount}金币`,
+                    resourceData: company.gameData.resources
                 });
+                
                 io.emit('marketUpdate', gameState.globalMarket);
+                console.log(`💱 ${company.name} 卖出了 ${tradeAmount} 个 ${resource}`);
             }
         } catch (error) {
             console.error('marketTrade error:', error);
         }
     });
     
-    socket.on('executeManipulation', (data) => {
+    socket.on('stockTrade', (data) => {
         try {
-            const { manipulationId, companyName } = data;
-            const company = gameState.companies.get(socket.id);
+            const { action, companyId, shares } = data;
+            const player = gameState.companies.get(socket.id);
             
-            if (!company) return;
+            if (!player) return;
             
-            let message = '';
+            const targetCompany = [...gameState.companies.values(), ...gameState.aiCompanies]
+                .find(c => c.id === companyId);
             
-            switch (manipulationId) {
-                case 'spread_rumors':
-                    message = `${companyName} 雇佣水军散布谣言，多家竞争对手声誉受损！`;
-                    gameState.companies.forEach((otherCompany, id) => {
-                        if (id !== socket.id && otherCompany.gameData.resources) {
-                            otherCompany.gameData.resources.reputation = Math.max(0, 
-                                (otherCompany.gameData.resources.reputation || 0) - Math.random() * 15);
-                        }
-                    });
-                    break;
-                    
-                case 'market_manipulation':
-                    message = `${companyName} 进行内幕交易，股价暴涨！`;
-                    company.gameData.resources.money += 150000;
-                    company.gameData.resources.reputation = Math.max(0, (company.gameData.resources.reputation || 0) - 5);
-                    break;
-                    
-                case 'regulatory_capture':
-                    message = `${companyName} 成功收买监管机构，获得政策倾斜！`;
-                    company.gameData.resources.influence = (company.gameData.resources.influence || 0) + 30;
-                    break;
-                    
-                case 'hostile_takeover':
-                    message = `${companyName} 发起恶意收购，强行吞并了一家竞争企业！`;
-                    company.gameData.resources.influence = (company.gameData.resources.influence || 0) + 40;
-                    company.gameData.resources.money += 500000;
-                    company.gameData.resources.reputation = Math.max(0, (company.gameData.resources.reputation || 0) - 20);
-                    break;
-                    
-                default:
-                    message = `${companyName} 执行了未知的邪恶计划`;
+            if (!targetCompany) return;
+            
+            const sharePrice = Math.floor(targetCompany.value / 1000000) || 1;
+            const tradeFee = player.gameData.companyType === 'finance' ? sharePrice * 0.01 : sharePrice * 0.02;
+            const totalCost = sharePrice + tradeFee;
+            const tradeShares = Math.max(1, parseInt(shares) || 1);
+            
+            if (!player.gameData.stocks) {
+                player.gameData.stocks = {};
             }
             
-            socket.emit('manipulationSuccess', { message });
-            addChatMessage('市场快讯', message);
+            if (action === 'buy' && player.gameData.resources.money >= totalCost * tradeShares) {
+                player.gameData.resources.money -= totalCost * tradeShares;
+                player.gameData.stocks[companyId] = (player.gameData.stocks[companyId] || 0) + tradeShares;
+                
+                socket.emit('stockTradeSuccess', {
+                    action, companyId, shares: tradeShares,
+                    message: `购买了${tradeShares}股${targetCompany.name}股票`,
+                    playerData: {
+                        money: player.gameData.resources.money,
+                        stocks: player.gameData.stocks
+                    }
+                });
+                
+                console.log(`📈 ${player.name} 购买了 ${tradeShares} 股 ${targetCompany.name}`);
+            }
+            else if (action === 'sell' && (player.gameData.stocks[companyId] || 0) >= tradeShares) {
+                const sellPrice = sharePrice - tradeFee;
+                player.gameData.stocks[companyId] -= tradeShares;
+                player.gameData.resources.money += sellPrice * tradeShares;
+                
+                if (player.gameData.stocks[companyId] <= 0) {
+                    delete player.gameData.stocks[companyId];
+                }
+                
+                socket.emit('stockTradeSuccess', {
+                    action, companyId, shares: tradeShares,
+                    message: `卖出了${tradeShares}股${targetCompany.name}股票`,
+                    playerData: {
+                        money: player.gameData.resources.money,
+                        stocks: player.gameData.stocks
+                    }
+                });
+                
+                console.log(`📉 ${player.name} 卖出了 ${tradeShares} 股 ${targetCompany.name}`);
+            }
         } catch (error) {
-            console.error('executeManipulation error:', error);
+            console.error('stockTrade error:', error);
         }
     });
     
@@ -304,24 +330,22 @@ io.on('connection', (socket) => {
 function createNewCompany(companyType = 'tech') {
     try {
         const baseResources = {
-            money: 500000, 
-            workforce: 10, 
-            materials: 50, 
-            technology: 20,
-            energy: 30, 
-            data: 15, 
+            money: 1000000, 
+            workforce: 20, 
+            materials: 100, 
+            technology: 50,
+            energy: 80, 
+            data: 30, 
             reputation: 100, 
-            influence: 5
+            influence: 10
         };
         
         // 根据公司类型应用初始加成
         const typeBonus = {
-            tech: { technology: 10, data: 10 },
-            manufacturing: { materials: 30, energy: 20 },
-            finance: { money: 200000, influence: 10 },
-            retail: { reputation: 50, workforce: 15 },
-            entertainment: { data: 20, reputation: 30 },
-            pharma: { technology: 15, influence: 8 }
+            tech: { technology: 30, data: 20 },
+            manufacturing: { materials: 80, energy: 50 },
+            finance: { money: 500000, influence: 20 },
+            retail: { reputation: 80, workforce: 30 }
         };
         
         const bonuses = typeBonus[companyType] || {};
@@ -334,22 +358,15 @@ function createNewCompany(companyType = 'tech') {
         return {
             resources: baseResources,
             departments: {
-                hr: { name: 'HR部门', count: 0, cost: { money: 30000 } },
-                manufacturing: { name: '生产部', count: 0, cost: { money: 50000, workforce: 3 } },
-                rd: { name: '研发部', count: 0, cost: { money: 80000, workforce: 5 } },
-                marketing: { name: '营销部', count: 0, cost: { money: 60000, workforce: 4 } },
-                finance: { name: '金融部', count: 0, cost: { money: 100000, workforce: 6 } },
-                legal: { name: '法务部', count: 0, cost: { money: 120000, workforce: 5 } },
-                lobbying: { name: '公关部', count: 0, cost: { money: 200000, workforce: 8, reputation: 50 } }
+                hr: { name: 'HR部门', count: 1, cost: { money: 50000 } },
+                manufacturing: { name: '生产部', count: 0, cost: { money: 80000, workforce: 5 } },
+                rd: { name: '研发部', count: 0, cost: { money: 120000, workforce: 8 } },
+                marketing: { name: '营销部', count: 0, cost: { money: 100000, workforce: 6 } },
+                finance: { name: '金融部', count: 0, cost: { money: 150000, workforce: 10 } }
             },
-            talents: {
-                basic_exploitation: { unlocked: false },
-                advanced_manipulation: { unlocked: false },
-                monopoly_tactics: { unlocked: false },
-                global_corruption: { unlocked: false }
-            },
+            stocks: {},
             companyType: companyType,
-            marketValue: 500000,
+            marketValue: 1000000,
             lastUpdate: Date.now()
         };
     } catch (error) {
@@ -409,138 +426,7 @@ function calculateCompanyValue(gameData) {
             Object.keys(gameData.departments).forEach(key => {
                 const dept = gameData.departments[key];
                 if (dept && dept.count) {
-                    value += dept.count * 50000;
+                    value += dept.count * 100000;
                 }
             });
         }
-        
-        // 天赋价值
-        if (gameData.talents) {
-            Object.keys(gameData.talents).forEach(key => {
-                if (gameData.talents[key] && gameData.talents[key].unlocked) {
-                    value += 100000;
-                }
-            });
-        }
-        
-        return Math.max(0, value);
-    } catch (error) {
-        console.error('calculateCompanyValue error:', error);
-        return 0;
-    }
-}
-
-function addChatMessage(playerName, message) {
-    try {
-        if (!playerName || !message) return;
-        
-        const chatMessage = {
-            player: String(playerName),
-            message: String(message),
-            timestamp: Date.now()
-        };
-        
-        gameState.chatMessages.push(chatMessage);
-        
-        if (gameState.chatMessages.length > 200) {
-            gameState.chatMessages.shift();
-        }
-        
-        io.emit('chatMessage', chatMessage);
-    } catch (error) {
-        console.error('addChatMessage error:', error);
-    }
-}
-
-// 定期更新市场价格
-setInterval(() => {
-    try {
-        Object.keys(gameState.globalMarket).forEach(resource => {
-            const market = gameState.globalMarket[resource];
-            if (market) {
-                const volatility = 0.08;
-                const change = (Math.random() - 0.5) * volatility;
-                
-                market.price = Math.max(5000, Math.floor(market.price * (1 + change)));
-                market.trend = change > 0.03 ? 1 : change < -0.03 ? -1 : 0;
-                market.volume = Math.floor((market.volume || 0) * 0.95);
-            }
-        });
-        
-        // 更新AI公司价值
-        gameState.aiCompanies.forEach(company => {
-            if (company) {
-                const change = (Math.random() - 0.5) * 0.06;
-                company.value = Math.max(1000000, Math.floor((company.value || 1000000) * (1 + change)));
-                company.trend = change > 0.02 ? 1 : change < -0.02 ? -1 : 0;
-            }
-        });
-        
-        io.emit('marketUpdate', gameState.globalMarket);
-    } catch (error) {
-        console.error('Market update error:', error);
-    }
-}, 30000);
-
-// 定期更新排行榜
-setInterval(() => {
-    try {
-        io.emit('leaderboardUpdate', getLeaderboard());
-    } catch (error) {
-        console.error('Leaderboard update error:', error);
-    }
-}, 15000);
-
-// 定期发送AI公司的"邪恶言论"
-setInterval(() => {
-    try {
-        if (Math.random() < 0.4) {
-            const aiCompanies = gameState.aiCompanies.filter(c => c && c.name);
-            if (aiCompanies.length > 0) {
-                const aiCompany = aiCompanies[Math.floor(Math.random() * aiCompanies.length)];
-                const evilQuotes = [
-                    '又到了季度末，该想办法"优化"员工成本了...',
-                    '消费者就是韭菜，割了一茬还有一茬',
-                    '环保？那是什么？对股价有帮助吗？',
-                    '垄断是商业的最高境界，竞争是落后思维',
-                    '数据就是新时代的石油，挖得越深赚得越多'
-                ];
-                
-                const quote = aiCompany.evilQuote || evilQuotes[Math.floor(Math.random() * evilQuotes.length)];
-                addChatMessage(aiCompany.name, quote);
-            }
-        }
-    } catch (error) {
-        console.error('AI quote error:', error);
-    }
-}, 45000);
-
-const PORT = process.env.PORT || 3000;
-
-server.listen(PORT, (error) => {
-    if (error) {
-        console.error('服务器启动失败:', error);
-        process.exit(1);
-    } else {
-        console.log(`🚀 黑心公司大亨服务器运行在端口 ${PORT}`);
-        console.log(`🌐 访问地址: http://localhost:${PORT}`);
-        console.log(`💼 等待黑心CEO们的加入...`);
-    }
-});
-
-// 优雅关闭
-process.on('SIGTERM', () => {
-    console.log('收到 SIGTERM 信号，正在关闭服务器...');
-    server.close(() => {
-        console.log('服务器已关闭');
-        process.exit(0);
-    });
-});
-
-process.on('SIGINT', () => {
-    console.log('收到 SIGINT 信号，正在关闭服务器...');
-    server.close(() => {
-        console.log('服务器已关闭');
-        process.exit(0);
-    });
-});
