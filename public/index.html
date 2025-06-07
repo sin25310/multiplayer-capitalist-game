@@ -41,7 +41,7 @@
             border: 3px solid #fdcb6e;
             text-align: center;
             color: #ddd;
-            max-width: 450px;
+            max-width: 500px;
             width: 90%;
         }
         
@@ -79,7 +79,40 @@
             background: rgba(255,255,255,0.15);
         }
         
-        .login-input::placeholder {
+        .company-type-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .company-type {
+            padding: 15px;
+            border: 2px solid rgba(253,203,110,0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .company-type:hover {
+            border-color: #fdcb6e;
+            background: rgba(253,203,110,0.1);
+        }
+        
+        .company-type.selected {
+            border-color: #fdcb6e;
+            background: rgba(253,203,110,0.2);
+        }
+        
+        .company-type-title {
+            font-weight: bold;
+            color: #fdcb6e;
+            margin-bottom: 5px;
+        }
+        
+        .company-type-desc {
+            font-size: 12px;
             color: #bbb;
         }
         
@@ -106,17 +139,13 @@
         .game-container {
             display: none;
             min-height: 100vh;
-            padding: 20px;
         }
         
         .header {
             background: rgba(0,0,0,0.8);
             backdrop-filter: blur(10px);
             padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            border: 1px solid rgba(253,203,110,0.3);
+            border-bottom: 2px solid rgba(253,203,110,0.3);
         }
         
         .company-title {
@@ -142,53 +171,51 @@
         
         .company-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 15px;
         }
         
         .stat-item {
             text-align: center;
-            padding: 10px;
+            padding: 8px;
             background: rgba(0,0,0,0.3);
             border-radius: 8px;
             border: 1px solid rgba(253,203,110,0.2);
         }
         
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #bbb;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
         
         .stat-value {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: #fdcb6e;
         }
         
         .resources {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
         }
         
         .resource {
             background: linear-gradient(135deg, #2d3436, #636e72);
             color: white;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             border: 1px solid rgba(255,255,255,0.1);
             transition: all 0.3s ease;
         }
         
         .resource:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         
         .resource.money { background: linear-gradient(135deg, #fdcb6e, #e17055); }
@@ -202,38 +229,223 @@
         
         .main-layout {
             display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 20px;
+            grid-template-columns: 1fr 400px;
             min-height: calc(100vh - 200px);
         }
         
-        .game-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .section {
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
+        .left-content {
             padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
-        .section h2 {
+        .right-panel {
+            background: rgba(0,0,0,0.8);
+            border-left: 2px solid rgba(253,203,110,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-section {
+            flex: 1;
+            padding: 20px;
+            border-bottom: 2px solid rgba(253,203,110,0.3);
+            min-height: 350px;
+        }
+        
+        .chat-header {
             color: #fdcb6e;
             margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(253,203,110,0.3);
-            font-size: 20px;
+            font-size: 18px;
+            font-weight: bold;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        .department, .market-item, .manipulation-item {
+        .chat-messages {
+            height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .chat-message {
+            margin-bottom: 10px;
+            font-size: 13px;
+            line-height: 1.4;
+            padding: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+        }
+        
+        .chat-time {
+            color: #888;
+            font-size: 10px;
+        }
+        
+        .chat-player {
+            color: #fdcb6e;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        
+        .chat-text {
+            color: #ddd;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #ddd;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: #fdcb6e;
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .chat-send {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-send:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(225,112,85,0.4);
+        }
+        
+        .leaderboard {
+            padding: 20px;
+            flex: 1;
+        }
+        
+        .leaderboard-header {
+            color: #fdcb6e;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .company-rank {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, rgba(45,52,54,0.6), rgba(99,110,114,0.6));
+            border-radius: 8px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .company-rank:hover {
+            transform: translateX(3px);
+        }
+        
+        .company-rank.player {
+            border-left-color: #fdcb6e;
+            background: linear-gradient(135deg, rgba(253,203,110,0.15), rgba(225,112,85,0.15));
+        }
+        
+        .company-rank.ai {
+            border-left-color: #74b9ff;
+        }
+        
+        .rank-number {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fdcb6e;
+            margin-right: 12px;
+            min-width: 25px;
+        }
+        
+        .rank-info {
+            flex: 1;
+        }
+        
+        .rank-name {
+            font-weight: bold;
+            color: #ddd;
+            margin-bottom: 3px;
+            font-size: 13px;
+        }
+        
+        .rank-value {
+            font-size: 11px;
+            color: #bbb;
+        }
+        
+        .rank-trend {
+            font-size: 14px;
+            margin-left: 8px;
+        }
+        
+        .tabs-container {
+            background: rgba(0,0,0,0.7);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .tabs-header {
+            display: flex;
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: transparent;
+            color: #bbb;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            font-weight: bold;
+        }
+        
+        .tab-button:hover {
+            color: #fdcb6e;
+            background: rgba(253,203,110,0.1);
+        }
+        
+        .tab-button.active {
+            color: #fdcb6e;
+            border-bottom-color: #fdcb6e;
+            background: rgba(253,203,110,0.1);
+        }
+        
+        .tab-content {
+            padding: 20px;
+            display: none;
+            min-height: 400px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .department, .market-item, .manipulation-item, .talent-item {
             background: linear-gradient(135deg, rgba(45,52,54,0.8), rgba(99,110,114,0.8));
             padding: 15px;
             border-radius: 10px;
@@ -243,13 +455,13 @@
             margin-bottom: 12px;
         }
         
-        .department:hover, .market-item:hover, .manipulation-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(253,203,110,0.2);
+        .department:hover, .market-item:hover, .manipulation-item:hover, .talent-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(253,203,110,0.2);
             border-color: rgba(253,203,110,0.5);
         }
         
-        .department.insufficient, .market-item.expensive, .manipulation-item.insufficient {
+        .department.insufficient, .market-item.expensive, .manipulation-item.insufficient, .talent-item.insufficient {
             opacity: 0.6;
             border-color: rgba(214,48,49,0.5);
         }
@@ -302,153 +514,15 @@
             border: 1px solid rgba(0,184,148,0.3);
         }
         
-        .right-panel {
+        .talent-tree {
             display: grid;
-            grid-template-rows: auto 1fr auto;
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
         }
         
-        .leaderboard {
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        
-        .company-rank {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, rgba(45,52,54,0.6), rgba(99,110,114,0.6));
-            border-radius: 10px;
-            border-left: 4px solid transparent;
-            transition: all 0.3s ease;
-        }
-        
-        .company-rank:hover {
-            transform: translateX(5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .company-rank.player {
-            border-left-color: #fdcb6e;
-            background: linear-gradient(135deg, rgba(253,203,110,0.1), rgba(225,112,85,0.1));
-        }
-        
-        .company-rank.ai {
-            border-left-color: #74b9ff;
-        }
-        
-        .rank-number {
-            font-size: 18px;
-            font-weight: bold;
-            color: #fdcb6e;
-            margin-right: 15px;
-            min-width: 30px;
-        }
-        
-        .rank-info {
-            flex: 1;
-        }
-        
-        .rank-name {
-            font-weight: bold;
-            color: #ddd;
-            margin-bottom: 4px;
-        }
-        
-        .rank-value {
-            font-size: 12px;
-            color: #bbb;
-        }
-        
-        .rank-trend {
-            font-size: 16px;
-            margin-left: 10px;
-        }
-        
-        .chat-section {
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            max-height: 300px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
-            max-height: 200px;
-        }
-        
-        .chat-message {
-            margin-bottom: 8px;
-            font-size: 13px;
-            line-height: 1.4;
-        }
-        
-        .chat-time {
-            color: #888;
-            font-size: 11px;
-        }
-        
-        .chat-player {
-            color: #fdcb6e;
-            font-weight: bold;
-            margin: 0 5px;
-        }
-        
-        .chat-text {
-            color: #ddd;
-        }
-        
-        .chat-input-container {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .chat-input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
-            color: #ddd;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .chat-input:focus {
-            outline: none;
-            border-color: #fdcb6e;
-            background: rgba(255,255,255,0.15);
-        }
-        
-        .chat-send {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #e17055, #d63031);
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        
-        .chat-send:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(225,112,85,0.4);
+        .talent-item.unlocked {
+            border-color: #00b894;
+            background: linear-gradient(135deg, rgba(0,184,148,0.1), rgba(0,168,133,0.1));
         }
         
         .btn {
@@ -478,7 +552,7 @@
         .notification {
             position: fixed;
             top: 20px;
-            right: 20px;
+            right: 420px;
             background: rgba(0,0,0,0.9);
             color: #fdcb6e;
             padding: 15px 25px;
@@ -507,17 +581,28 @@
             font-style: italic;
         }
         
+        .specialization-bonus {
+            background: rgba(0,184,148,0.1);
+            border: 1px solid rgba(0,184,148,0.3);
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 11px;
+            color: #00b894;
+        }
+        
         @media (max-width: 1200px) {
             .main-layout {
                 grid-template-columns: 1fr;
             }
             
-            .game-content {
-                grid-template-columns: 1fr;
+            .right-panel {
+                border-left: none;
+                border-top: 2px solid rgba(253,203,110,0.3);
             }
             
-            .company-stats {
-                grid-template-columns: repeat(2, 1fr);
+            .notification {
+                right: 20px;
             }
         }
         
@@ -530,6 +615,10 @@
                 grid-template-columns: 1fr;
                 text-align: center;
             }
+            
+            .company-type-selector {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -539,12 +628,42 @@
         <div class="login-form">
             <div class="login-title">🏢 黑心公司大亨 🏢</div>
             <div class="login-subtitle">"道德是成功路上的绊脚石"</div>
+            
             <input type="text" class="login-input" id="companyName" placeholder="输入你的黑心公司名称" maxlength="25">
+            
+            <div style="color: #fdcb6e; font-weight: bold; margin: 20px 0 10px 0;">选择你的邪恶专业方向：</div>
+            <div class="company-type-selector">
+                <div class="company-type" data-type="tech">
+                    <div class="company-type-title">💻 科技公司</div>
+                    <div class="company-type-desc">数据挖掘，隐私贩卖</div>
+                </div>
+                <div class="company-type" data-type="manufacturing">
+                    <div class="company-type-title">🏭 制造公司</div>
+                    <div class="company-type-desc">血汗工厂，环境破坏</div>
+                </div>
+                <div class="company-type" data-type="finance">
+                    <div class="company-type-title">💳 金融公司</div>
+                    <div class="company-type-desc">高利贷，金融诈骗</div>
+                </div>
+                <div class="company-type" data-type="retail">
+                    <div class="company-type-title">🛒 零售公司</div>
+                    <div class="company-type-desc">垄断市场，价格操控</div>
+                </div>
+                <div class="company-type" data-type="entertainment">
+                    <div class="company-type-title">🎮 娱乐公司</div>
+                    <div class="company-type-desc">成瘾设计，氪金陷阱</div>
+                </div>
+                <div class="company-type" data-type="pharma">
+                    <div class="company-type-title">💊 制药公司</div>
+                    <div class="company-type-desc">天价药物，虚假宣传</div>
+                </div>
+            </div>
+            
             <button class="login-btn" onclick="joinGame()">开始剥削之旅</button>
             <div style="margin-top: 25px; font-size: 14px; color: #bbb; line-height: 1.5;">
                 🎯 目标：成为最富有的黑心企业<br>
                 💰 手段：不择手段，唯利是图<br>
-                🌍 竞争：击败全球玩家和AI公司
+                🌍 竞争：击败全球玩家和AI巨头
             </div>
         </div>
     </div>
@@ -558,6 +677,7 @@
                 <div>
                     <div style="color: #fdcb6e; font-size: 20px; font-weight: bold; margin-bottom: 5px;">
                         <span id="currentCompany">未知公司</span>
+                        <span id="companyType" style="font-size: 14px; color: #bbb; margin-left: 10px;">(科技)</span>
                     </div>
                     <div style="color: #bbb; font-size: 14px;">
                         CEO: <span id="playerName">匿名</span>
@@ -567,7 +687,7 @@
                 
                 <div class="company-stats">
                     <div class="stat-item">
-                        <div class="stat-label">市值排名</div>
+                        <div class="stat-label">全球排名</div>
                         <div class="stat-value" id="globalRank">#-</div>
                     </div>
                     <div class="stat-item">
@@ -575,64 +695,75 @@
                         <div class="stat-value" id="onlineCount">0</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">市场份额</div>
-                        <div class="stat-value" id="marketShare">0%</div>
+                        <div class="stat-label">市值</div>
+                        <div class="stat-value" id="marketValue">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">行业地位</div>
+                        <div class="stat-value" id="industryRank">#-</div>
                     </div>
                 </div>
             </div>
             
             <div class="resources">
-                <div class="resource money">💰 资金: <span id="money">100K</span></div>
-                <div class="resource workforce">👥 人力: <span id="workforce">0</span></div>
-                <div class="resource materials">📦 原料: <span id="materials">0</span></div>
-                <div class="resource technology">💻 科技: <span id="technology">0</span></div>
-                <div class="resource energy">⚡ 能源: <span id="energy">0</span></div>
-                <div class="resource data">📊 数据: <span id="data">0</span></div>
-                <div class="resource reputation">⭐ 声誉: <span id="reputation">0</span></div>
-                <div class="resource influence">🎭 影响力: <span id="influence">0</span></div>
+                <div class="resource money">💰 资金: <span id="money">500K</span></div>
+                <div class="resource workforce">👥 人力: <span id="workforce">10</span></div>
+                <div class="resource materials">📦 原料: <span id="materials">50</span></div>
+                <div class="resource technology">💻 科技: <span id="technology">20</span></div>
+                <div class="resource energy">⚡ 能源: <span id="energy">30</span></div>
+                <div class="resource data">📊 数据: <span id="data">15</span></div>
+                <div class="resource reputation">⭐ 声誉: <span id="reputation">100</span></div>
+                <div class="resource influence">🎭 影响力: <span id="influence">5</span></div>
             </div>
         </div>
         
         <div class="main-layout">
-            <div class="game-content">
-                <div class="section">
-                    <h2>🏭 公司部门</h2>
-                    <div id="departments"></div>
-                </div>
-                
-                <div class="section">
-                    <h2>📈 全球市场</h2>
-                    <div id="market"></div>
-                </div>
-                
-                <div class="section">
-                    <h2>🎮 市场操控</h2>
-                    <div id="manipulations"></div>
-                </div>
-                
-                <div class="section">
-                    <h2>🏪 黑市交易</h2>
-                    <div id="blackmarket"></div>
+            <div class="left-content">
+                <div class="tabs-container">
+                    <div class="tabs-header">
+                        <button class="tab-button active" onclick="switchTab('departments')">🏭 公司部门</button>
+                        <button class="tab-button" onclick="switchTab('market')">📈 全球市场</button>
+                        <button class="tab-button" onclick="switchTab('manipulations')">🎮 市场操控</button>
+                        <button class="tab-button" onclick="switchTab('talents')">🌳 邪恶天赋</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="departments-tab">
+                        <div id="departments"></div>
+                    </div>
+                    
+                    <div class="tab-content" id="market-tab">
+                        <div id="market"></div>
+                    </div>
+                    
+                    <div class="tab-content" id="manipulations-tab">
+                        <div id="manipulations"></div>
+                    </div>
+                    
+                    <div class="tab-content" id="talents-tab">
+                        <div class="talent-tree" id="talents"></div>
+                    </div>
                 </div>
             </div>
             
             <div class="right-panel">
-                <div class="leaderboard">
-                    <h2 style="margin-bottom: 20px; color: #fdcb6e; border-bottom: 2px solid rgba(253,203,110,0.3); padding-bottom: 10px;">
-                        🏆 公司排行榜
-                    </h2>
-                    <div id="leaderboard"></div>
-                </div>
-                
                 <div class="chat-section">
-                    <h2 style="margin-bottom: 15px; color: #fdcb6e; border-bottom: 2px solid rgba(253,203,110,0.3); padding-bottom: 8px;">
+                    <div class="chat-header">
                         💬 CEO聊天室
-                    </h2>
+                        <span style="font-size: 12px; color: #bbb;">全球黑心老板在线交流</span>
+                    </div>
                     <div class="chat-messages" id="chatMessages"></div>
                     <div class="chat-input-container">
                         <input type="text" class="chat-input" id="chatInput" placeholder="发表你的邪恶言论..." maxlength="200" onkeypress="if(event.key==='Enter') sendMessage()">
                         <button class="chat-send" onclick="sendMessage()">发送</button>
                     </div>
+                </div>
+                
+                <div class="leaderboard">
+                    <div class="leaderboard-header">
+                        🏆 公司排行榜
+                        <span style="font-size: 12px; color: #bbb;">全球黑心企业实时排名</span>
+                    </div>
+                    <div id="leaderboard"></div>
                 </div>
             </div>
         </div>
@@ -645,66 +776,143 @@
                 this.playerId = null;
                 this.companyName = '';
                 this.playerName = '';
+                this.companyType = 'tech';
                 this.isConnected = false;
                 
                 this.gameData = {
                     resources: {
-                        money: 100000, workforce: 0, materials: 0, technology: 0,
-                        energy: 0, data: 0, reputation: 50, influence: 0
+                        money: 500000, workforce: 10, materials: 50, technology: 20,
+                        energy: 30, data: 15, reputation: 100, influence: 5
                     },
                     departments: {
-                        hr: { name: 'HR部门', count: 0, cost: { money: 50000 } },
-                        manufacturing: { name: '生产部', count: 0, cost: { money: 80000, workforce: 5 } },
-                        rd: { name: '研发部', count: 0, cost: { money: 150000, workforce: 10 } },
-                        marketing: { name: '营销部', count: 0, cost: { money: 120000, workforce: 8 } },
-                        finance: { name: '金融部', count: 0, cost: { money: 200000, workforce: 15 } },
-                        legal: { name: '法务部', count: 0, cost: { money: 300000, workforce: 12 } },
-                        lobbying: { name: '公关部', count: 0, cost: { money: 500000, workforce: 20, reputation: 100 } }
+                        hr: { name: 'HR部门', count: 0, cost: { money: 30000 } },
+                        manufacturing: { name: '生产部', count: 0, cost: { money: 50000, workforce: 3 } },
+                        rd: { name: '研发部', count: 0, cost: { money: 80000, workforce: 5 } },
+                        marketing: { name: '营销部', count: 0, cost: { money: 60000, workforce: 4 } },
+                        finance: { name: '金融部', count: 0, cost: { money: 100000, workforce: 6 } },
+                        legal: { name: '法务部', count: 0, cost: { money: 120000, workforce: 5 } },
+                        lobbying: { name: '公关部', count: 0, cost: { money: 200000, workforce: 8, reputation: 50 } }
                     },
-                    marketValue: 100000,
+                    talents: {
+                        basic_exploitation: { unlocked: false, cost: { influence: 10 } },
+                        advanced_manipulation: { unlocked: false, cost: { influence: 25 } },
+                        monopoly_tactics: { unlocked: false, cost: { influence: 50 } },
+                        global_corruption: { unlocked: false, cost: { influence: 100 } }
+                    },
+                    companyType: 'tech',
+                    marketValue: 500000,
                     lastUpdate: Date.now()
                 };
                 
                 this.globalMarket = {};
                 this.leaderboard = [];
                 this.chatMessages = [];
+                this.selectedCompanyType = 'tech';
+                
+                // 公司类型配置
+                this.companyTypes = {
+                    tech: {
+                        name: '科技公司',
+                        emoji: '💻',
+                        bonuses: { technology: 2, data: 2 },
+                        specialDepartment: 'ai_lab'
+                    },
+                    manufacturing: {
+                        name: '制造公司',
+                        emoji: '🏭',
+                        bonuses: { materials: 3, energy: 2 },
+                        specialDepartment: 'factory'
+                    },
+                    finance: {
+                        name: '金融公司',
+                        emoji: '💳',
+                        bonuses: { money: 50000, influence: 3 },
+                        specialDepartment: 'trading_floor'
+                    },
+                    retail: {
+                        name: '零售公司',
+                        emoji: '🛒',
+                        bonuses: { reputation: 50, workforce: 5 },
+                        specialDepartment: 'supply_chain'
+                    },
+                    entertainment: {
+                        name: '娱乐公司',
+                        emoji: '🎮',
+                        bonuses: { data: 3, reputation: 30 },
+                        specialDepartment: 'content_studio'
+                    },
+                    pharma: {
+                        name: '制药公司',
+                        emoji: '💊',
+                        bonuses: { technology: 3, influence: 2 },
+                        specialDepartment: 'research_lab'
+                    }
+                };
                 
                 // 部门生产配置
                 this.departmentData = {
                     hr: { 
-                        production: { workforce: 5 }, 
-                        consumption: { money: 20000 },
+                        production: { workforce: 3 }, 
+                        consumption: { money: 15000 },
                         description: '招聘劳动力，压榨员工价值'
                     },
                     manufacturing: { 
-                        production: { materials: 8, money: 30000 }, 
-                        consumption: { workforce: 3, energy: 10 },
+                        production: { materials: 5, money: 20000 }, 
+                        consumption: { workforce: 2, energy: 8 },
                         description: '血汗工厂，生产廉价商品'
                     },
                     rd: { 
-                        production: { technology: 3, data: 5 }, 
-                        consumption: { workforce: 8, money: 40000 },
+                        production: { technology: 2, data: 3 }, 
+                        consumption: { workforce: 4, money: 25000 },
                         description: '研发黑科技，申请垃圾专利'
                     },
                     marketing: { 
-                        production: { reputation: 5, influence: 3 }, 
-                        consumption: { workforce: 5, money: 25000 },
+                        production: { reputation: 3, influence: 2 }, 
+                        consumption: { workforce: 3, money: 18000 },
                         description: '洗脑消费者，操控舆论'
                     },
                     finance: { 
-                        production: { money: 80000, influence: 2 }, 
-                        consumption: { workforce: 10, data: 8 },
+                        production: { money: 40000, influence: 1 }, 
+                        consumption: { workforce: 5, data: 4 },
                         description: '金融诈骗，合法避税'
                     },
                     legal: { 
-                        production: { influence: 5 }, 
-                        consumption: { workforce: 8, money: 60000 },
+                        production: { influence: 3 }, 
+                        consumption: { workforce: 4, money: 30000 },
                         description: '钻法律漏洞，收买官员'
                     },
                     lobbying: { 
-                        production: { influence: 10, reputation: 8 }, 
-                        consumption: { workforce: 15, money: 100000 },
+                        production: { influence: 6, reputation: 4 }, 
+                        consumption: { workforce: 8, money: 50000 },
                         description: '政商勾结，制定有利法规'
+                    }
+                };
+                
+                // 天赋系统
+                this.talents = {
+                    basic_exploitation: {
+                        name: '基础剥削术',
+                        description: '所有部门效率提升15%',
+                        cost: { influence: 10 },
+                        effect: { productionBonus: 0.15 }
+                    },
+                    advanced_manipulation: {
+                        name: '高级操控术',
+                        description: '市场操作成功率提升50%',
+                        cost: { influence: 25 },
+                        effect: { manipulationBonus: 0.5 }
+                    },
+                    monopoly_tactics: {
+                        name: '垄断战术',
+                        description: '可以发起恶意收购',
+                        cost: { influence: 50 },
+                        effect: { unlockHostileTakeover: true }
+                    },
+                    global_corruption: {
+                        name: '全球腐败网络',
+                        description: '所有操控行为成本降低30%',
+                        cost: { influence: 100 },
+                        effect: { corruptionDiscount: 0.3 }
                     }
                 };
                 
@@ -713,30 +921,31 @@
                     {
                         id: 'spread_rumors',
                         name: '散布谣言',
-                        cost: { money: 50000, influence: 10 },
+                        cost: { money: 30000, influence: 5 },
                         effect: '降低竞争对手声誉',
                         description: '在网络上雇佣水军，恶意中伤竞争对手'
                     },
                     {
                         id: 'market_manipulation',
                         name: '操控股价',
-                        cost: { money: 200000, influence: 25 },
+                        cost: { money: 100000, influence: 15 },
                         effect: '暂时提升市值',
                         description: '内幕交易，人为制造股价波动'
                     },
                     {
-                        id: 'monopoly_attempt',
-                        name: '垄断收购',
-                        cost: { money: 500000, influence: 50 },
-                        effect: '吞并小公司',
-                        description: '恶意收购，消灭潜在威胁'
-                    },
-                    {
                         id: 'regulatory_capture',
                         name: '监管俘获',
-                        cost: { money: 1000000, influence: 100 },
+                        cost: { money: 300000, influence: 40 },
                         effect: '获得政策优势',
                         description: '收买监管机构，制定有利政策'
+                    },
+                    {
+                        id: 'hostile_takeover',
+                        name: '恶意收购',
+                        cost: { money: 1000000, influence: 80 },
+                        effect: '吞并竞争对手',
+                        description: '强行收购，消灭威胁',
+                        requiresTalent: 'monopoly_tactics'
                     }
                 ];
                 
@@ -744,8 +953,23 @@
             }
             
             init() {
+                this.setupCompanyTypeSelector();
                 this.setupSocketListeners();
                 this.startGameLoop();
+            }
+            
+            setupCompanyTypeSelector() {
+                const types = document.querySelectorAll('.company-type');
+                types.forEach(type => {
+                    type.addEventListener('click', () => {
+                        types.forEach(t => t.classList.remove('selected'));
+                        type.classList.add('selected');
+                        this.selectedCompanyType = type.dataset.type;
+                    });
+                });
+                
+                // 默认选择科技公司
+                document.querySelector('.company-type[data-type="tech"]').classList.add('selected');
             }
             
             setupSocketListeners() {
@@ -821,34 +1045,71 @@
                 }
                 
                 this.companyName = name;
+                this.companyType = this.selectedCompanyType;
                 this.playerName = name + ' CEO';
                 this.playerId = 'company_' + Date.now();
+                
+                // 应用公司类型初始加成
+                this.applyCompanyTypeBonus();
                 
                 // 尝试加载本地存档
                 const savedData = localStorage.getItem('corporateCapitalist_' + name);
                 if (savedData) {
                     try {
-                        this.gameData = JSON.parse(savedData);
+                        const saved = JSON.parse(savedData);
+                        // 合并初始资源和存档资源
+                        Object.keys(this.gameData.resources).forEach(resource => {
+                            if (saved.resources && saved.resources[resource] !== undefined) {
+                                this.gameData.resources[resource] = saved.resources[resource];
+                            }
+                        });
+                        // 保留其他存档数据
+                        if (saved.departments) this.gameData.departments = saved.departments;
+                        if (saved.talents) this.gameData.talents = saved.talents;
+                        if (saved.companyType) this.gameData.companyType = saved.companyType;
                         console.log('💾 加载公司存档成功');
                     } catch (e) {
-                        console.error('❌ 存档损坏，重新开始', e);
+                        console.error('❌ 存档损坏，使用新数据', e);
                     }
                 }
+                
+                this.gameData.companyType = this.companyType;
                 
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('gameContainer').style.display = 'block';
                 document.getElementById('currentCompany').textContent = this.companyName;
+                document.getElementById('companyType').textContent = `(${this.companyTypes[this.companyType].name})`;
                 document.getElementById('playerName').textContent = this.playerName;
                 
                 // 发送加入游戏请求
                 this.socket.emit('joinGame', {
                     companyName: this.companyName,
                     playerName: this.playerName,
+                    companyType: this.companyType,
                     gameData: this.gameData
                 });
                 
                 this.renderAll();
                 this.showNotification(`🎉 欢迎来到商业战场，${this.companyName}！`);
+            }
+            
+            applyCompanyTypeBonus() {
+                const typeConfig = this.companyTypes[this.selectedCompanyType];
+                if (typeConfig && typeConfig.bonuses) {
+                    Object.keys(typeConfig.bonuses).forEach(resource => {
+                        this.gameData.resources[resource] += typeConfig.bonuses[resource];
+                    });
+                }
+            }
+            
+            switchTab(tabName) {
+                // 更新按钮状态
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+                
+                // 更新内容显示
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(`${tabName}-tab`).classList.add('active');
             }
             
             updateConnectionStatus() {
@@ -877,7 +1138,7 @@
                 this.renderDepartments();
                 this.renderMarket();
                 this.renderManipulations();
-                this.renderBlackMarket();
+                this.renderTalents();
                 this.renderLeaderboard();
                 this.renderChat();
                 this.updateDisplay();
@@ -900,12 +1161,16 @@
                     const consumptionText = deptData.consumption ?
                         Object.keys(deptData.consumption).map(r => `-${this.formatNumber(deptData.consumption[r])}/s ${this.getResourceEmoji(r)}`).join(' ') : '';
                     
+                    // 检查公司类型加成
+                    const typeBonus = this.getCompanyTypeBonus(key);
+                    
                     div.innerHTML = `
                         <div class="department-header">
                             <div class="department-name">${this.getDepartmentEmoji(key)} ${dept.name}</div>
                             <div class="department-count">${dept.count}</div>
                         </div>
                         <div style="font-size: 11px; color: #bbb; margin-bottom: 10px;">${deptData.description}</div>
+                        ${typeBonus ? `<div class="specialization-bonus">专业加成: ${typeBonus}</div>` : ''}
                         <div class="department-stats">
                             <div class="cost-display">扩建: ${this.formatCost(dept.cost)}</div>
                             ${consumptionText ? `<div class="cost-display">消耗: ${consumptionText}</div>` : '<div></div>'}
@@ -919,12 +1184,29 @@
                 });
             }
             
+            getCompanyTypeBonus(departmentKey) {
+                const typeConfig = this.companyTypes[this.gameData.companyType];
+                if (!typeConfig) return null;
+                
+                // 根据公司类型给予特定部门加成
+                const bonuses = {
+                    tech: { rd: '+50%科技产出', marketing: '+30%数据收集' },
+                    manufacturing: { manufacturing: '+40%材料产出', energy: '+25%能源效率' },
+                    finance: { finance: '+60%金钱产出', legal: '+30%影响力' },
+                    retail: { marketing: '+40%声誉提升', hr: '+50%人力招聘' },
+                    entertainment: { marketing: '+50%声誉加成', rd: '+30%创意产出' },
+                    pharma: { rd: '+70%科技产出', legal: '+40%监管优势' }
+                };
+                
+                return bonuses[this.gameData.companyType] && bonuses[this.gameData.companyType][departmentKey] || null;
+            }
+            
             renderMarket() {
                 const container = document.getElementById('market');
                 container.innerHTML = '';
                 
                 Object.keys(this.globalMarket).forEach(resource => {
-                    if (resource === 'money') return; // 金钱不在市场交易
+                    if (resource === 'money') return;
                     
                     const market = this.globalMarket[resource];
                     const div = document.createElement('div');
@@ -937,7 +1219,7 @@
                     const trendIcon = market.trend > 0 ? '📈' : market.trend < 0 ? '📉' : '➡️';
                     
                     div.innerHTML = `
-                        <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                             <span style="font-weight: bold; color: #fdcb6e;">${this.getResourceEmoji(resource)} ${this.getResourceName(resource)}</span>
                             <span class="market-trend">${trendIcon}</span>
                         </div>
@@ -972,8 +1254,15 @@
                 this.manipulations.forEach(manipulation => {
                     const div = document.createElement('div');
                     
-                    const canAfford = this.canAfford(manipulation.cost);
-                    div.className = `manipulation-item ${canAfford ? '' : 'insufficient'}`;
+                    let canAfford = this.canAfford(manipulation.cost);
+                    let canUse = true;
+                    
+                    // 检查天赋前置条件
+                    if (manipulation.requiresTalent && !this.gameData.talents[manipulation.requiresTalent].unlocked) {
+                        canUse = false;
+                    }
+                    
+                    div.className = `manipulation-item ${canAfford && canUse ? '' : 'insufficient'}`;
                     
                     div.innerHTML = `
                         <div style="font-weight: bold; color: #fdcb6e; margin-bottom: 6px;">
@@ -988,8 +1277,10 @@
                         <div class="manipulation-effect">
                             ${manipulation.effect}
                         </div>
+                        ${manipulation.requiresTalent && !this.gameData.talents[manipulation.requiresTalent].unlocked ? 
+                            '<div style="font-size: 10px; color: #e74c3c; margin-top: 5px;">需要解锁相关天赋</div>' : ''}
                         <button class="btn" onclick="game.executeManipulation('${manipulation.id}')" 
-                            ${canAfford ? '' : 'disabled'} style="width: 100%;">
+                            ${canAfford && canUse ? '' : 'disabled'} style="width: 100%;">
                             执行计划
                         </button>
                     `;
@@ -998,15 +1289,39 @@
                 });
             }
             
-            renderBlackMarket() {
-                const container = document.getElementById('blackmarket');
-                container.innerHTML = `
-                    <div style="text-align: center; color: #bbb; margin-top: 50px;">
-                        <div style="font-size: 24px; margin-bottom: 10px;">🔒</div>
-                        <div>黑市交易功能开发中...</div>
-                        <div style="font-size: 11px; margin-top: 5px;">需要足够的影响力解锁</div>
-                    </div>
-                `;
+            renderTalents() {
+                const container = document.getElementById('talents');
+                container.innerHTML = '';
+                
+                Object.keys(this.talents).forEach(key => {
+                    const talent = this.talents[key];
+                    const div = document.createElement('div');
+                    
+                    const isUnlocked = this.gameData.talents[key].unlocked;
+                    const canAfford = this.canAfford(talent.cost);
+                    
+                    div.className = `talent-item ${isUnlocked ? 'unlocked' : (canAfford ? '' : 'insufficient')}`;
+                    
+                    div.innerHTML = `
+                        <div style="font-weight: bold; color: ${isUnlocked ? '#00b894' : '#fdcb6e'}; margin-bottom: 8px;">
+                            ${isUnlocked ? '✅' : '🔒'} ${talent.name}
+                        </div>
+                        <div style="font-size: 12px; color: #ddd; margin-bottom: 10px;">
+                            ${talent.description}
+                        </div>
+                        <div class="cost-display" style="margin-bottom: 8px;">
+                            ${isUnlocked ? '已解锁' : `费用: ${this.formatCost(talent.cost)}`}
+                        </div>
+                        ${!isUnlocked ? `
+                            <button class="btn" onclick="game.unlockTalent('${key}')" 
+                                ${canAfford ? '' : 'disabled'} style="width: 100%;">
+                                解锁天赋
+                            </button>
+                        ` : ''}
+                    `;
+                    
+                    container.appendChild(div);
+                });
             }
             
             renderLeaderboard() {
@@ -1025,27 +1340,30 @@
                         name: this.companyName,
                         isPlayer: true,
                         value: myValue,
-                        trend: 0
+                        trend: 0,
+                        companyType: this.gameData.companyType
                     });
                 } else {
                     allCompanies[myIndex].value = myValue;
                     allCompanies[myIndex].isPlayer = true;
+                    allCompanies[myIndex].companyType = this.gameData.companyType;
                 }
                 
                 // 按市值排序
                 allCompanies.sort((a, b) => b.value - a.value);
                 
-                allCompanies.slice(0, 10).forEach((company, index) => {
+                allCompanies.slice(0, 12).forEach((company, index) => {
                     const div = document.createElement('div');
                     div.className = `company-rank ${company.isPlayer ? 'player' : 'ai'}`;
                     
                     const trendIcon = company.trend > 0 ? '📈' : company.trend < 0 ? '📉' : '➡️';
+                    const typeEmoji = this.companyTypes[company.companyType] ? this.companyTypes[company.companyType].emoji : '🏢';
                     
                     div.innerHTML = `
                         <div class="rank-number">#${index + 1}</div>
                         <div class="rank-info">
                             <div class="rank-name">
-                                ${company.name} ${company.isPlayer ? '(你)' : ''}
+                                ${typeEmoji} ${company.name} ${company.isPlayer ? '(你)' : ''}
                             </div>
                             <div class="rank-value">
                                 市值: ${this.formatNumber(company.value)} 💰
@@ -1062,12 +1380,12 @@
                 const container = document.getElementById('chatMessages');
                 container.innerHTML = '';
                 
-                this.chatMessages.slice(-20).forEach(msg => {
+                this.chatMessages.slice(-15).forEach(msg => {
                     const div = document.createElement('div');
                     div.className = 'chat-message';
                     
                     const time = new Date(msg.timestamp).toLocaleTimeString().slice(0, 5);
-                    const isSystem = msg.player === '系统';
+                    const isSystem = msg.player === '系统' || msg.player === '市场快讯';
                     
                     div.innerHTML = `
                         <span class="chat-time">[${time}]</span>
@@ -1087,14 +1405,17 @@
                 document.getElementById('globalRank').textContent = myRank > 0 ? `#${myRank}` : '#-';
                 
                 // 更新在线人数
-                const onlineCount = this.leaderboard.filter(c => c.isPlayer).length;
+                const onlineCount = this.leaderboard.filter(c => c.isPlayer && c.online !== false).length;
                 document.getElementById('onlineCount').textContent = onlineCount;
                 
-                // 更新市场份额（简化计算）
-                const totalValue = this.leaderboard.reduce((sum, c) => sum + c.value, 0);
-                const myValue = this.calculateCompanyValue();
-                const marketShare = totalValue > 0 ? (myValue / totalValue * 100).toFixed(1) : '0.0';
-                document.getElementById('marketShare').textContent = marketShare + '%';
+                // 更新市值
+                const marketValue = this.calculateCompanyValue();
+                document.getElementById('marketValue').textContent = this.formatNumber(marketValue);
+                
+                // 更新行业排名
+                const sameTypeCompanies = this.leaderboard.filter(c => c.companyType === this.gameData.companyType);
+                const industryRank = sameTypeCompanies.findIndex(c => c.name === this.companyName) + 1;
+                document.getElementById('industryRank').textContent = industryRank > 0 ? `#${industryRank}` : '#-';
             }
             
             calculateCompanyValue() {
@@ -1110,21 +1431,38 @@
                 // 部门价值
                 Object.keys(this.gameData.departments).forEach(key => {
                     const dept = this.gameData.departments[key];
-                    value += dept.count * 100000; // 每个部门价值10万
+                    value += dept.count * 50000; // 每个部门价值5万
+                });
+                
+                // 天赋价值
+                Object.keys(this.gameData.talents).forEach(key => {
+                    if (this.gameData.talents[key].unlocked) {
+                        value += 100000; // 每个天赋价值10万
+                    }
                 });
                 
                 return value;
             }
             
             getDepartmentEfficiency(key) {
-                // 简化的效率计算
                 let efficiency = 100;
                 
-                // 基于声誉和影响力的效率加成
-                efficiency += this.gameData.resources.reputation / 10;
-                efficiency += this.gameData.resources.influence / 5;
+                // 基础天赋加成
+                if (this.gameData.talents.basic_exploitation.unlocked) {
+                    efficiency += 15;
+                }
                 
-                return Math.floor(Math.min(200, efficiency));
+                // 公司类型专业化加成
+                const typeBonus = this.getCompanyTypeBonus(key);
+                if (typeBonus) {
+                    efficiency += 20;
+                }
+                
+                // 基于声誉和影响力的效率加成
+                efficiency += this.gameData.resources.reputation / 20;
+                efficiency += this.gameData.resources.influence / 10;
+                
+                return Math.floor(Math.min(300, efficiency));
             }
             
             expandDepartment(type) {
@@ -1135,7 +1473,7 @@
                     
                     // 动态提升成本
                     Object.keys(dept.cost).forEach(resource => {
-                        dept.cost[resource] = Math.floor(dept.cost[resource] * 1.2);
+                        dept.cost[resource] = Math.floor(dept.cost[resource] * 1.15);
                     });
                     
                     this.showNotification(`🏢 扩建了${dept.name}！开始更大规模的剥削！`);
@@ -1144,6 +1482,22 @@
                     this.saveGame();
                     
                     // 同步到服务器
+                    this.socket.emit('updateGameData', this.gameData);
+                }
+            }
+            
+            unlockTalent(talentKey) {
+                const talent = this.talents[talentKey];
+                if (this.canAfford(talent.cost)) {
+                    this.payCost(talent.cost);
+                    this.gameData.talents[talentKey].unlocked = true;
+                    
+                    this.showNotification(`🌟 解锁邪恶天赋：${talent.name}！`);
+                    this.updateDisplay();
+                    this.renderTalents();
+                    this.renderManipulations(); // 更新操控选项
+                    this.saveGame();
+                    
                     this.socket.emit('updateGameData', this.gameData);
                 }
             }
@@ -1167,7 +1521,21 @@
             executeManipulation(manipulationId) {
                 const manipulation = this.manipulations.find(m => m.id === manipulationId);
                 if (manipulation && this.canAfford(manipulation.cost)) {
-                    this.payCost(manipulation.cost);
+                    // 检查天赋前置条件
+                    if (manipulation.requiresTalent && !this.gameData.talents[manipulation.requiresTalent].unlocked) {
+                        this.showNotification('需要先解锁相关天赋！');
+                        return;
+                    }
+                    
+                    // 应用腐败折扣
+                    let cost = { ...manipulation.cost };
+                    if (this.gameData.talents.global_corruption.unlocked) {
+                        Object.keys(cost).forEach(resource => {
+                            cost[resource] = Math.floor(cost[resource] * 0.7);
+                        });
+                    }
+                    
+                    this.payCost(cost);
                     
                     this.socket.emit('executeManipulation', {
                         manipulationId: manipulationId,
@@ -1309,6 +1677,12 @@
         function sendMessage() {
             if (game) {
                 game.sendMessage();
+            }
+        }
+        
+        function switchTab(tabName) {
+            if (game) {
+                game.switchTab(tabName);
             }
         }
         
