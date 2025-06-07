@@ -228,6 +228,22 @@
         .resource.reputation { background: linear-gradient(135deg, #fab1a0, #e17055); }
         .resource.influence { background: linear-gradient(135deg, #fd79a8, #fdcb6e); }
         
+        .global-event-banner {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: 2px solid #fdcb6e;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
         .main-layout {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -412,6 +428,16 @@
             border-left-color: #74b9ff;
         }
         
+        .company-rank.under-attack {
+            border-left-color: #e74c3c;
+            animation: flash 1s infinite;
+        }
+        
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
         .rank-number {
             font-size: 16px;
             font-weight: bold;
@@ -486,7 +512,7 @@
             display: block;
         }
         
-        .department, .market-item, .stock-item {
+        .department, .market-item, .stock-item, .strategy-item, .contract-item {
             background: linear-gradient(135deg, rgba(45,52,54,0.8), rgba(99,110,114,0.8));
             padding: 15px;
             border-radius: 10px;
@@ -496,15 +522,25 @@
             margin-bottom: 12px;
         }
         
-        .department:hover, .market-item:hover, .stock-item:hover {
+        .department:hover, .market-item:hover, .stock-item:hover, .strategy-item:hover, .contract-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(253,203,110,0.2);
             border-color: rgba(253,203,110,0.5);
         }
         
-        .department.insufficient, .market-item.expensive, .stock-item.expensive {
+        .department.insufficient, .market-item.expensive, .stock-item.expensive, .strategy-item.insufficient {
             opacity: 0.6;
             border-color: rgba(214,48,49,0.5);
+        }
+        
+        .market-item.high-demand {
+            border-color: #00b894;
+            box-shadow: 0 0 10px rgba(0,184,148,0.3);
+        }
+        
+        .contract-item.fulfilled {
+            border-color: #00b894;
+            background: linear-gradient(135deg, rgba(0,184,148,0.1), rgba(0,168,133,0.1));
         }
         
         .department-header {
@@ -553,6 +589,54 @@
             background: rgba(0,184,148,0.2);
             color: #00b894;
             border: 1px solid rgba(0,184,148,0.3);
+        }
+        
+        .stock-controls {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        
+        .stock-btn {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .stock-btn.buy {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+        }
+        
+        .stock-btn.sell {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: white;
+        }
+        
+        .quantity-selector {
+            display: flex;
+            gap: 5px;
+            margin: 8px 0;
+        }
+        
+        .quantity-btn {
+            padding: 4px 8px;
+            border: 1px solid #fdcb6e;
+            background: transparent;
+            color: #fdcb6e;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        
+        .quantity-btn.active {
+            background: #fdcb6e;
+            color: #2d3436;
         }
         
         .btn {
@@ -612,6 +696,16 @@
             font-size: 14px;
         }
         
+        .demand-indicator {
+            background: rgba(0,184,148,0.2);
+            color: #00b894;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
         .profit-indicator {
             font-size: 12px;
             margin-top: 5px;
@@ -624,6 +718,16 @@
         
         .profit-indicator.negative {
             color: #e74c3c;
+        }
+        
+        .strategy-cooldown {
+            background: rgba(214,48,49,0.2);
+            color: #e74c3c;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-top: 5px;
+            display: inline-block;
         }
         
         @media (max-width: 1200px) {
@@ -687,7 +791,8 @@
                 🎯 目标：成为最富有的黑心企业<br>
                 💰 手段：不择手段，唯利是图<br>
                 🌍 竞争：击败全球玩家和AI巨头<br>
-                📈 挂机：离线也能持续赚钱
+                📈 挂机：离线也能持续赚钱<br>
+                🎭 策略：使用各种卑鄙手段打击对手
             </div>
         </div>
     </div>
@@ -696,6 +801,11 @@
     <div class="game-container" id="gameContainer">
         <div class="header">
             <div class="company-title">🏢 现代商战：黑心公司争霸战 🏢</div>
+            
+            <!-- 全球事件横幅 -->
+            <div class="global-event-banner" id="globalEventBanner" style="display: none;">
+                <div id="globalEventText"></div>
+            </div>
             
             <div class="company-info">
                 <div>
@@ -761,6 +871,8 @@
                         <button class="tab-button active" onclick="switchTab('departments')">🏭 公司部门</button>
                         <button class="tab-button" onclick="switchTab('market')">🏪 资源市场</button>
                         <button class="tab-button" onclick="switchTab('stocks')">📊 股票交易</button>
+                        <button class="tab-button" onclick="switchTab('strategies')">🎭 邪恶策略</button>
+                        <button class="tab-button" onclick="switchTab('contracts')">📋 市场合约</button>
                     </div>
                     
                     <div class="tab-content active" id="departments-tab">
@@ -773,6 +885,14 @@
                     
                     <div class="tab-content" id="stocks-tab">
                         <div id="stocks"></div>
+                    </div>
+                    
+                    <div class="tab-content" id="strategies-tab">
+                        <div id="strategies"></div>
+                    </div>
+                    
+                    <div class="tab-content" id="contracts-tab">
+                        <div id="contracts"></div>
                     </div>
                 </div>
             </div>
@@ -815,6 +935,8 @@
                     labels: [],
                     datasets: []
                 };
+                this.selectedQuantity = 1;
+                this.strategyCooldowns = {};
                 
                 this.gameData = {
                     resources: {
@@ -835,9 +957,11 @@
                 };
                 
                 this.globalMarket = {};
+                this.marketContracts = [];
                 this.leaderboard = [];
                 this.chatMessages = [];
                 this.selectedCompanyType = 'tech';
+                this.globalEvent = null;
                 
                 // 公司类型配置
                 this.companyTypes = {
@@ -893,6 +1017,58 @@
                         production: { money: 80000, influence: 2 }, 
                         consumption: { workforce: 8, data: 6 },
                         description: '金融投资，高额回报'
+                    }
+                };
+                
+                // 策略配置
+                this.strategies = {
+                    market_manipulation: {
+                        name: '市场操控',
+                        cost: { money: 500000, influence: 15 },
+                        cooldown: 300, // 5分钟
+                        target: 'self',
+                        description: '操控股价，提升自己市值20%',
+                        effect: '暂时提升市值，获得额外收益'
+                    },
+                    industrial_espionage: {
+                        name: '工业间谍',
+                        cost: { money: 300000, influence: 10 },
+                        cooldown: 240, // 4分钟
+                        target: 'other',
+                        description: '窃取竞争对手技术和数据',
+                        effect: '获得目标公司的科技和数据资源'
+                    },
+                    hostile_takeover: {
+                        name: '恶意收购',
+                        cost: { money: 2000000, influence: 50 },
+                        cooldown: 600, // 10分钟
+                        target: 'other',
+                        description: '强行收购竞争对手部分资产',
+                        effect: '降低目标市值，获得其资源'
+                    },
+                    media_campaign: {
+                        name: '媒体造势',
+                        cost: { money: 200000, reputation: 20 },
+                        cooldown: 180, // 3分钟
+                        target: 'self',
+                        description: '大规模宣传，提升声誉和影响力',
+                        effect: '大幅提升声誉，影响市场价格'
+                    },
+                    price_war: {
+                        name: '价格战',
+                        cost: { money: 800000, materials: 100 },
+                        cooldown: 420, // 7分钟
+                        target: 'market',
+                        description: '发起价格战，冲击整个市场',
+                        effect: '降低市场价格，影响所有竞争者'
+                    },
+                    regulatory_bribery: {
+                        name: '监管贿赂',
+                        cost: { money: 1000000, influence: 30 },
+                        cooldown: 480, // 8分钟
+                        target: 'self',
+                        description: '贿赂监管机构，获得政策优势',
+                        effect: '降低成本，提升效率，影响法规'
                     }
                 };
                 
@@ -979,9 +1155,12 @@
                 
                 this.socket.on('gameState', (data) => {
                     this.globalMarket = data.globalMarket;
+                    this.marketContracts = data.marketContracts || [];
                     this.leaderboard = data.leaderboard;
                     this.chatMessages = data.chatMessages;
+                    this.globalEvent = data.globalEvent;
                     this.renderAll();
+                    this.updateGlobalEvent();
                     console.log('📊 接收到全球商业数据');
                 });
                 
@@ -990,11 +1169,35 @@
                     this.renderMarket();
                 });
                 
+                this.socket.on('contractsUpdate', (contracts) => {
+                    this.marketContracts = contracts;
+                    this.renderContracts();
+                });
+                
                 this.socket.on('leaderboardUpdate', (leaderboard) => {
                     this.leaderboard = leaderboard;
                     this.renderLeaderboard();
                     this.updateCompanyStats();
                     this.updateChart();
+                });
+                
+                this.socket.on('globalEvent', (event) => {
+                    this.globalEvent = event;
+                    this.updateGlobalEvent();
+                    this.showNotification(`🌍 全球事件：${event.name}`);
+                });
+                
+                this.socket.on('strategyEffect', (data) => {
+                    this.showNotification(`🎭 ${data.message}`);
+                    if (data.cooldown) {
+                        this.strategyCooldowns[data.strategyId] = Date.now() + (data.cooldown * 1000);
+                    }
+                    if (data.resourceChanges) {
+                        Object.keys(data.resourceChanges).forEach(resource => {
+                            this.gameData.resources[resource] = data.resourceChanges[resource];
+                        });
+                        this.updateDisplay();
+                    }
                 });
                 
                 this.socket.on('chatMessage', (message) => {
@@ -1117,6 +1320,18 @@
                 document.getElementById(`${tabName}-tab`).classList.add('active');
             }
             
+            updateGlobalEvent() {
+                const banner = document.getElementById('globalEventBanner');
+                const text = document.getElementById('globalEventText');
+                
+                if (this.globalEvent) {
+                    banner.style.display = 'block';
+                    text.innerHTML = `🌍 <strong>${this.globalEvent.name}</strong>: ${this.globalEvent.description}`;
+                } else {
+                    banner.style.display = 'none';
+                }
+            }
+            
             updateChart() {
                 const now = new Date();
                 const timeLabel = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
@@ -1209,6 +1424,8 @@
                 this.renderDepartments();
                 this.renderMarket();
                 this.renderStocks();
+                this.renderStrategies();
+                this.renderContracts();
                 this.renderLeaderboard();
                 this.renderChat();
                 this.updateDisplay();
@@ -1283,7 +1500,10 @@
                     const canBuy = this.gameData.resources.money >= market.price;
                     const canSell = this.gameData.resources[resource] >= 1;
                     
-                    div.className = `market-item ${canBuy ? '' : 'expensive'}`;
+                    // 检查是否有高需求
+                    const isHighDemand = market.demand > market.supply * 1.5;
+                    
+                    div.className = `market-item ${canBuy ? '' : 'expensive'} ${isHighDemand ? 'high-demand' : ''}`;
                     
                     const trendIcon = market.trend > 0 ? '📈' : market.trend < 0 ? '📉' : '➡️';
                     
@@ -1295,9 +1515,13 @@
                         <div style="font-size: 13px; color: #ddd; margin-bottom: 6px;">
                             价格: ${this.formatNumber(market.price)} 💰
                         </div>
-                        <div style="font-size: 11px; color: #bbb; margin-bottom: 10px;">
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
                             库存: ${this.formatNumber(this.gameData.resources[resource])}
                         </div>
+                        <div style="font-size: 10px; color: #888; margin-bottom: 8px;">
+                            需求: ${this.formatNumber(market.demand)} | 供应: ${this.formatNumber(market.supply)}
+                        </div>
+                        ${isHighDemand ? '<div class="demand-indicator">🔥 高需求市场</div>' : ''}
                         <div style="display: flex; gap: 6px;">
                             <button class="btn buy" style="flex: 1; padding: 6px;" 
                                 onclick="game.buyResource('${resource}')" 
@@ -1326,9 +1550,12 @@
                     
                     const div = document.createElement('div');
                     const sharePrice = Math.floor(company.value / 1000000) || 1; // 股价 = 市值/100万
+                    const totalShares = 1000000; // 假设每家公司发行100万股
                     const ownedShares = this.gameData.stocks[company.id] || 0;
-                    const canBuy = this.gameData.resources.money >= sharePrice;
-                    const canSell = ownedShares > 0;
+                    const ownershipPercent = ((ownedShares / totalShares) * 100).toFixed(3);
+                    
+                    const canBuy = this.gameData.resources.money >= sharePrice * this.selectedQuantity;
+                    const canSell = ownedShares >= this.selectedQuantity;
                     
                     // 计算交易费用
                     const tradeFee = this.gameData.companyType === 'finance' ? sharePrice * 0.01 : sharePrice * 0.02;
@@ -1348,23 +1575,129 @@
                             股价: ${this.formatNumber(sharePrice)} 💰/股
                         </div>
                         <div style="font-size: 11px; color: #bbb; margin-bottom: 6px;">
-                            持有: ${ownedShares} 股 | 手续费: ${this.formatNumber(tradeFee)} 💰
+                            持有: ${this.formatNumber(ownedShares)} 股 (${ownershipPercent}%)
+                        </div>
+                        <div style="font-size: 10px; color: #777; margin-bottom: 6px;">
+                            发行总量: ${this.formatNumber(totalShares)} 股 | 手续费: ${this.formatNumber(tradeFee * this.selectedQuantity)} 💰
                         </div>
                         <div style="font-size: 10px; color: #777; margin-bottom: 8px;">
                             市值: ${this.formatNumber(company.value)} 💰
                         </div>
-                        <div style="display: flex; gap: 6px;">
-                            <button class="btn buy" style="flex: 1; padding: 6px;" 
+                        
+                        <div class="quantity-selector">
+                            <span style="color: #bbb; font-size: 11px; margin-right: 10px;">数量:</span>
+                            <button class="quantity-btn ${this.selectedQuantity === 1 ? 'active' : ''}" onclick="game.setQuantity(1)">1x</button>
+                            <button class="quantity-btn ${this.selectedQuantity === 10 ? 'active' : ''}" onclick="game.setQuantity(10)">10x</button>
+                            <button class="quantity-btn ${this.selectedQuantity === 100 ? 'active' : ''}" onclick="game.setQuantity(100)">100x</button>
+                        </div>
+                        
+                        <div class="stock-controls">
+                            <button class="stock-btn buy" 
                                 onclick="game.buyStock('${company.id}')" 
                                 ${canBuy ? '' : 'disabled'}>
-                                买入
+                                买入 ${this.selectedQuantity}股
                             </button>
-                            <button class="btn sell" style="flex: 1; padding: 6px;" 
+                            <button class="stock-btn sell" 
                                 onclick="game.sellStock('${company.id}')" 
                                 ${canSell ? '' : 'disabled'}>
-                                卖出
+                                卖出 ${this.selectedQuantity}股
                             </button>
                         </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+            
+            renderStrategies() {
+                const container = document.getElementById('strategies');
+                container.innerHTML = '';
+                
+                Object.keys(this.strategies).forEach(key => {
+                    const strategy = this.strategies[key];
+                    const div = document.createElement('div');
+                    
+                    const canAfford = this.canAfford(strategy.cost);
+                    const onCooldown = this.strategyCooldowns[key] && this.strategyCooldowns[key] > Date.now();
+                    const cooldownRemaining = onCooldown ? Math.ceil((this.strategyCooldowns[key] - Date.now()) / 1000) : 0;
+                    
+                    div.className = `strategy-item ${canAfford && !onCooldown ? '' : 'insufficient'}`;
+                    
+                    div.innerHTML = `
+                        <div style="font-weight: bold; color: #fdcb6e; margin-bottom: 6px;">
+                            🎭 ${strategy.name}
+                        </div>
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
+                            ${strategy.description}
+                        </div>
+                        <div style="font-size: 10px; color: #888; margin-bottom: 6px;">
+                            目标: ${strategy.target === 'self' ? '自己' : strategy.target === 'other' ? '竞争对手' : '整个市场'}
+                        </div>
+                        <div class="cost-display" style="margin-bottom: 6px;">
+                            费用: ${this.formatCost(strategy.cost)}
+                        </div>
+                        <div style="font-size: 10px; color: #777; margin-bottom: 8px;">
+                            冷却: ${Math.floor(strategy.cooldown / 60)}分钟
+                        </div>
+                        ${onCooldown ? `
+                            <div class="strategy-cooldown">
+                                冷却中: ${Math.floor(cooldownRemaining / 60)}:${(cooldownRemaining % 60).toString().padStart(2, '0')}
+                            </div>
+                        ` : ''}
+                        <button class="btn" onclick="game.executeStrategy('${key}')" 
+                            ${canAfford && !onCooldown ? '' : 'disabled'} style="width: 100%;">
+                            执行策略
+                        </button>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+            
+            renderContracts() {
+                const container = document.getElementById('contracts');
+                container.innerHTML = '';
+                
+                if (this.marketContracts.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">暂无市场合约</div>';
+                    return;
+                }
+                
+                this.marketContracts.forEach(contract => {
+                    const div = document.createElement('div');
+                    
+                    const canFulfill = this.canAfford(contract.required);
+                    const isExpired = Date.now() > contract.expiry;
+                    
+                    div.className = `contract-item ${canFulfill && !isExpired ? '' : 'insufficient'} ${contract.fulfilled ? 'fulfilled' : ''}`;
+                    
+                    const timeRemaining = Math.max(0, contract.expiry - Date.now());
+                    const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
+                    const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    div.innerHTML = `
+                        <div style="font-weight: bold; color: #fdcb6e; margin-bottom: 6px;">
+                            📋 ${contract.name}
+                        </div>
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
+                            ${contract.description}
+                        </div>
+                        <div style="font-size: 12px; color: #ddd; margin-bottom: 6px;">
+                            需求: ${this.formatCost(contract.required)}
+                        </div>
+                        <div style="font-size: 12px; color: #00b894; margin-bottom: 8px;">
+                            奖励: ${this.formatCost(contract.reward)}
+                        </div>
+                        <div style="font-size: 10px; color: ${isExpired ? '#e74c3c' : '#bbb'}; margin-bottom: 8px;">
+                            ${isExpired ? '已过期' : `剩余时间: ${hoursRemaining}h ${minutesRemaining}m`}
+                        </div>
+                        ${contract.fulfilled ? 
+                            '<div style="font-size: 11px; color: #00b894;">✅ 已完成</div>' :
+                            `<button class="btn" onclick="game.fulfillContract('${contract.id}')" 
+                                ${canFulfill && !isExpired ? '' : 'disabled'} style="width: 100%;">
+                                完成合约
+                            </button>`
+                        }
                     `;
                     
                     container.appendChild(div);
@@ -1401,7 +1734,7 @@
                 
                 allCompanies.slice(0, 10).forEach((company, index) => {
                     const div = document.createElement('div');
-                    div.className = `company-rank ${company.isPlayer ? 'player' : 'ai'}`;
+                    div.className = `company-rank ${company.isPlayer ? 'player' : 'ai'} ${company.underAttack ? 'under-attack' : ''}`;
                     
                     const trendIcon = company.trend > 0 ? '📈' : company.trend < 0 ? '📉' : '➡️';
                     const typeEmoji = this.companyTypes[company.companyType] ? this.companyTypes[company.companyType].emoji : '🏢';
@@ -1411,6 +1744,7 @@
                         <div class="rank-info">
                             <div class="rank-name">
                                 ${typeEmoji} ${company.name} ${company.isPlayer ? '(你)' : ''}
+                                ${company.underAttack ? '⚔️' : ''}
                             </div>
                             <div class="rank-value">
                                 市值: ${this.formatNumber(company.value)} 💰
@@ -1432,7 +1766,7 @@
                     div.className = 'chat-message';
                     
                     const time = new Date(msg.timestamp).toLocaleTimeString().slice(0, 5);
-                    const isSystem = msg.player === '系统' || msg.player === '市场快讯';
+                    const isSystem = msg.player === '系统' || msg.player === '市场快讯' || msg.player === '全球事件';
                     
                     div.innerHTML = `
                         <span class="chat-time">[${time}]</span>
@@ -1516,6 +1850,11 @@
                 return income;
             }
             
+            setQuantity(quantity) {
+                this.selectedQuantity = quantity;
+                this.renderStocks();
+            }
+            
             expandDepartment(type) {
                 const dept = this.gameData.departments[type];
                 if (this.canAfford(dept.cost)) {
@@ -1557,7 +1896,7 @@
                 this.socket.emit('stockTrade', {
                     action: 'buy',
                     companyId: companyId,
-                    shares: 1
+                    shares: this.selectedQuantity
                 });
             }
             
@@ -1565,8 +1904,27 @@
                 this.socket.emit('stockTrade', {
                     action: 'sell',
                     companyId: companyId,
-                    shares: 1
+                    shares: this.selectedQuantity
                 });
+            }
+            
+            executeStrategy(strategyId) {
+                const strategy = this.strategies[strategyId];
+                if (this.canAfford(strategy.cost) && (!this.strategyCooldowns[strategyId] || this.strategyCooldowns[strategyId] <= Date.now())) {
+                    this.socket.emit('executeStrategy', {
+                        strategyId: strategyId,
+                        targetType: strategy.target
+                    });
+                }
+            }
+            
+            fulfillContract(contractId) {
+                const contract = this.marketContracts.find(c => c.id === contractId);
+                if (contract && this.canAfford(contract.required) && !contract.fulfilled && Date.now() <= contract.expiry) {
+                    this.socket.emit('fulfillContract', {
+                        contractId: contractId
+                    });
+                }
             }
             
             sendMessage() {
