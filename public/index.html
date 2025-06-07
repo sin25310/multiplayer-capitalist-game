@@ -858,6 +858,11 @@
             transition: all 0.3s ease;
         }
         
+        .stock-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         .stock-btn.buy {
             background: linear-gradient(135deg, #00b894, #00a085);
             color: white;
@@ -986,6 +991,40 @@
             }
         }
         
+        /* 产品依赖弹窗 */
+        .dependency-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .dependency-modal-content {
+            background: linear-gradient(135deg, #2d3436, #636e72);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #fdcb6e;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: #ddd;
+        }
+        
+        .dependency-close {
+            float: right;
+            font-size: 28px;
+            color: #fdcb6e;
+            cursor: pointer;
+            margin-top: -10px;
+            margin-right: -10px;
+        }
+        
         /* 滚动条样式 */
         ::-webkit-scrollbar {
             width: 8px;
@@ -1053,7 +1092,7 @@
     <!-- 新闻滚动条 -->
     <div class="news-ticker" id="newsTicker">
         <div class="news-content" id="newsContent">
-            📰 v2.3震撼发布：复杂生产依赖链 | ⚡ 电力供应系统 | 💰 借贷杠杆交易 | 📉 破产重开机制 | 🔄 批量工厂操作...
+            📰 v2.3震撼发布：复杂生产依赖链 | ⚡ 电力供应系统 | 💰 借贷杠杆交易 | 📉 破产重开机制 | 🔄 批量工厂操作 | 📈 玩家股票交易...
         </div>
     </div>
 
@@ -1111,10 +1150,18 @@
                     <span>批量操作：一键批量建造和生产</span>
                 </div>
                 <div class="feature-item">
-                    <span class="feature-icon">📦</span>
-                    <span>仓库系统：专页查看所有材料库存</span>
+                    <span class="feature-icon">📈</span>
+                    <span>玩家股票：购买其他玩家公司股票</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 产品依赖关系弹窗 -->
+    <div class="dependency-modal" id="dependencyModal">
+        <div class="dependency-modal-content">
+            <span class="dependency-close" onclick="closeDependencyModal()">&times;</span>
+            <div id="dependencyContent"></div>
         </div>
     </div>
 
@@ -1222,7 +1269,7 @@
                                     <input type="number" id="batchQuantity" class="batch-quantity" placeholder="数量" min="1" value="1">
                                 </div>
                                 <button class="btn batch" onclick="game.batchBuildFactory()">批量建造</button>
-                                <button class="btn" onclick="game.showDependencyChain()">查看生产链</button>
+                                <button class="btn" onclick="showDependencyChain()">查看生产链</button>
                             </div>
                         </div>
                         
@@ -1392,6 +1439,7 @@
                 this.techTree = {};
                 this.globalMarkets = {};
                 this.aiCompanies = [];
+                this.playerCompanies = [];
                 this.leaderboard = [];
                 this.chatMessages = [];
                 this.selectedCompanyType = 'tech';
@@ -1691,7 +1739,9 @@
                     "🔗 供应链依赖关系日益复杂",
                     "💎 奢侈品市场需求持续旺盛",
                     "⚡ 新能源技术突破降低发电成本",
-                    "🌍 国际贸易摩擦影响原材料供应"
+                    "🌍 国际贸易摩擦影响原材料供应",
+                    "📈 玩家公司股票交易活跃",
+                    "💰 借贷政策收紧，杠杆倍数受限"
                 ];
 
                 const news = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
@@ -1711,6 +1761,8 @@
             }
 
             updateProductionProgress() {
+                let hasUpdates = false;
+                
                 // 实时更新生产进度
                 Object.keys(this.gameData.factories).forEach(factoryType => {
                     const factory = this.gameData.factories[factoryType];
@@ -1723,18 +1775,23 @@
                                 const progressBar = document.getElementById(`progress_${task.id}`);
                                 if (progressBar) {
                                     progressBar.style.width = `${progress * 100}%`;
+                                    hasUpdates = true;
                                 }
                                 
                                 const timeElement = document.getElementById(`time_${task.id}`);
                                 if (timeElement) {
-                                    timeElement.textContent = this.formatTime(task.remainingTime || 0);
+                                    const remainingTime = task.completionTime - Date.now();
+                                    timeElement.textContent = this.formatTime(Math.max(0, remainingTime));
+                                    hasUpdates = true;
                                 }
                             }
                         });
                     }
                 });
                 
-                this.updateProductionChart();
+                if (hasUpdates) {
+                    this.updateProductionChart();
+                }
             }
 
             calculateTaskProgress(task) {
@@ -1757,30 +1814,6 @@
                     console.log('💔 与服务器断开连接');
                 });
 
-                this.socket.on('nameConflict', (data) => {
-                    alert(data.message);
-                    
-                    if (data.suggestion) {
-                        const companyInput = document.getElementById('companyName');
-                        if (companyInput) {
-                            companyInput.value = data.suggestion;
-                            companyInput.focus();
-                        }
-                    }
-                    
-                    document.getElementById('loginScreen').style.display = 'flex';
-                    document.getElementById('gameContainer').style.display = 'none';
-                });
-                
-                this.socket.on('versionReset', (data) => {
-                    this.showWelcomeMessage(data.message);
-                });
-                
-                this.socket.on('inheritanceSuccess', (data) => {
-                    this.showNotification(`📄 ${data.message}`, 'success');
-                    this.showWelcomeBackEffect(data);
-                });
-                
                 this.socket.on('gameState', (data) => {
                     try {
                         this.globalMarkets = data.globalMarkets || {};
@@ -1792,6 +1825,7 @@
                         this.marketTiers = data.marketTiers || {};
                         this.techTree = data.techTree || {};
                         this.aiCompanies = data.aiCompanies || [];
+                        this.playerCompanies = data.playerCompanies || [];
                         
                         this.renderAll();
                         this.updateGlobalEvent();
@@ -1844,6 +1878,72 @@
                     this.updateDisplay();
                     this.renderProduction();
                     this.updateWarehouseChart();
+                });
+                
+                this.socket.on('tradeSuccess', (data) => {
+                    this.showNotification(`💰 ${data.message}`, 'success');
+                    if (data.playerData) {
+                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
+                        if (data.playerData.stockPortfolio) {
+                            this.gameData.stockPortfolio = data.playerData.stockPortfolio;
+                        }
+                    }
+                    this.updateDisplay();
+                    this.renderMarkets();
+                    this.renderFinance();
+                    this.updateWarehouseChart();
+                    this.updateFinanceChart();
+                });
+                
+                this.socket.on('loanApproved', (data) => {
+                    this.showNotification(`💰 ${data.message}`, 'success');
+                    if (data.playerData) {
+                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
+                        this.gameData.loans = data.playerData.loans || this.gameData.loans;
+                        this.gameData.debt = data.playerData.debt || this.gameData.debt;
+                    }
+                    this.updateDisplay();
+                    this.renderFinance();
+                    this.updateFinanceChart();
+                });
+                
+                this.socket.on('loanRepaid', (data) => {
+                    this.showNotification(`💰 ${data.message}`, 'success');
+                    if (data.playerData) {
+                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
+                        this.gameData.loans = data.playerData.loans || this.gameData.loans;
+                        this.gameData.debt = data.playerData.debt || this.gameData.debt;
+                    }
+                    this.updateDisplay();
+                    this.renderFinance();
+                    this.updateFinanceChart();
+                });
+                
+                this.socket.on('techResearched', (data) => {
+                    this.showNotification(`🔬 ${data.message}`, 'success');
+                    if (data.playerData) {
+                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
+                        this.gameData.technologies = data.playerData.technologies || this.gameData.technologies;
+                    }
+                    this.updateDisplay();
+                    this.renderResearch();
+                    this.updateTechChart();
+                });
+                
+                // 聊天消息
+                this.socket.on('chatMessage', (data) => {
+                    this.chatMessages.push(data);
+                    if (this.chatMessages.length > 100) {
+                        this.chatMessages = this.chatMessages.slice(-50);
+                    }
+                    this.renderChat();
+                });
+                
+                // 排行榜更新
+                this.socket.on('leaderboardUpdate', (data) => {
+                    this.leaderboard = data;
+                    this.renderLeaderboard();
+                    this.updateCompanyStats();
                 });
                 
                 this.socket.on('error', (data) => {
@@ -1948,14 +2048,17 @@
                     let progressBars = '';
                     
                     activeTasks.slice(0, 5).forEach(task => {
-                        const progress = task.progress || 0;
+                        const progress = this.calculateTaskProgress(task);
                         const product = this.getProductByKey(task.productId);
                         const isPaused = task.paused;
+                        const remainingTime = Math.max(0, task.completionTime - Date.now());
                         
                         progressBars += `
                             <div style="margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
                                 <div style="font-size: 11px; color: #ddd; margin-bottom: 4px;">
-                                    ${product ? product.name : task.productId} x${task.quantity}
+                                    <span onclick="showProductDependency('${task.productId}')" style="cursor: pointer; color: #74b9ff; text-decoration: underline;">
+                                        ${product ? product.name : task.productId}
+                                    </span> x${task.quantity}
                                 </div>
                                 <div class="production-progress">
                                     <div class="production-progress-bar ${isPaused ? 'paused' : ''}" 
@@ -1966,7 +2069,7 @@
                                         ${isPaused ? '⚡ 电力不足' : '🔄 生产中'}
                                     </span>
                                     <span style="color: #bbb;">
-                                        进度: ${Math.floor(progress * 100)}% | 剩余: <span id="time_${task.id}">${this.formatTime(task.remainingTime || 0)}</span>
+                                        进度: ${Math.floor(progress * 100)}% | 剩余: <span id="time_${task.id}">${this.formatTime(remainingTime)}</span>
                                     </span>
                                 </div>
                             </div>
@@ -2001,14 +2104,14 @@
                                         return `<option value="${productId}" title="需要: ${dependencies}">${product ? product.name : productId}</option>`;
                                     }).join('') : ''}
                                 </select>
-                                <input type="number" id="quantity_${factoryType}" placeholder="数量" min="1" value="1" 
+                                <input type="number" id="quantity_prod_${factoryType}" placeholder="数量" min="1" value="1" 
                                     style="width: 60px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; background: #2d3436; color: #ddd;">
                                 <button class="btn" onclick="game.startProduction('${factoryType}')" style="padding: 5px 10px;">
                                     生产
                                 </button>
                             </div>
                             <div style="font-size: 10px; color: #74b9ff;">
-                                点击产品查看依赖关系
+                                点击产品名称查看依赖关系
                             </div>
                         </div>
                     `;
@@ -2068,7 +2171,9 @@
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
                                 ${category.items.map(item => `
                                     <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid ${category.color}40;">
-                                        <div style="font-weight: bold; color: #ddd; margin-bottom: 4px;">${item.name}</div>
+                                        <div style="font-weight: bold; color: #ddd; margin-bottom: 4px;">
+                                            <span onclick="showProductDependency('${item.id}')" style="cursor: pointer; text-decoration: underline;">${item.name}</span>
+                                        </div>
                                         <div style="font-size: 12px; color: #bbb;">
                                             数量: <span style="color: ${category.color};">${this.formatNumber(item.quantity)}</span><br>
                                             单价: ${this.formatNumber(item.price)} 💰<br>
@@ -2123,7 +2228,8 @@
                             productsHtml += `
                                 <div class="product-item" style="margin-bottom: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <span style="font-size: 12px; font-weight: bold;">${product.name}
+                                        <span style="font-size: 12px; font-weight: bold;">
+                                            <span onclick="showProductDependency('${productId}')" style="cursor: pointer; text-decoration: underline;">${product.name}</span>
                                             <span class="tier-badge ${tier || ''}">${tier || ''}</span>
                                         </span>
                                         <span>${trendIcon}</span>
@@ -2172,7 +2278,7 @@
 
             renderFinance() {
                 const container = document.getElementById('finance');
-                if (!container || !this.aiCompanies) return;
+                if (!container) return;
                 
                 container.innerHTML = '';
                 
@@ -2198,7 +2304,7 @@
                                     年利率: ${(loan.interestRate * 100).toFixed(2)}% | 月利率: ${monthlyRate}%<br>
                                     月还款: ${this.formatNumber(loan.monthlyPayment)} 💰
                                 </div>
-                                <button class="btn" onclick="game.repayLoan('${loan.id}', ${Math.min(loan.amount, this.gameData.inventory.money)})" 
+                                <button class="btn" onclick="game.repayLoan('${loan.id}', ${Math.min(loan.remainingAmount, this.gameData.inventory.money)})" 
                                     style="width: 100%; font-size: 11px;">
                                     偿还贷款
                                 </button>
@@ -2211,12 +2317,13 @@
                     }
                 }
                 
-                // AI公司股票列表
-                this.aiCompanies.forEach(company => {
+                // AI公司和玩家公司股票列表
+                const allCompanies = [...this.aiCompanies, ...this.playerCompanies.filter(pc => pc.id !== this.socket.id)];
+                
+                allCompanies.forEach(company => {
                     const div = document.createElement('div');
                     const ownedShares = this.gameData.stockPortfolio[company.id] || 0;
-                    const leveragedPositions = this.gameData.leveragedPositions && this.gameData.leveragedPositions[company.id] || [];
-                    const totalLeveragedShares = leveragedPositions.reduce((sum, pos) => sum + pos.shares, 0);
+                    const ownershipPercent = company.totalShares ? ((ownedShares / company.totalShares) * 100).toFixed(2) : '0.00';
                     
                     div.className = 'stock-item';
                     
@@ -2235,6 +2342,12 @@
                         }
                     }
                     
+                    // 对于玩家公司，显示可用股份
+                    let availableInfo = '';
+                    if (company.availableShares !== undefined) {
+                        availableInfo = `<br>可购买: ${this.formatNumber(company.availableShares)}`;
+                    }
+                    
                     div.innerHTML = `
                         <div class="stock-header">
                             <div class="stock-name">${this.getCompanyTypeEmoji(company.companyType)} ${company.name}</div>
@@ -2242,10 +2355,10 @@
                         </div>
                         ${shockInfo}
                         <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
-                            ${company.sector} | 波动率: ${(company.volatility * 100).toFixed(1)}%
+                            ${company.sector || '制造业'} | 波动率: ${((company.volatility || 0.2) * 100).toFixed(1)}%${availableInfo}
                         </div>
                         <div style="font-size: 12px; color: #ddd; margin-bottom: 6px;">
-                            持股: ${this.formatNumber(ownedShares)} | 杠杆: ${this.formatNumber(totalLeveragedShares)}
+                            持股: ${this.formatNumber(ownedShares)} (${ownershipPercent}%)
                         </div>
                         <div style="font-size: 10px; color: ${parseFloat(changePercent) >= 0 ? '#00b894' : '#e74c3c'}; margin-bottom: 8px;">
                             ${trendIcon} ${parseFloat(changePercent) >= 0 ? '+' : ''}${changePercent}%
@@ -2271,7 +2384,7 @@
                                 买入
                             </button>
                             <button class="stock-btn sell" onclick="game.sellStock('${company.id}')" 
-                                ${ownedShares > 0 || totalLeveragedShares > 0 ? '' : 'disabled'}>
+                                ${ownedShares > 0 ? '' : 'disabled'}>
                                 卖出
                             </button>
                             <button class="stock-btn short" onclick="game.shortStock('${company.id}')">
@@ -2284,7 +2397,7 @@
                 });
                 
                 // 显示投资组合总结
-                if (Object.keys(this.gameData.stockPortfolio).length > 0 || Object.keys(this.gameData.leveragedPositions || {}).length > 0) {
+                if (Object.keys(this.gameData.stockPortfolio).length > 0) {
                     const summaryDiv = document.createElement('div');
                     summaryDiv.style.cssText = `
                         background: rgba(0,0,0,0.6);
@@ -2295,42 +2408,24 @@
                     `;
                     
                     let totalStockValue = 0;
-                    let totalLeverageValue = 0;
                     let totalInvestment = 0;
                     
                     // 普通持股价值
                     Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
                         const shares = this.gameData.stockPortfolio[companyId];
-                        const aiCompany = this.aiCompanies.find(ai => ai.id === companyId);
-                        if (aiCompany && shares > 0) {
-                            totalStockValue += shares * aiCompany.sharePrice;
+                        const targetCompany = allCompanies.find(c => c.id === companyId);
+                        if (targetCompany && shares > 0) {
+                            totalStockValue += shares * targetCompany.sharePrice;
                             totalInvestment += shares * 100; // 假设平均买入价格
                         }
                     });
                     
-                    // 杠杆持仓价值
-                    Object.keys(this.gameData.leveragedPositions || {}).forEach(companyId => {
-                        const positions = this.gameData.leveragedPositions[companyId] || [];
-                        positions.forEach(position => {
-                            const aiCompany = this.aiCompanies.find(ai => ai.id === companyId);
-                            if (aiCompany) {
-                                const currentValue = position.shares * aiCompany.sharePrice;
-                                const netValue = currentValue - position.borrowedAmount;
-                                totalLeverageValue += netValue;
-                                totalInvestment += currentValue / position.leverage;
-                            }
-                        });
-                    });
-                    
-                    const totalPortfolioValue = totalStockValue + totalLeverageValue;
-                    const returnRate = totalInvestment > 0 ? ((totalPortfolioValue - totalInvestment) / totalInvestment * 100) : 0;
+                    const returnRate = totalInvestment > 0 ? ((totalStockValue - totalInvestment) / totalInvestment * 100) : 0;
                     
                     summaryDiv.innerHTML = `
                         <div style="color: #fdcb6e; font-weight: bold; margin-bottom: 10px;">📊 投资组合总结</div>
                         <div style="font-size: 12px; color: #ddd;">
-                            普通持股: ${this.formatNumber(totalStockValue)} 💰<br>
-                            杠杆持仓: ${this.formatNumber(totalLeverageValue)} 💰<br>
-                            总市值: ${this.formatNumber(totalPortfolioValue)} 💰<br>
+                            持股市值: ${this.formatNumber(totalStockValue)} 💰<br>
                             总收益率: <span style="color: ${returnRate >= 0 ? '#00b894' : '#e74c3c'};">${returnRate >= 0 ? '+' : ''}${returnRate.toFixed(2)}%</span>
                         </div>
                     `;
@@ -2433,7 +2528,7 @@
                     div.className = 'chat-message';
                     
                     const time = new Date(msg.timestamp).toLocaleTimeString().slice(0, 5);
-                    const isSystem = ['系统', '市场快讯', '全球事件', '金融快讯', '工业快讯', '科技快讯', '生产快讯', '破产公告'].includes(msg.player);
+                    const isSystem = ['系统', '市场快讯', '全球事件', '金融快讯', '工业快讯', '科技快讯', '生产快讯', '破产公告'].includes(msg.player) || msg.type === 'system';
                     
                     div.innerHTML = `
                         <span class="chat-time">[${time}]</span>
@@ -2503,8 +2598,8 @@
                     }
                 });
                 
-                this.warehouseChart.data.labels = labels;
-                this.warehouseChart.data.datasets[0].data = data;
+                this.warehouseChart.data.labels = labels.slice(0, 10); // 最多显示10个产品
+                this.warehouseChart.data.datasets[0].data = data.slice(0, 10);
                 this.warehouseChart.update();
             }
 
@@ -2560,34 +2655,19 @@
                 const cash = Math.max(0, this.gameData.inventory.money || 0);
                 const debt = this.gameData.debt || 0;
                 let stockValue = 0;
-                let leverageValue = 0;
                 
                 // 计算股票投资价值
                 if (this.gameData.stockPortfolio) {
                     Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
                         const shares = this.gameData.stockPortfolio[companyId];
-                        const company = this.aiCompanies.find(ai => ai.id === companyId);
+                        const company = [...this.aiCompanies, ...this.playerCompanies].find(c => c.id === companyId);
                         if (company && shares > 0) {
                             stockValue += shares * company.sharePrice;
                         }
                     });
                 }
                 
-                // 计算杠杆持仓价值
-                if (this.gameData.leveragedPositions) {
-                    Object.keys(this.gameData.leveragedPositions).forEach(companyId => {
-                        const positions = this.gameData.leveragedPositions[companyId] || [];
-                        positions.forEach(position => {
-                            const company = this.aiCompanies.find(ai => ai.id === companyId);
-                            if (company) {
-                                const currentValue = position.shares * company.sharePrice;
-                                leverageValue += currentValue - position.borrowedAmount;
-                            }
-                        });
-                    });
-                }
-                
-                this.financeChart.data.datasets[0].data = [cash, stockValue, leverageValue, debt];
+                this.financeChart.data.datasets[0].data = [cash, stockValue, 0, debt];
                 this.financeChart.update();
             }
 
@@ -2614,76 +2694,53 @@
                 this.techChart.update();
             }
 
-            // 显示相关方法
-            showWelcomeMessage(message) {
-                const welcomeDiv = document.createElement('div');
-                welcomeDiv.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: linear-gradient(135deg, #00b894, #00a085);
-                    color: white;
-                    padding: 30px;
-                    border-radius: 20px;
-                    border: 3px solid #fdcb6e;
-                    z-index: 9999;
-                    text-align: center;
-                    font-size: 16px;
-                    font-weight: bold;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-                    animation: bounceIn 0.6s ease-out;
-                    max-width: 500px;
-                `;
+            updateGlobalStockChart() {
+                if (!this.globalStockChart) return;
                 
-                welcomeDiv.innerHTML = `
-                    <div style="font-size: 32px; margin-bottom: 15px;">🎉 版本更新！ 🎉</div>
-                    <div style="margin-bottom: 15px;">${message}</div>
-                    <button onclick="this.parentElement.remove()" style="
-                        background: white; color: #00b894; border: none; 
-                        padding: 10px 20px; border-radius: 10px; 
-                        font-weight: bold; cursor: pointer;">
-                        开始体验
-                    </button>
-                `;
-                
-                document.body.appendChild(welcomeDiv);
-            }
-
-            showWelcomeBackEffect(data) {
-                const welcomeDiv = document.createElement('div');
-                welcomeDiv.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: linear-gradient(135deg, #fdcb6e, #e17055);
-                    color: #2d3436;
-                    padding: 30px;
-                    border-radius: 20px;
-                    border: 3px solid #d63031;
-                    z-index: 9999;
-                    text-align: center;
-                    font-size: 18px;
-                    font-weight: bold;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-                    animation: bounceIn 0.6s ease-out;
-                `;
-                
-                welcomeDiv.innerHTML = `
-                    <div style="font-size: 32px; margin-bottom: 15px;">🎉 欢迎回来！ 🎉</div>
-                    <div style="margin-bottom: 10px;">成功继承产业帝国</div>
-                    <div style="font-size: 14px; color: #636e72;">
-                        继承价值: ${this.formatNumber(data.inheritedValue)} 💰<br>
-                        上次在线: ${new Date(data.lastSeen).toLocaleString()}
-                    </div>
-                `;
-                
-                document.body.appendChild(welcomeDiv);
-                
-                setTimeout(() => {
-                    welcomeDiv.remove();
-                }, 3000);
+                try {
+                    const now = new Date();
+                    const timeLabel = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
+                    
+                    // 限制数据点数量
+                    if (this.globalStockChart.data.labels.length >= 50) {
+                        this.globalStockChart.data.labels.shift();
+                    }
+                    this.globalStockChart.data.labels.push(timeLabel);
+                    
+                    // 显示前6家公司的股价
+                    const allCompanies = [...this.aiCompanies, ...this.playerCompanies];
+                    const topCompanies = allCompanies.slice(0, 6);
+                    const colors = ['#fdcb6e', '#74b9ff', '#fd79a8', '#00b894', '#a29bfe', '#fab1a0'];
+                    
+                    topCompanies.forEach((company, index) => {
+                        if (!this.globalStockChart.data.datasets[index]) {
+                            this.globalStockChart.data.datasets[index] = {
+                                label: company.name,
+                                data: [],
+                                borderColor: colors[index % colors.length],
+                                backgroundColor: colors[index % colors.length] + '20',
+                                tension: 0.4,
+                                fill: false,
+                                pointRadius: 0,
+                                pointHoverRadius: 4,
+                                borderWidth: 2
+                            };
+                        }
+                        
+                        const dataset = this.globalStockChart.data.datasets[index];
+                        dataset.label = company.name;
+                        
+                        if (dataset.data.length >= 50) {
+                            dataset.data.shift();
+                        }
+                        
+                        dataset.data.push(company.sharePrice || 0);
+                    });
+                    
+                    this.globalStockChart.update('none');
+                } catch (error) {
+                    console.error('更新股价图表时出错:', error);
+                }
             }
 
             joinGame() {
@@ -2873,54 +2930,6 @@
                 }
             }
 
-            updateGlobalStockChart() {
-                if (!this.globalStockChart || !this.aiCompanies) return;
-                
-                try {
-                    const now = new Date();
-                    const timeLabel = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
-                    
-                    // 限制数据点数量
-                    if (this.globalStockChart.data.labels.length >= 50) {
-                        this.globalStockChart.data.labels.shift();
-                    }
-                    this.globalStockChart.data.labels.push(timeLabel);
-                    
-                    // 显示前6家公司的股价，增加更多变化
-                    const topCompanies = [...this.aiCompanies].slice(0, 6);
-                    const colors = ['#fdcb6e', '#74b9ff', '#fd79a8', '#00b894', '#a29bfe', '#fab1a0'];
-                    
-                    topCompanies.forEach((company, index) => {
-                        if (!this.globalStockChart.data.datasets[index]) {
-                            this.globalStockChart.data.datasets[index] = {
-                                label: company.name,
-                                data: [],
-                                borderColor: colors[index % colors.length],
-                                backgroundColor: colors[index % colors.length] + '20',
-                                tension: 0.4,
-                                fill: false,
-                                pointRadius: 0,
-                                pointHoverRadius: 4,
-                                borderWidth: 2
-                            };
-                        }
-                        
-                        const dataset = this.globalStockChart.data.datasets[index];
-                        dataset.label = company.name;
-                        
-                        if (dataset.data.length >= 50) {
-                            dataset.data.shift();
-                        }
-                        
-                        dataset.data.push(company.sharePrice || 0);
-                    });
-                    
-                    this.globalStockChart.update('none');
-                } catch (error) {
-                    console.error('更新股价图表时出错:', error);
-                }
-            }
-
             // 完整的游戏操作方法
             buildFactory(factoryType) {
                 const quantityInput = document.getElementById(`quantity_${factoryType}`);
@@ -2944,9 +2953,9 @@
                 this.socket.emit('buildFactory', { factoryType, quantity });
             }
 
-            startProduction(factoryType) {
-             const productSelect = document.getElementById(`product_${factoryType}`);
-                const quantityInput = document.getElementById(`quantity_${factoryType}`);
+           startProduction(factoryType) {
+                const productSelect = document.getElementById(`product_${factoryType}`);
+                const quantityInput = document.getElementById(`quantity_prod_${factoryType}`);
                 
                 const productId = productSelect.value;
                 const quantity = parseInt(quantityInput.value) || 1;
@@ -2990,65 +2999,10 @@
                     return;
                 }
                 
-                this.socket.emit('batchProduction', { operations });
-            }
-
-            showDependencyChain() {
-                // 显示生产依赖关系图
-                const dialog = document.createElement('div');
-                dialog.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: rgba(0,0,0,0.95);
-                    color: #ddd;
-                    padding: 30px;
-                    border-radius: 15px;
-                    border: 2px solid #fdcb6e;
-                    z-index: 9999;
-                    max-width: 80%;
-                    max-height: 80%;
-                    overflow-y: auto;
-                `;
-                
-                let chainHtml = '<div style="color: #fdcb6e; font-size: 20px; font-weight: bold; margin-bottom: 20px;">🔗 生产依赖关系图</div>';
-                
-                Object.keys(this.productTiers).forEach(tier => {
-                    chainHtml += `<div style="margin-bottom: 20px;">
-                        <div style="color: #74b9ff; font-weight: bold; margin-bottom: 10px;">${tier} 级产品</div>`;
-                    
-                    Object.keys(this.productTiers[tier]).forEach(productId => {
-                        const product = this.productTiers[tier][productId];
-                        chainHtml += `<div style="margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 6px;">
-                            <span style="font-weight: bold;">${product.name}</span>`;
-                        
-                        if (product.recipe) {
-                            chainHtml += ` ← `;
-                            chainHtml += Object.keys(product.recipe).map(material => {
-                                const materialProduct = this.getProductByKey(material);
-                                return `${materialProduct ? materialProduct.name : material} x${product.recipe[material]}`;
-                            }).join(' + ');
-                        } else {
-                            chainHtml += ` (基础资源)`;
-                        }
-                        
-                        chainHtml += `</div>`;
-                    });
-                    
-                    chainHtml += '</div>';
+                // 对每个工厂发送生产请求
+                operations.forEach(op => {
+                    this.socket.emit('startProduction', op);
                 });
-                
-                dialog.innerHTML = chainHtml + `
-                    <button onclick="this.parentElement.remove()" style="
-                        background: #fdcb6e; color: #2d3436; border: none; 
-                        padding: 10px 20px; border-radius: 8px; 
-                        font-weight: bold; cursor: pointer; margin-top: 20px;">
-                        关闭
-                    </button>
-                `;
-                
-                document.body.appendChild(dialog);
             }
 
             setMultiplier(multiplier) {
@@ -3267,25 +3221,11 @@
                     if (this.gameData.stockPortfolio) {
                         Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
                             const shares = this.gameData.stockPortfolio[companyId];
-                            const company = this.aiCompanies.find(ai => ai.id === companyId);
+                            const company = [...this.aiCompanies, ...this.playerCompanies].find(c => c.id === companyId);
                             if (company && shares > 0) {
                                 totalReturn += shares * company.sharePrice;
                                 totalInvestment += shares * 100; // 假设平均买入价
                             }
-                        });
-                    }
-                    
-                    if (this.gameData.leveragedPositions) {
-                        Object.keys(this.gameData.leveragedPositions).forEach(companyId => {
-                            const positions = this.gameData.leveragedPositions[companyId] || [];
-                            positions.forEach(position => {
-                                const company = this.aiCompanies.find(ai => ai.id === companyId);
-                                if (company) {
-                                    const currentValue = position.shares * company.sharePrice;
-                                    totalReturn += currentValue - position.borrowedAmount;
-                                    totalInvestment += currentValue / position.leverage;
-                                }
-                            });
                         });
                     }
                     
@@ -3409,6 +3349,159 @@
             }
         }
         
+        // 显示产品依赖关系
+        function showProductDependency(productId) {
+            const modal = document.getElementById('dependencyModal');
+            const content = document.getElementById('dependencyContent');
+            
+            if (!modal || !content || !game) return;
+            
+            const product = game.getProductByKey(productId);
+            if (!product) return;
+            
+            let html = `
+                <h2 style="color: #fdcb6e; margin-bottom: 20px;">📦 ${product.name} - 生产依赖关系</h2>
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="font-size: 14px; color: #ddd; margin-bottom: 8px;">
+                        <strong>基础信息:</strong><br>
+                        类别: ${product.category}<br>
+                        基础价格: ${product.basePrice} 💰<br>
+                        生产时间: ${product.productionTime} 秒
+                    </div>
+                </div>
+            `;
+            
+            if (product.recipe) {
+                html += `
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <h3 style="color: #74b9ff; margin-bottom: 10px;">🔗 直接依赖:</h3>
+                `;
+                
+                Object.keys(product.recipe).forEach(materialId => {
+                    const material = game.getProductByKey(materialId);
+                    const quantity = product.recipe[materialId];
+                    html += `
+                        <div style="margin: 5px 0; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 4px;">
+                            <span onclick="showProductDependency('${materialId}')" 
+                                  style="cursor: pointer; color: #74b9ff; text-decoration: underline;">
+                                ${material ? material.name : materialId}
+                            </span>
+                            <span style="color: #fdcb6e;"> x${quantity}</span>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                
+                // 递归显示完整依赖链
+                const dependencyChain = game.buildDependencyChain(productId, new Set());
+                if (dependencyChain.length > 1) {
+                    html += `
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
+                            <h3 style="color: #fd79a8; margin-bottom: 10px;">🌐 完整依赖链:</h3>
+                            <div style="font-size: 12px; line-height: 1.6;">
+                                ${dependencyChain.join(' → ')}
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                html += `
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; text-align: center; color: #00b894;">
+                        ✅ 这是基础资源，无需其他材料
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = html;
+            modal.style.display = 'flex';
+        }
+        
+        // 关闭依赖关系弹窗
+        function closeDependencyModal() {
+            const modal = document.getElementById('dependencyModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // 显示生产链
+        function showDependencyChain() {
+            if (!game) return;
+            
+            const modal = document.getElementById('dependencyModal');
+            const content = document.getElementById('dependencyContent');
+            
+            if (!modal || !content) return;
+            
+            let html = `
+                <h2 style="color: #fdcb6e; margin-bottom: 20px;">🔗 完整生产依赖关系图</h2>
+            `;
+            
+            Object.keys(game.productTiers).forEach(tier => {
+                html += `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #74b9ff; margin-bottom: 10px; font-size: 18px;">${tier} 级产品</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px;">
+                `;
+                
+                Object.keys(game.productTiers[tier]).forEach(productId => {
+                    const product = game.productTiers[tier][productId];
+                    html += `
+                        <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border-left: 3px solid #74b9ff;">
+                            <div style="font-weight: bold; color: #fdcb6e; margin-bottom: 5px;">
+                                <span onclick="showProductDependency('${productId}')" 
+                                      style="cursor: pointer; text-decoration: underline;">
+                                    ${product.name}
+                                </span>
+                            </div>
+                    `;
+                    
+                    if (product.recipe) {
+                        html += '<div style="font-size: 11px; color: #74b9ff;">需要: ';
+                        html += Object.keys(product.recipe).map(materialId => {
+                            const material = game.getProductByKey(materialId);
+                            return `${material ? material.name : materialId} x${product.recipe[materialId]}`;
+                        }).join(', ');
+                        html += '</div>';
+                    } else {
+                        html += '<div style="font-size: 11px; color: #00b894;">基础资源</div>';
+                    }
+                    
+                    html += '</div>';
+                });
+                
+                html += '</div></div>';
+            });
+            
+            content.innerHTML = html;
+            modal.style.display = 'flex';
+        }
+        
+        // 为 game 对象添加依赖链构建方法
+        ComplexManufacturingTycoon.prototype.buildDependencyChain = function(productId, visited) {
+            if (visited.has(productId)) {
+                return [this.getProductName(productId) + ' (循环)'];
+            }
+            
+            visited.add(productId);
+            const product = this.getProductByKey(productId);
+            
+            if (!product || !product.recipe) {
+                return [this.getProductName(productId)];
+            }
+            
+            const chain = [this.getProductName(productId)];
+            const dependencies = [];
+            
+            Object.keys(product.recipe).forEach(materialId => {
+                const subChain = this.buildDependencyChain(materialId, new Set(visited));
+                dependencies.push(subChain[subChain.length - 1]);
+            });
+            
+            return [...dependencies, ...chain];
+        };
+        
         window.onload = () => {
             game = new ComplexManufacturingTycoon();
         };
@@ -3417,6 +3510,14 @@
         window.onbeforeunload = () => {
             if (game && game.companyName && !game.isBankrupt) {
                 return '确定要离开游戏吗？进度会自动保存。';
+            }
+        };
+        
+        // 点击弹窗外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('dependencyModal');
+            if (event.target === modal) {
+                closeDependencyModal();
             }
         };
     </script>
