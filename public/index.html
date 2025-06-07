@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>都市奇幻公司 v4.0 - 深度企业帝国</title>
+    <title>都市奇幻公司 v4.1 - 修复版深度企业帝国</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -564,6 +564,7 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
         
         .employee-card::before {
@@ -755,7 +756,7 @@
         .talent-tree {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 15px;
+            gap: 20px;
             padding: 20px;
             background: rgba(0,0,0,0.5);
             border-radius: 12px;
@@ -763,32 +764,50 @@
         
         .talent-node {
             background: rgba(44,62,80,0.8);
-            border: 2px solid rgba(127,140,141,0.3);
-            border-radius: 12px;
-            padding: 12px;
+            border: 3px solid rgba(127,140,141,0.3);
+            border-radius: 15px;
+            padding: 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .talent-node:hover {
             border-color: #9b59b6;
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(155,89,182,0.4);
         }
         
         .talent-node.unlocked {
             border-color: #27ae60;
             background: rgba(39,174,96,0.2);
+            box-shadow: 0 0 20px rgba(39,174,96,0.3);
         }
         
         .talent-node.available {
             border-color: #f39c12;
             background: rgba(243,156,18,0.2);
+            box-shadow: 0 0 20px rgba(243,156,18,0.3);
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(243,156,18,0.3); }
+            to { box-shadow: 0 0 30px rgba(243,156,18,0.6); }
+        }
+        
+        .talent-node.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .talent-icon {
-            font-size: 24px;
+            font-size: 28px;
             margin-bottom: 8px;
         }
         
@@ -796,12 +815,83 @@
             font-size: 12px;
             font-weight: bold;
             color: #9b59b6;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
         
         .talent-cost {
             font-size: 10px;
             color: #bdc3c7;
+            margin-bottom: 6px;
+        }
+        
+        .talent-description {
+            font-size: 9px;
+            color: #95a5a6;
+            line-height: 1.2;
+        }
+        
+        /* 活动卡片样式 */
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .activity-card {
+            background: linear-gradient(135deg, rgba(52,73,94,0.8), rgba(44,62,80,0.8));
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .activity-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(155,89,182,0.7);
+            box-shadow: 0 8px 25px rgba(155,89,182,0.3);
+        }
+        
+        .activity-card.gathering {
+            border-left: 4px solid #27ae60;
+        }
+        
+        .activity-card.combat {
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .activity-card.research {
+            border-left: 4px solid #3498db;
+        }
+        
+        .activity-card.unsuitable {
+            opacity: 0.6;
+            border-color: rgba(231,76,60,0.5);
+            cursor: not-allowed;
+        }
+        
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .activity-title {
+            font-weight: bold;
+            color: #9b59b6;
+            font-size: 16px;
+        }
+        
+        .activity-type {
+            background: rgba(155,89,182,0.3);
+            color: #9b59b6;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            text-transform: uppercase;
         }
         
         /* 模态框样式 */
@@ -823,7 +913,7 @@
             padding: 30px;
             border-radius: 15px;
             border: 2px solid #9b59b6;
-            max-width: 800px;
+            max-width: 900px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
@@ -847,12 +937,12 @@
             background: none;
             border: none;
             color: #e74c3c;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
             padding: 5px;
             border-radius: 50%;
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -921,6 +1011,87 @@
             to { transform: translateX(0); opacity: 1; }
         }
         
+        /* 装备制作界面 */
+        .crafting-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .recipe-list {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .recipe-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .recipe-item:hover {
+            border-color: #9b59b6;
+            transform: translateY(-2px);
+        }
+        
+        .recipe-item.selected {
+            border-color: #27ae60;
+            background: rgba(39,174,96,0.1);
+        }
+        
+        .recipe-item.unavailable {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* 强化界面 */
+        .enhancement-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .equipment-list {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .equipment-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .equipment-item:hover {
+            border-color: #9b59b6;
+            transform: translateY(-2px);
+        }
+        
+        .equipment-item.selected {
+            border-color: #27ae60;
+            background: rgba(39,174,96,0.1);
+        }
+        
+        .enhancement-level {
+            display: inline-block;
+            background: rgba(243,156,18,0.3);
+            color: #f39c12;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
         @media (max-width: 1200px) {
             .main-layout {
                 grid-template-columns: 1fr;
@@ -930,6 +1101,10 @@
                 border-left: none;
                 border-top: 2px solid rgba(155,89,182,0.3);
             }
+            
+            .talent-tree {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
         
         @media (max-width: 768px) {
@@ -938,7 +1113,11 @@
             }
             
             .talent-tree {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .activity-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -950,8 +1129,8 @@
     <!-- 登录界面 -->
     <div class="login-screen" id="loginScreen">
         <div class="login-form">
-            <div class="login-title">🏢✨ 都市奇幻公司 v4.0 ✨🏢</div>
-            <div class="login-subtitle">"深度企业帝国 - 无限升级之路"</div>
+            <div class="login-title">🏢✨ 都市奇幻公司 v4.1 ✨🏢</div>
+            <div class="login-subtitle">"深度企业帝国 - 修复版无限升级"</div>
             
             <input type="text" class="login-input" id="companyName" placeholder="输入你的奇幻公司名称" maxlength="25">
             
@@ -975,7 +1154,7 @@
                 </div>
             </div>
             
-            <button class="login-btn" onclick="joinGame()">开始深度企业之旅</button>
+            <button class="login-btn" onclick="game.joinGame()">开始深度企业之旅</button>
             <div style="margin-top: 25px; font-size: 14px; color: #bdc3c7; line-height: 1.5;">
                 🎯 深度玩法：无限升级路线，天赋树系统<br>
                 👥 员工培养：12种职业，专精系统<br>
@@ -1033,7 +1212,7 @@
     <!-- 游戏主界面 -->
     <div class="game-container" id="gameContainer">
         <div class="header">
-            <div class="company-title">🏢✨ 都市奇幻公司管理系统 v4.0 ✨🏢</div>
+            <div class="company-title">🏢✨ 都市奇幻公司管理系统 v4.1 ✨🏢</div>
             
             <div class="company-info">
                 <div>
@@ -1052,9 +1231,9 @@
                         <div class="stat-label">公司等级</div>
                         <div class="stat-value" id="companyLevel">1</div>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-item" onclick="game.openTalentModal()">
                         <div class="stat-label">天赋点</div>
-                        <div class="stat-value" id="talentPoints">0</div>
+                        <div class="stat-value" id="talentPoints">5</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">员工数量</div>
@@ -1087,12 +1266,12 @@
             <div class="left-content">
                 <div class="tabs-container">
                     <div class="tabs-header">
-                        <button class="tab-button active" onclick="game.switchTab('employees')">👥 员工</button>
-                        <button class="tab-button" onclick="game.switchTab('recruit')">🎯 招募</button>
-                        <button class="tab-button" onclick="game.switchTab('activities')">⚡ 活动</button>
-                        <button class="tab-button" onclick="game.switchTab('equipment')">⚔️ 装备</button>
-                        <button class="tab-button" onclick="game.switchTab('research')">🧪 研究</button>
-                        <button class="tab-button" onclick="game.switchTab('facilities')">🏗️ 设施</button>
+                        <button class="tab-button active" data-tab="employees">👥 员工</button>
+                        <button class="tab-button" data-tab="recruit">🎯 招募</button>
+                        <button class="tab-button" data-tab="activities">⚡ 活动</button>
+                        <button class="tab-button" data-tab="equipment">⚔️ 装备</button>
+                        <button class="tab-button" data-tab="research">🧪 研究</button>
+                        <button class="tab-button" data-tab="facilities">🏗️ 设施</button>
                     </div>
                     
                     <div class="tab-content active" id="employees-tab">
@@ -1174,6 +1353,7 @@
                 this.isConnected = false;
                 this.selectedEmployee = null;
                 this.activeTasks = new Map();
+                this.currentActivityFilter = 'all';
                 
                 this.gameData = {
                     resources: {
@@ -1192,7 +1372,7 @@
                     },
                     employees: [],
                     companyLevel: 1,
-                    talentPoints: 0,
+                    talentPoints: 5, // 给玩家一些初始天赋点
                     reputation: 100,
                     companyType: 'arcane',
                     unlockedTalents: [],
@@ -1295,25 +1475,142 @@
                 
                 // 公司天赋树
                 this.companyTalents = {
-                    // 效率分支
-                    efficiency_1: { name: '工作效率I', cost: 1, effect: '所有工作效率+10%', unlocked: false, icon: '⚡' },
-                    efficiency_2: { name: '工作效率II', cost: 2, effect: '所有工作效率+20%', requires: ['efficiency_1'], unlocked: false, icon: '⚡' },
-                    efficiency_3: { name: '工作效率III', cost: 3, effect: '所有工作效率+30%', requires: ['efficiency_2'], unlocked: false, icon: '⚡' },
+                    // 第一层 - 基础天赋
+                    efficiency_1: { 
+                        name: '工作效率I', 
+                        cost: 1, 
+                        effect: '所有工作效率+10%', 
+                        unlocked: false, 
+                        icon: '⚡',
+                        description: '提升员工基础工作效率',
+                        row: 0, col: 1
+                    },
+                    resource_1: { 
+                        name: '资源收集I', 
+                        cost: 1, 
+                        effect: '资源收集+15%', 
+                        unlocked: false, 
+                        icon: '📦',
+                        description: '增加采集活动的资源产出',
+                        row: 0, col: 2
+                    },
+                    exp_1: { 
+                        name: '经验加成I', 
+                        cost: 1, 
+                        effect: '经验获得+25%', 
+                        unlocked: false, 
+                        icon: '⭐',
+                        description: '员工升级更快速',
+                        row: 0, col: 3
+                    },
                     
-                    // 资源分支
-                    resource_1: { name: '资源收集I', cost: 1, effect: '资源收集+15%', unlocked: false, icon: '📦' },
-                    resource_2: { name: '资源收集II', cost: 2, effect: '资源收集+30%', requires: ['resource_1'], unlocked: false, icon: '📦' },
-                    resource_3: { name: '资源收集III', cost: 3, effect: '资源收集+50%', requires: ['resource_2'], unlocked: false, icon: '📦' },
+                    // 第二层 - 进阶天赋
+                    efficiency_2: { 
+                        name: '工作效率II', 
+                        cost: 2, 
+                        effect: '所有工作效率+20%', 
+                        requires: ['efficiency_1'], 
+                        unlocked: false, 
+                        icon: '⚡',
+                        description: '进一步提升工作效率',
+                        row: 1, col: 1
+                    },
+                    resource_2: { 
+                        name: '资源收集II', 
+                        cost: 2, 
+                        effect: '资源收集+30%', 
+                        requires: ['resource_1'], 
+                        unlocked: false, 
+                        icon: '📦',
+                        description: '大幅增加资源产出',
+                        row: 1, col: 2
+                    },
+                    exp_2: { 
+                        name: '经验加成II', 
+                        cost: 2, 
+                        effect: '经验获得+50%', 
+                        requires: ['exp_1'], 
+                        unlocked: false, 
+                        icon: '⭐',
+                        description: '经验获得翻倍',
+                        row: 1, col: 3
+                    },
                     
-                    // 经验分支
-                    exp_1: { name: '经验加成I', cost: 1, effect: '经验获得+25%', unlocked: false, icon: '⭐' },
-                    exp_2: { name: '经验加成II', cost: 2, effect: '经验获得+50%', requires: ['exp_1'], unlocked: false, icon: '⭐' },
-                    exp_3: { name: '经验加成III', cost: 3, effect: '经验获得+100%', requires: ['exp_2'], unlocked: false, icon: '⭐' },
+                    // 第三层 - 高级天赋
+                    efficiency_3: { 
+                        name: '工作效率III', 
+                        cost: 3, 
+                        effect: '所有工作效率+30%', 
+                        requires: ['efficiency_2'], 
+                        unlocked: false, 
+                        icon: '⚡',
+                        description: '达到效率的极限',
+                        row: 2, col: 1
+                    },
+                    resource_3: { 
+                        name: '资源收集III', 
+                        cost: 3, 
+                        effect: '资源收集+50%', 
+                        requires: ['resource_2'], 
+                        unlocked: false, 
+                        icon: '📦',
+                        description: '资源产出达到顶峰',
+                        row: 2, col: 2
+                    },
+                    exp_3: { 
+                        name: '经验加成III', 
+                        cost: 3, 
+                        effect: '经验获得+100%', 
+                        requires: ['exp_2'], 
+                        unlocked: false, 
+                        icon: '⭐',
+                        description: '经验获得翻倍',
+                        row: 2, col: 3
+                    },
                     
-                    // 特殊分支
-                    automation: { name: '自动化系统', cost: 5, effect: '解锁自动执行功能', requires: ['efficiency_2', 'resource_2'], unlocked: false, icon: '🤖' },
-                    legendary_craft: { name: '传说工艺', cost: 4, effect: '解锁传说级装备制作', requires: ['resource_3'], unlocked: false, icon: '✨' },
-                    time_mastery: { name: '时间掌控', cost: 6, effect: '所有任务时间-25%', requires: ['efficiency_3', 'exp_3'], unlocked: false, icon: '⏰' }
+                    // 第四层 - 专家天赋
+                    automation: { 
+                        name: '自动化系统', 
+                        cost: 5, 
+                        effect: '解锁自动执行功能', 
+                        requires: ['efficiency_2', 'resource_2'], 
+                        unlocked: false, 
+                        icon: '🤖',
+                        description: '员工可以自动重复执行任务',
+                        row: 3, col: 1
+                    },
+                    legendary_craft: { 
+                        name: '传说工艺', 
+                        cost: 4, 
+                        effect: '解锁传说级装备制作', 
+                        requires: ['resource_3'], 
+                        unlocked: false, 
+                        icon: '✨',
+                        description: '可以制作传说品质的装备',
+                        row: 3, col: 2
+                    },
+                    time_mastery: { 
+                        name: '时间掌控', 
+                        cost: 6, 
+                        effect: '所有任务时间-25%', 
+                        requires: ['efficiency_3', 'exp_3'], 
+                        unlocked: false, 
+                        icon: '⏰',
+                        description: '掌控时间的流逝',
+                        row: 3, col: 3
+                    },
+                    
+                    // 第五层 - 大师天赋
+                    grand_master: {
+                        name: '大师之道',
+                        cost: 10,
+                        effect: '解锁所有高级功能',
+                        requires: ['automation', 'legendary_craft', 'time_mastery'],
+                        unlocked: false,
+                        icon: '👑',
+                        description: '成为真正的企业大师',
+                        row: 4, col: 2
+                    }
                 };
                 
                 // 活动定义
@@ -1388,12 +1685,41 @@
                     }
                 };
                 
+                // 装备制作配方
+                this.craftingRecipes = {
+                    iron_sword: {
+                        name: '铁剑',
+                        type: 'weapon',
+                        rarity: 'common',
+                        materials: { metal: 5, wood: 2 },
+                        stats: { strength: 10 },
+                        unlockLevel: 1
+                    },
+                    steel_armor: {
+                        name: '钢甲',
+                        type: 'armor', 
+                        rarity: 'uncommon',
+                        materials: { metal: 8, cloth: 3 },
+                        stats: { constitution: 12 },
+                        unlockLevel: 3
+                    },
+                    magic_ring: {
+                        name: '魔法戒指',
+                        type: 'accessory',
+                        rarity: 'rare',
+                        materials: { gems: 2, metal: 3, magic: 10 },
+                        stats: { magic: 15 },
+                        unlockLevel: 5
+                    }
+                };
+                
                 this.init();
             }
             
             init() {
                 this.createStarField();
                 this.setupCompanyTypeSelector();
+                this.setupTabSwitching();
                 this.setupSocketListeners();
                 this.generateInitialRecruitPool();
                 this.startGameLoop();
@@ -1424,6 +1750,16 @@
                 });
                 
                 document.querySelector('.company-type[data-type="arcane"]').classList.add('selected');
+            }
+            
+            setupTabSwitching() {
+                const tabButtons = document.querySelectorAll('.tab-button');
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const tabName = button.dataset.tab;
+                        this.switchTab(tabName);
+                    });
+                });
             }
             
             setupSocketListeners() {
@@ -1535,11 +1871,19 @@
                 this.playerId = 'company_' + Date.now();
                 
                 // 加载本地存档
-                const savedData = localStorage.getItem('fantasyCompany_v4_' + name);
+                const savedData = localStorage.getItem('fantasyCompany_v41_' + name);
                 if (savedData) {
                     try {
                         const saved = JSON.parse(savedData);
                         Object.assign(this.gameData, saved);
+                        // 同步天赋状态
+                        if (saved.unlockedTalents) {
+                            saved.unlockedTalents.forEach(talentKey => {
+                                if (this.companyTalents[talentKey]) {
+                                    this.companyTalents[talentKey].unlocked = true;
+                                }
+                            });
+                        }
                     } catch (e) {
                         console.error('存档加载失败', e);
                     }
@@ -1550,21 +1894,16 @@
                 document.getElementById('currentCompany').textContent = this.companyName;
                 document.getElementById('playerName').textContent = this.playerName;
                 
-                this.socket.emit('joinGame', {
-                    companyName: this.companyName,
-                    playerName: this.playerName,
-                    companyType: this.companyType,
-                    gameData: this.gameData
-                });
-                
                 this.renderAll();
                 this.showNotification(`🎉 欢迎来到深度企业世界，${this.companyName}！`);
             }
             
             switchTab(tabName) {
+                // 更新按钮状态
                 document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-                document.querySelector(`[onclick="game.switchTab('${tabName}')"]`).classList.add('active');
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
                 
+                // 更新内容显示
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 document.getElementById(`${tabName}-tab`).classList.add('active');
                 
@@ -1803,8 +2142,9 @@
                 Object.keys(this.activities).forEach(activityKey => {
                     const activity = this.activities[activityKey];
                     
-                    // 检查解锁条件
+                    // 检查解锁条件和筛选条件
                     if (this.gameData.companyLevel < activity.unlockLevel) return;
+                    if (this.currentActivityFilter !== 'all' && this.currentActivityFilter !== activity.type) return;
                     
                     const div = document.createElement('div');
                     div.className = `activity-card ${activity.type}`;
@@ -1852,6 +2192,11 @@
                     
                     container.appendChild(div);
                 });
+            }
+            
+            filterActivities(filter) {
+                this.currentActivityFilter = filter;
+                this.renderActivities();
             }
             
             openTaskAssignment(employeeId) {
@@ -1955,7 +2300,8 @@
                 content.innerHTML = `
                     <div style="margin-bottom: 20px;">
                         <h4 style="color: #9b59b6;">公司天赋树</h4>
-                        <p style="color: #bdc3c7;">可用天赋点: <span style="color: #f39c12;">${this.gameData.talentPoints}</span></p>
+                        <p style="color: #bdc3c7;">可用天赋点: <span style="color: #f39c12; font-size: 18px; font-weight: bold;">${this.gameData.talentPoints}</span></p>
+                        <p style="color: #95a5a6; font-size: 12px;">点击未解锁的天赋来消耗天赋点解锁它们</p>
                     </div>
                     
                     <div class="talent-tree">
@@ -1964,16 +2310,33 @@
                             const canUnlock = this.canUnlockTalent(talentKey);
                             const isUnlocked = talent.unlocked;
                             
+                            let nodeClass = 'talent-node';
+                            if (isUnlocked) nodeClass += ' unlocked';
+                            else if (canUnlock) nodeClass += ' available';
+                            else nodeClass += ' locked';
+                            
                             return `
-                                <div class="talent-node ${isUnlocked ? 'unlocked' : canUnlock ? 'available' : ''}" 
+                                <div class="${nodeClass}" 
                                      onclick="${canUnlock && !isUnlocked ? `game.unlockTalent('${talentKey}')` : ''}">
                                     <div class="talent-icon">${talent.icon}</div>
                                     <div class="talent-name">${talent.name}</div>
-                                    <div class="talent-cost">${isUnlocked ? '已解锁' : `${talent.cost} 点`}</div>
-                                    <div style="font-size: 9px; color: #bdc3c7; margin-top: 5px;">${talent.effect}</div>
+                                    <div class="talent-cost">${isUnlocked ? '✅ 已解锁' : `💎 ${talent.cost} 点`}</div>
+                                    <div class="talent-description">${talent.description}</div>
                                 </div>
                             `;
                         }).join('')}
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(39,174,96,0.2); border-radius: 10px;">
+                        <h5 style="color: #27ae60; margin-bottom: 10px;">已解锁天赋效果:</h5>
+                        <div style="color: #ecf0f1; font-size: 12px;">
+                            ${this.gameData.unlockedTalents.length > 0 ? 
+                                this.gameData.unlockedTalents.map(talentKey => 
+                                    `• ${this.companyTalents[talentKey].name}: ${this.companyTalents[talentKey].effect}`
+                                ).join('<br>') : 
+                                '尚未解锁任何天赋'
+                            }
+                        </div>
                     </div>
                 `;
                 
@@ -1998,6 +2361,91 @@
             closeTrainingModal() {
                 document.getElementById('trainingModal').style.display = 'none';
                 this.selectedEmployee = null;
+            }
+            
+            // 装备工坊功能
+            showCraftingRecipes() {
+                const container = document.getElementById('equipmentContent');
+                container.innerHTML = `
+                    <div class="crafting-section">
+                        <div class="recipe-list">
+                            <h4 style="color: #9b59b6; margin-bottom: 15px;">制作配方</h4>
+                            ${Object.keys(this.craftingRecipes).map(recipeKey => {
+                                const recipe = this.craftingRecipes[recipeKey];
+                                const canCraft = this.canCraftRecipe(recipe);
+                                
+                                return `
+                                    <div class="recipe-item ${canCraft ? '' : 'unavailable'}" onclick="game.selectRecipe('${recipeKey}')">
+                                        <div style="font-weight: bold; color: #9b59b6; margin-bottom: 5px;">${recipe.name}</div>
+                                        <div style="font-size: 11px; color: #bdc3c7; margin-bottom: 5px;">
+                                            材料: ${Object.keys(recipe.materials).map(mat => 
+                                                `${mat} ${recipe.materials[mat]}`
+                                            ).join(', ')}
+                                        </div>
+                                        <div style="font-size: 11px; color: ${canCraft ? '#27ae60' : '#e74c3c'};">
+                                            ${canCraft ? '✅ 可制作' : '❌ 材料不足'}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <div style="background: rgba(0,0,0,0.5); border-radius: 10px; padding: 15px;">
+                            <h4 style="color: #9b59b6; margin-bottom: 15px;">制作详情</h4>
+                            <div id="craftingDetails" style="color: #bdc3c7;">选择一个配方开始制作</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            showEnhancement() {
+                const container = document.getElementById('equipmentContent');
+                container.innerHTML = `
+                    <div class="enhancement-section">
+                        <div class="equipment-list">
+                            <h4 style="color: #9b59b6; margin-bottom: 15px;">可强化装备</h4>
+                            ${this.gameData.equipment.length > 0 ? 
+                                this.gameData.equipment.map(item => `
+                                    <div class="equipment-item" onclick="game.selectEnhancement('${item.id}')">
+                                        <div style="font-weight: bold; color: #9b59b6;">${item.name}</div>
+                                        <div class="enhancement-level">+${item.enhanceLevel || 0}</div>
+                                        <div style="font-size: 11px; color: #bdc3c7;">
+                                            强化成功率: ${this.calculateEnhanceChance(item.enhanceLevel || 0)}%
+                                        </div>
+                                    </div>
+                                `).join('') : 
+                                '<div style="color: #bdc3c7;">暂无可强化装备</div>'
+                            }
+                        </div>
+                        
+                        <div style="background: rgba(0,0,0,0.5); border-radius: 10px; padding: 15px;">
+                            <h4 style="color: #9b59b6; margin-bottom: 15px;">强化详情</h4>
+                            <div style="color: #bdc3c7;">
+                                <p>强化系统说明:</p>
+                                <p>• 装备可强化至+15</p>
+                                <p>• 强化等级越高，成功率越低</p>
+                                <p>• 失败会降低强化等级</p>
+                                <p>• 需要消耗强化石和金币</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            showSetEffects() {
+                const container = document.getElementById('equipmentContent');
+                container.innerHTML = `
+                    <div style="text-align: center; color: #bdc3c7; margin-top: 100px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">✨</div>
+                        <div style="font-size: 20px; margin-bottom: 10px;">套装效果系统</div>
+                        <div style="font-size: 14px;">收集同套装装备，激活强大的套装效果！</div>
+                        <div style="margin-top: 20px; color: #95a5a6;">
+                            <p>火焰套装: 2件套 +20% 火焰伤害，4件套 +50% 暴击率</p>
+                            <p>冰霜套装: 2件套 +20% 冰霜伤害，4件套 冰冻效果</p>
+                            <p>闪电套装: 2件套 +20% 雷电伤害，4件套 连锁闪电</p>
+                        </div>
+                    </div>
+                `;
             }
             
             // 游戏逻辑函数
@@ -2118,10 +2566,10 @@
                 }
                 
                 this.gameData.resources.money -= cost;
-                employee.stats[stat] += Math.floor(Math.random() * 5) + 3; // 增加3-7点属性
+                employee.stats[stat] += Math.floor(Math.random() * 5) + 3;
                 
                 this.showNotification(`${employee.name} 的 ${this.getStatName(stat)} 得到了提升！`);
-                this.openTrainingModal(employeeId); // 刷新界面
+                this.openTrainingModal(employeeId);
                 this.saveGame();
             }
             
@@ -2134,8 +2582,95 @@
                 this.gameData.unlockedTalents.push(talentKey);
                 
                 this.showNotification(`解锁公司天赋: ${talent.name}！`);
-                this.openTalentModal(); // 刷新界面
+                this.openTalentModal();
                 this.saveGame();
+            }
+            
+            unlockSpecialization(employeeId, spec) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                if (!employee) return;
+                
+                employee.specialization = spec;
+                this.showNotification(`${employee.name} 解锁专精: ${spec}！`);
+                this.openTrainingModal(employeeId);
+                this.saveGame();
+            }
+            
+            canCraftRecipe(recipe) {
+                return Object.keys(recipe.materials).every(material => {
+                    return this.gameData.resources[material] >= recipe.materials[material];
+                });
+            }
+            
+            selectRecipe(recipeKey) {
+                const recipe = this.craftingRecipes[recipeKey];
+                const canCraft = this.canCraftRecipe(recipe);
+                
+                const details = document.getElementById('craftingDetails');
+                if (details) {
+                    details.innerHTML = `
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <h5 style="color: #9b59b6;">${recipe.name}</h5>
+                            <p style="color: #bdc3c7; font-size: 12px;">${recipe.type} - ${recipe.rarity}</p>
+                        </div>
+                        
+                        <div style="background: rgba(231,76,60,0.2); padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                            <div style="color: #e74c3c; font-size: 12px; font-weight: bold;">所需材料:</div>
+                            ${Object.keys(recipe.materials).map(material => {
+                                const have = this.gameData.resources[material] || 0;
+                                const need = recipe.materials[material];
+                                return `
+                                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                                        <span>${material}</span>
+                                        <span style="color: ${have >= need ? '#27ae60' : '#e74c3c'};">${have}/${need}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <div style="background: rgba(39,174,96,0.2); padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                            <div style="color: #27ae60; font-size: 12px; font-weight: bold;">装备属性:</div>
+                            <div>${Object.keys(recipe.stats).map(stat => 
+                                `${stat}: +${recipe.stats[stat]}`
+                            ).join(', ')}</div>
+                        </div>
+                        
+                        <button class="btn" onclick="game.craftItem('${recipeKey}')" 
+                                ${canCraft ? '' : 'disabled'} style="width: 100%;">
+                            ${canCraft ? '开始制作' : '材料不足'}
+                        </button>
+                    `;
+                }
+            }
+            
+            craftItem(recipeKey) {
+                const recipe = this.craftingRecipes[recipeKey];
+                if (!this.canCraftRecipe(recipe)) return;
+                
+                // 消耗材料
+                Object.keys(recipe.materials).forEach(material => {
+                    this.gameData.resources[material] -= recipe.materials[material];
+                });
+                
+                // 添加装备到背包
+                const newEquipment = {
+                    id: 'eq_' + Date.now(),
+                    name: recipe.name,
+                    type: recipe.type,
+                    rarity: recipe.rarity,
+                    stats: recipe.stats,
+                    enhanceLevel: 0
+                };
+                
+                this.gameData.equipment.push(newEquipment);
+                
+                this.showNotification(`成功制作 ${recipe.name}！`);
+                this.showCraftingRecipes();
+                this.saveGame();
+            }
+            
+            calculateEnhanceChance(level) {
+                return Math.max(10, 90 - level * 5);
             }
             
             // 辅助函数
@@ -2198,20 +2733,12 @@
             }
             
             getSpecializationRequirement(spec) {
-                // 专精解锁等级要求
-                return Math.floor(Math.random() * 5) + 3; // 3-7级
+                return Math.floor(Math.random() * 5) + 3;
             }
             
             // 渲染其他标签页的函数
             renderEquipmentTab() {
-                const container = document.getElementById('equipmentContent');
-                container.innerHTML = `
-                    <div style="text-align: center; color: #bdc3c7; margin-top: 100px;">
-                        <div style="font-size: 48px; margin-bottom: 20px;">⚔️</div>
-                        <div style="font-size: 20px; margin-bottom: 10px;">装备系统开发中</div>
-                        <div style="font-size: 14px;">敬请期待强化+15系统和套装效果！</div>
-                    </div>
-                `;
+                this.showCraftingRecipes();
             }
             
             renderResearchTab() {
@@ -2292,7 +2819,7 @@
             }
             
             saveGame() {
-                localStorage.setItem('fantasyCompany_v4_' + this.companyName, JSON.stringify(this.gameData));
+                localStorage.setItem('fantasyCompany_v41_' + this.companyName, JSON.stringify(this.gameData));
             }
             
             updateDisplay() {
@@ -2334,20 +2861,51 @@
                 const activity = this.activities[employee.currentTask];
                 if (!activity) return;
                 
+                // 计算天赋加成
+                let resourceMultiplier = 1;
+                let expMultiplier = 1;
+                
+                if (this.companyTalents.resource_1.unlocked) resourceMultiplier += 0.15;
+                if (this.companyTalents.resource_2.unlocked) resourceMultiplier += 0.3;
+                if (this.companyTalents.resource_3.unlocked) resourceMultiplier += 0.5;
+                
+                if (this.companyTalents.exp_1.unlocked) expMultiplier += 0.25;
+                if (this.companyTalents.exp_2.unlocked) expMultiplier += 0.5;
+                if (this.companyTalents.exp_3.unlocked) expMultiplier += 1.0;
+                
                 // 给予奖励
                 Object.keys(activity.rewards).forEach(resource => {
-                    this.gameData.resources[resource] += activity.rewards[resource];
+                    let amount = activity.rewards[resource];
+                    
+                    if (resource === 'exp') {
+                        amount = Math.floor(amount * expMultiplier);
+                    } else if (resource !== 'money') {
+                        amount = Math.floor(amount * resourceMultiplier);
+                    }
+                    
+                    this.gameData.resources[resource] += amount;
                 });
                 
                 // 给予经验
-                employee.experience += activity.rewards.exp || 50;
+                const expGain = Math.floor((activity.rewards.exp || 50) * expMultiplier);
+                employee.experience += expGain;
                 
                 // 检查升级
                 const expNeeded = this.calculateExpNeeded(employee.level);
                 if (employee.experience >= expNeeded) {
                     employee.level++;
                     employee.experience = 0;
-                    this.gameData.talentPoints += 1; // 每级获得1天赋点
+                    this.gameData.talentPoints += 1;
+                    
+                    // 检查公司升级
+                    const avgLevel = this.gameData.employees.reduce((sum, emp) => sum + emp.level, 0) / this.gameData.employees.length;
+                    const newCompanyLevel = Math.floor(avgLevel / 2) + 1;
+                    if (newCompanyLevel > this.gameData.companyLevel) {
+                        this.gameData.companyLevel = newCompanyLevel;
+                        this.gameData.talentPoints += 2;
+                        this.showNotification(`🏢 公司升级到 Lv.${newCompanyLevel}！获得2天赋点！`);
+                    }
+                    
                     this.showNotification(`${employee.name} 升级到 Lv.${employee.level}！获得1天赋点！`);
                 }
                 
@@ -2356,8 +2914,9 @@
                 employee.taskEndTime = null;
                 employee.status.energy = Math.max(0, employee.status.energy - 15);
                 
-                this.showNotification(`${employee.name} 完成了 ${activity.name}！`);
+                               this.showNotification(`${employee.name} 完成了 ${activity.name}！获得丰厚奖励！`);
                 this.renderAll();
+                this.saveGame();
             }
             
             dismissEmployee(employeeId) {
@@ -2381,14 +2940,6 @@
         // 全局变量和函数
         let game;
         
-        function joinGame() {
-            if (!game) {
-                game = new FantasyCompany();
-            }
-            game.joinGame();
-        }
-        
-        // 初始化
         window.onload = () => {
             game = new FantasyCompany();
         };
