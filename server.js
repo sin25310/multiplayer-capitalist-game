@@ -430,3 +430,180 @@ function calculateCompanyValue(gameData) {
                 }
             });
         }
+        
+        // 股票价值
+        if (gameData.stocks) {
+            Object.keys(gameData.stocks).forEach(companyId => {
+                const shares = gameData.stocks[companyId];
+                const company = [...gameState.companies.values(), ...gameState.aiCompanies]
+                    .find(c => c.id === companyId);
+                if (company && shares > 0) {
+                    const sharePrice = Math.floor(company.value / 1000000) || 1;
+                    value += shares * sharePrice;
+                }
+            });
+        }
+        
+        return Math.max(0, value);
+    } catch (error) {
+        console.error('calculateCompanyValue error:', error);
+        return 0;
+    }
+}
+
+function addChatMessage(playerName, message) {
+    try {
+        if (!playerName || !message) return;
+        
+        const chatMessage = {
+            player: String(playerName),
+            message: String(message),
+            timestamp: Date.now()
+        };
+        
+        gameState.chatMessages.push(chatMessage);
+        
+        if (gameState.chatMessages.length > 200) {
+            gameState.chatMessages.shift();
+        }
+        
+        io.emit('chatMessage', chatMessage);
+    } catch (error) {
+        console.error('addChatMessage error:', error);
+    }
+}
+
+function updateMarketSupplyDemand() {
+    try {
+        // 重置供需统计
+        Object.keys(gameState.globalMarket).forEach(resource => {
+            gameState.globalMarket[resource].supply = 0;
+            gameState.globalMarket[resource].demand = 0;
+        });
+        
+        // 统计所有玩家的供需
+        gameState.companies.forEach(company => {
+            if (company.gameData && company.gameData.departments) {
+                Object.keys(company.gameData.departments).forEach(deptKey => {
+                    const dept = company.gameData.departments[deptKey];
+                    if (dept.count > 0) {
+                        // 这里可以添加基于部门类型的供需计算
+                        // 简化版本：随机波动
+                        Object.keys(gameState.globalMarket).forEach(resource => {
+                            gameState.globalMarket[resource].supply += Math.random() * 10;
+                            gameState.globalMarket[resource].demand += Math.random() * 8;
+                        });
+                    }
+                });
+            }
+        });
+    } catch (error) {
+        console.error('updateMarketSupplyDemand error:', error);
+    }
+}
+
+// 定期更新市场价格
+setInterval(() => {
+    try {
+        updateMarketSupplyDemand();
+        
+        Object.keys(gameState.globalMarket).forEach(resource => {
+            const market = gameState.globalMarket[resource];
+            if (market) {
+                // 基于供需的价格调整
+                const supplyDemandRatio = (market.demand + 1) / (market.supply + 1);
+                const supplyDemandAdjustment = (supplyDemandRatio - 1) * 0.1;
+                
+                // 随机波动
+                const randomChange = (Math.random() - 0.5) * 0.05;
+                
+                const totalChange = supplyDemandAdjustment + randomChange;
+                market.price = Math.max(5000, Math.floor(market.price * (1 + totalChange)));
+                market.trend = totalChange > 0.02 ? 1 : totalChange < -0.02 ? -1 : 0;
+                
+                // 重置交易量
+                market.volume = Math.floor((market.volume || 0) * 0.9);
+            }
+        });
+        
+        // 更新AI公司价值
+        gameState.aiCompanies.forEach(company => {
+            if (company) {
+                const change = (Math.random() - 0.5) * 0.03; // 降低波动
+                company.value = Math.max(5000000, Math.floor((company.value || 5000000) * (1 + change)));
+                company.trend = change > 0.01 ? 1 : change < -0.01 ? -1 : 0;
+            }
+        });
+        
+        io.emit('marketUpdate', gameState.globalMarket);
+        console.log('📈 市场价格和AI公司价值已更新');
+    } catch (error) {
+        console.error('Market update error:', error);
+    }
+}, 20000); // 每20秒更新一次
+
+// 定期更新排行榜
+setInterval(() => {
+    try {
+        io.emit('leaderboardUpdate', getLeaderboard());
+    } catch (error) {
+        console.error('Leaderboard update error:', error);
+    }
+}, 10000); // 每10秒更新一次
+
+// 定期发送AI公司的"邪恶言论"
+setInterval(() => {
+    try {
+        if (Math.random() < 0.3) {
+            const aiCompanies = gameState.aiCompanies.filter(c => c && c.name);
+            if (aiCompanies.length > 0) {
+                const aiCompany = aiCompanies[Math.floor(Math.random() * aiCompanies.length)];
+                const evilQuotes = [
+                    '又到了季度末，该"优化"人员结构了',
+                    '用户数据？这是我们的核心资产！',
+                    '垄断不是目标，是结果',
+                    '什么？员工要涨薪？先让他们证明自己的价值',
+                    '市场调节？我们就是市场！',
+                    '慈善？那是给股东看的表演',
+                    '创新的目的就是让竞争对手破产',
+                    '法律？我们有最好的律师团队'
+                ];
+                
+                const quote = aiCompany.evilQuote || evilQuotes[Math.floor(Math.random() * evilQuotes.length)];
+                addChatMessage(aiCompany.name, quote);
+            }
+        }
+    } catch (error) {
+        console.error('AI quote error:', error);
+    }
+}, 30000); // 每30秒检查一次
+
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, (error) => {
+    if (error) {
+        console.error('服务器启动失败:', error);
+        process.exit(1);
+    } else {
+        console.log(`🚀 黑心公司大亨服务器运行在端口 ${PORT}`);
+        console.log(`🌐 访问地址: http://localhost:${PORT}`);
+        console.log(`💼 等待黑心CEO们的加入...`);
+    }
+});
+
+// 优雅关闭
+process.on('SIGTERM', () => {
+    console.log('收到 SIGTERM 信号，正在关闭服务器...');
+    server.close(() => {
+        console.log('服务器已关闭');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('收到 SIGINT 信号，正在关闭服务器...');
+    server.close(() => {
+        console.log('服务器已关闭');
+        process.exit(0);
+    });
+});
