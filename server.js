@@ -56,11 +56,9 @@ const PRODUCT_TIERS = {
         silicon: { name: '硅', basePrice: 150, category: 'tech', productionTime: 8 },
         wood: { name: '木材', basePrice: 60, category: 'natural', productionTime: 2 },
         rare_earth: { name: '稀土', basePrice: 300, category: 'tech', productionTime: 15 },
-        // 新增农业原料
         wheat: { name: '小麦', basePrice: 40, category: 'agriculture', productionTime: 10 },
         cotton: { name: '棉花', basePrice: 55, category: 'agriculture', productionTime: 12 },
         livestock: { name: '牲畜', basePrice: 120, category: 'agriculture', productionTime: 20 },
-        // 新增其他原料
         sand: { name: '沙子', basePrice: 25, category: 'construction', productionTime: 1 },
         coal: { name: '煤炭', basePrice: 70, category: 'energy', productionTime: 4 }
     },
@@ -70,11 +68,9 @@ const PRODUCT_TIERS = {
         steel_bar: { name: '钢材', basePrice: 250, category: 'material', recipe: { steel: 3 }, productionTime: 15 },
         fuel: { name: '燃料', basePrice: 180, category: 'energy', recipe: { oil: 2 }, productionTime: 8 },
         paper: { name: '纸张', basePrice: 120, category: 'material', recipe: { wood: 2 }, productionTime: 5 },
-        // 新增农业初级产品
         flour: { name: '面粉', basePrice: 80, category: 'food', recipe: { wheat: 3 }, productionTime: 8 },
         fabric: { name: '布料', basePrice: 140, category: 'textile', recipe: { cotton: 2 }, productionTime: 12 },
         meat: { name: '肉类', basePrice: 280, category: 'food', recipe: { livestock: 1 }, productionTime: 15 },
-        // 新增建材
         glass: { name: '玻璃', basePrice: 160, category: 'construction', recipe: { sand: 4, coal: 1 }, productionTime: 18 },
         cement: { name: '水泥', basePrice: 90, category: 'construction', recipe: { sand: 2, coal: 2 }, productionTime: 12 }
     },
@@ -83,10 +79,8 @@ const PRODUCT_TIERS = {
         machinery: { name: '机械零件', basePrice: 1200, category: 'industrial', recipe: { steel_bar: 3, plastic: 1 }, productionTime: 45 },
         software: { name: '软件', basePrice: 2000, category: 'tech', recipe: { chips: 1 }, productionTime: 90 },
         textiles: { name: '纺织品', basePrice: 800, category: 'consumer', recipe: { fabric: 2, plastic: 1 }, productionTime: 30 },
-        // 新增消费品中级产品
         processed_food: { name: '加工食品', basePrice: 350, category: 'food', recipe: { flour: 2, meat: 1 }, productionTime: 25 },
         cosmetics: { name: '化妆品', basePrice: 600, category: 'beauty', recipe: { plastic: 1, paper: 1 }, productionTime: 35 },
-        // 新增建材中级产品
         windows: { name: '门窗', basePrice: 450, category: 'construction', recipe: { glass: 2, steel_bar: 1 }, productionTime: 40 },
         furniture: { name: '家具', basePrice: 700, category: 'home', recipe: { wood: 4, fabric: 1 }, productionTime: 50 }
     },
@@ -95,10 +89,8 @@ const PRODUCT_TIERS = {
         car: { name: '汽车', basePrice: 25000, category: 'consumer', recipe: { machinery: 8, components: 2, fuel: 5 }, productionTime: 300 },
         computer: { name: '计算机', basePrice: 12000, category: 'tech', recipe: { components: 5, software: 2 }, productionTime: 240 },
         clothing: { name: '服装', basePrice: 500, category: 'consumer', recipe: { textiles: 2 }, productionTime: 45 },
-        // 新增消费品高级产品
         restaurant_meal: { name: '精品餐饮', basePrice: 120, category: 'food', recipe: { processed_food: 2 }, productionTime: 20 },
         luxury_cosmetics: { name: '高端化妆品', basePrice: 2500, category: 'beauty', recipe: { cosmetics: 3, rare_earth: 1 }, productionTime: 120 },
-        // 新增其他高级产品
         house: { name: '房屋', basePrice: 80000, category: 'real_estate', recipe: { cement: 50, windows: 10, furniture: 5 }, productionTime: 600 },
         appliances: { name: '家电', basePrice: 3500, category: 'home', recipe: { components: 4, steel_bar: 2 }, productionTime: 150 }
     },
@@ -106,145 +98,67 @@ const PRODUCT_TIERS = {
         luxury_car: { name: '豪华汽车', basePrice: 100000, category: 'luxury', recipe: { car: 1, components: 5 }, productionTime: 600 },
         premium_phone: { name: '限量手机', basePrice: 20000, category: 'luxury', recipe: { smartphone: 1, rare_earth: 2 }, productionTime: 360 },
         designer_clothes: { name: '设计师服装', basePrice: 5000, category: 'luxury', recipe: { clothing: 3, rare_earth: 1 }, productionTime: 180 },
-        // 新增奢侈消费品
         michelin_dining: { name: '米其林餐厅', basePrice: 2000, category: 'luxury', recipe: { restaurant_meal: 5, luxury_cosmetics: 1 }, productionTime: 300 },
         premium_beauty: { name: '顶级美容', basePrice: 8000, category: 'luxury', recipe: { luxury_cosmetics: 4, rare_earth: 2 }, productionTime: 400 },
-        // 新增奢侈品
         mansion: { name: '豪宅', basePrice: 500000, category: 'luxury', recipe: { house: 1, luxury_car: 1, appliances: 10 }, productionTime: 1200 },
         private_jet: { name: '私人飞机', basePrice: 2000000, category: 'luxury', recipe: { machinery: 100, components: 50, fuel: 200 }, productionTime: 2400 }
     }
 };
 
-// 扩展工厂类型 - 多产业线
+// 合并同类工厂类型 - 删除等级限制
 const FACTORY_TYPES = {
-    mining: {
-        name: '采矿厂',
+    extraction: {
+        name: '采矿农场',
         emoji: '⛏️',
-        unlockLevel: 0,
         cost: { money: 100000 },
-        produces: ['steel', 'oil', 'silicon', 'wood', 'rare_earth', 'sand', 'coal'],
-        description: '开采各种原材料',
-        category: 'extraction',
+        produces: ['steel', 'oil', 'silicon', 'wood', 'rare_earth', 'wheat', 'cotton', 'livestock', 'sand', 'coal'],
+        description: '开采原材料和农业生产',
+        category: 'primary',
         efficiency: 1.0
     },
-    farming: {
-        name: '农场',
-        emoji: '🌾',
-        unlockLevel: 0,
-        cost: { money: 80000 },
-        produces: ['wheat', 'cotton', 'livestock'],
-        description: '农业生产基地',
-        category: 'agriculture',
-        efficiency: 1.0
-    },
-    chemical: {
-        name: '化工厂',
-        emoji: '🧪',
-        unlockLevel: 1,
+    processing: {
+        name: '加工厂',
+        emoji: '🏭',
         cost: { money: 300000, steel: 50 },
-        produces: ['plastic', 'fuel', 'cosmetics'],
-        description: '化工产品生产',
-        category: 'chemical',
-        efficiency: 1.0
-    },
-    food_processing: {
-        name: '食品加工厂',
-        emoji: '🍞',
-        unlockLevel: 1,
-        cost: { money: 250000, steel: 30 },
-        produces: ['flour', 'meat', 'processed_food'],
-        description: '食品加工生产',
-        category: 'food',
-        efficiency: 1.0
-    },
-    electronics: {
-        name: '电子厂',
-        emoji: '💻',
-        unlockLevel: 1,
-        cost: { money: 500000, steel: 30, silicon: 20 },
-        produces: ['chips', 'components', 'software'],
-        description: '电子产品制造',
-        category: 'technology',
-        efficiency: 1.0
-    },
-    textile: {
-        name: '纺织厂',
-        emoji: '🧵',
-        unlockLevel: 1,
-        cost: { money: 200000, steel: 25 },
-        produces: ['fabric', 'textiles', 'clothing'],
-        description: '纺织品生产',
-        category: 'textile',
-        efficiency: 1.0
-    },
-    construction: {
-        name: '建材厂',
-        emoji: '🏗️',
-        unlockLevel: 2,
-        cost: { money: 400000, steel_bar: 80 },
-        produces: ['glass', 'cement', 'windows'],
-        description: '建筑材料生产',
-        category: 'construction',
+        produces: ['plastic', 'chips', 'steel_bar', 'fuel', 'paper', 'flour', 'fabric', 'meat', 'glass', 'cement'],
+        description: '初级产品加工生产',
+        category: 'secondary',
         efficiency: 1.0
     },
     manufacturing: {
         name: '制造厂',
-        emoji: '🏭',
-        unlockLevel: 2,
-        cost: { money: 800000, steel_bar: 100, machinery: 10 },
-        produces: ['steel_bar', 'machinery', 'paper', 'furniture', 'appliances'],
-        description: '重工业制造',
-        category: 'heavy_industry',
+        emoji: '🔧',
+        cost: { money: 800000, steel_bar: 100 },
+        produces: ['components', 'machinery', 'software', 'textiles', 'processed_food', 'cosmetics', 'windows', 'furniture'],
+        description: '中级产品制造',
+        category: 'tertiary',
         efficiency: 1.0
     },
     assembly: {
         name: '组装厂',
-        emoji: '🔧',
-        unlockLevel: 3,
+        emoji: '🔩',
         cost: { money: 1500000, machinery: 50, components: 20 },
-        produces: ['smartphone', 'car', 'computer'],
+        produces: ['smartphone', 'car', 'computer', 'clothing', 'restaurant_meal', 'luxury_cosmetics', 'house', 'appliances'],
         description: '高级产品组装',
-        category: 'assembly',
-        efficiency: 1.0
-    },
-    restaurant: {
-        name: '餐饮工厂',
-        emoji: '🍽️',
-        unlockLevel: 2,
-        cost: { money: 600000, steel_bar: 30, processed_food: 50 },
-        produces: ['restaurant_meal', 'michelin_dining'],
-        description: '餐饮服务生产',
-        category: 'service',
-        efficiency: 1.0
-    },
-    real_estate: {
-        name: '房地产公司',
-        emoji: '🏘️',
-        unlockLevel: 3,
-        cost: { money: 2000000, cement: 200, windows: 100 },
-        produces: ['house', 'mansion'],
-        description: '房地产开发',
-        category: 'real_estate',
+        category: 'quaternary',
         efficiency: 1.0
     },
     luxury: {
         name: '奢侈品工坊',
         emoji: '💎',
-        unlockLevel: 4,
         cost: { money: 5000000, components: 100, rare_earth: 50 },
-        produces: ['luxury_car', 'premium_phone', 'designer_clothes', 'premium_beauty', 'private_jet'],
+        produces: ['luxury_car', 'premium_phone', 'designer_clothes', 'michelin_dining', 'premium_beauty', 'mansion', 'private_jet'],
         description: '奢侈品制造',
         category: 'luxury',
         efficiency: 1.0
     }
 };
 
-// 市场层级定义
+// 市场层级定义 - 删除等级限制
 const MARKET_TIERS = {
     local: {
         name: '本地市场',
         emoji: '🏪',
-        unlockLevel: 0,
         allowedTiers: ['T1', 'T2'],
         priceMultiplier: 0.8,
         demandMultiplier: 2.0,
@@ -253,7 +167,6 @@ const MARKET_TIERS = {
     domestic: {
         name: '国内市场',
         emoji: '🇨🇳',
-        unlockLevel: 2,
         allowedTiers: ['T1', 'T2', 'T3'],
         priceMultiplier: 1.0,
         demandMultiplier: 1.5,
@@ -262,7 +175,6 @@ const MARKET_TIERS = {
     international: {
         name: '国际市场',
         emoji: '🌍',
-        unlockLevel: 3,
         allowedTiers: ['T2', 'T3', 'T4'],
         priceMultiplier: 1.3,
         demandMultiplier: 1.0,
@@ -271,7 +183,6 @@ const MARKET_TIERS = {
     luxury: {
         name: '奢侈品市场',
         emoji: '💎',
-        unlockLevel: 4,
         allowedTiers: ['T4', 'T5'],
         priceMultiplier: 2.0,
         demandMultiplier: 0.3,
@@ -279,12 +190,11 @@ const MARKET_TIERS = {
     }
 };
 
-// 科技树定义 - 删除自动化相关
+// 科技树定义 - 删除等级限制
 const TECH_TREE = {
     efficiency_1: {
         name: '生产效率优化',
         cost: { money: 300000, chips: 5 },
-        unlockLevel: 1,
         effect: '所有工厂生产效率+25%',
         description: '优化生产流程，提升整体效率',
         category: 'efficiency'
@@ -292,7 +202,6 @@ const TECH_TREE = {
     quality_control: {
         name: '质量控制系统',
         cost: { money: 400000, components: 20 },
-        unlockLevel: 2,
         effect: '产品价值+30%',
         description: '建立完善的质量管控体系',
         category: 'quality'
@@ -300,7 +209,6 @@ const TECH_TREE = {
     supply_chain: {
         name: '供应链优化',
         cost: { money: 600000, software: 3 },
-        unlockLevel: 2,
         effect: '原料消耗-20%',
         description: '优化供应链管理，降低原料浪费',
         category: 'logistics'
@@ -308,7 +216,6 @@ const TECH_TREE = {
     market_research: {
         name: '市场研究',
         cost: { money: 500000, processed_food: 100 },
-        unlockLevel: 2,
         effect: '市场交易手续费-50%',
         description: '深入了解市场规律，降低交易成本',
         category: 'market'
@@ -316,7 +223,6 @@ const TECH_TREE = {
     advanced_manufacturing: {
         name: '先进制造技术',
         cost: { money: 1500000, machinery: 50 },
-        unlockLevel: 3,
         requires: ['efficiency_1', 'quality_control'],
         effect: '解锁高级工厂，生产效率+50%',
         description: '掌握最新制造技术',
@@ -325,7 +231,6 @@ const TECH_TREE = {
     ai_analytics: {
         name: 'AI数据分析',
         cost: { money: 2500000, computer: 10 },
-        unlockLevel: 4,
         requires: ['market_research', 'supply_chain'],
         effect: '预测市场趋势，获得额外收益+30%',
         description: 'AI驱动的市场分析系统',
@@ -334,7 +239,6 @@ const TECH_TREE = {
     global_expansion: {
         name: '全球化扩张',
         cost: { money: 5000000, luxury_car: 5 },
-        unlockLevel: 5,
         requires: ['advanced_manufacturing', 'ai_analytics'],
         effect: '解锁全球市场，所有收益+100%',
         description: '建立全球化商业网络',
@@ -343,7 +247,6 @@ const TECH_TREE = {
     sustainability: {
         name: '可持续发展',
         cost: { money: 3000000, house: 10 },
-        unlockLevel: 4,
         requires: ['supply_chain'],
         effect: '环保生产，政府补贴+50%',
         description: '绿色制造技术',
@@ -366,7 +269,10 @@ const gameState = {
             volatility: 0.12,
             underAttack: false,
             specialty: 'electronics',
-            stockHistory: []
+            stockHistory: [],
+            sharePrice: 180, // 每股价格
+            totalShares: 1000000, // 总股数
+            tradingVolume: 0 // 交易量
         },
         {
             id: 'ai_micro_soft',
@@ -378,7 +284,10 @@ const gameState = {
             volatility: 0.08,
             underAttack: false,
             specialty: 'software',
-            stockHistory: []
+            stockHistory: [],
+            sharePrice: 165,
+            totalShares: 1000000,
+            tradingVolume: 0
         },
         {
             id: 'ai_google_search',
@@ -390,7 +299,10 @@ const gameState = {
             volatility: 0.10,
             underAttack: false,
             specialty: 'data_services',
-            stockHistory: []
+            stockHistory: [],
+            sharePrice: 170,
+            totalShares: 1000000,
+            tradingVolume: 0
         },
         {
             id: 'ai_tesla_auto',
@@ -402,7 +314,10 @@ const gameState = {
             volatility: 0.18,
             underAttack: false,
             specialty: 'automotive',
-            stockHistory: []
+            stockHistory: [],
+            sharePrice: 95,
+            totalShares: 1000000,
+            tradingVolume: 0
         },
         {
             id: 'ai_amazon_retail',
@@ -414,7 +329,10 @@ const gameState = {
             volatility: 0.09,
             underAttack: false,
             specialty: 'logistics',
-            stockHistory: []
+            stockHistory: [],
+            sharePrice: 140,
+            totalShares: 1000000,
+            tradingVolume: 0
         },
         {
             id: 'ai_meta_social',
@@ -426,7 +344,10 @@ const gameState = {
             volatility: 0.15,
             underAttack: false,
             specialty: 'social_media',
-            stockHistory: []
+            stockHistory: [],
+            sharePrice: 85,
+            totalShares: 1000000,
+            tradingVolume: 0
         },
         {
             id: 'ai_nike_sports',
@@ -438,7 +359,10 @@ const gameState = {
             volatility: 0.11,
             underAttack: false,
             specialty: 'sportswear',
-            stockHistory: []
+            stockHistory: [],
+            sharePrice: 75,
+            totalShares: 1000000,
+            tradingVolume: 0
         },
         {
             id: 'ai_coca_cola',
@@ -450,7 +374,10 @@ const gameState = {
             volatility: 0.06,
             underAttack: false,
             specialty: 'beverages',
-            stockHistory: []
+            stockHistory: [],
+            sharePrice: 68,
+            totalShares: 1000000,
+            tradingVolume: 0
         },
         {
             id: 'ai_loreal_beauty',
@@ -462,7 +389,10 @@ const gameState = {
             volatility: 0.13,
             underAttack: false,
             specialty: 'cosmetics',
-            stockHistory: []
+            stockHistory: [],
+            sharePrice: 55,
+            totalShares: 1000000,
+            tradingVolume: 0
         },
         {
             id: 'ai_mcdonalds',
@@ -474,7 +404,10 @@ const gameState = {
             volatility: 0.07,
             underAttack: false,
             specialty: 'fast_food',
-            stockHistory: []
+            stockHistory: [],
+            sharePrice: 45,
+            totalShares: 1000000,
+            tradingVolume: 0
         }
     ],
     globalMarkets: {
@@ -491,7 +424,7 @@ const gameState = {
     serverStartTime: Date.now(),
     lastEventTime: Date.now(),
     eventDuration: 10 * 60 * 1000, // 10分钟事件周期
-    gameVersion: '2.1.0' // 更新版本号
+    gameVersion: '2.2.0' // 更新版本号
 };
 
 function initializeMarket(marketType) {
@@ -656,7 +589,7 @@ const TIMED_EVENTS = [
     }
 ];
 
-console.log('🏢 黑心公司大亨 v2.1 服务器启动中...');
+console.log('🏢 黑心公司大亨 v2.2 服务器启动中...');
 
 // 错误处理
 process.on('uncaughtException', (error) => {
@@ -719,7 +652,7 @@ io.on('connection', (socket) => {
                 gameState.companies.delete(offlinePlayerWithSameName.id);
                 gameState.playerNames.delete(companyName);
                 socket.emit('versionReset', {
-                    message: '游戏已更新到v2.1，全新多产业线制造系统！所有进度已重置。'
+                    message: '游戏已更新到v2.2，新增金融市场交易系统！所有进度已重置。'
                 });
             }
             
@@ -755,7 +688,8 @@ io.on('connection', (socket) => {
                 productTiers: PRODUCT_TIERS,
                 factoryTypes: FACTORY_TYPES,
                 marketTiers: MARKET_TIERS,
-                techTree: TECH_TREE
+                techTree: TECH_TREE,
+                aiCompanies: gameState.aiCompanies
             });
             
             socket.broadcast.emit('companyJoined', {
@@ -801,12 +735,6 @@ io.on('connection', (socket) => {
             }
             
             const factory = FACTORY_TYPES[factoryType];
-            const playerLevel = calculateCompanyLevel(company.gameData);
-            
-            if (playerLevel < factory.unlockLevel) {
-                socket.emit('error', { message: `需要等级 ${factory.unlockLevel} 才能解锁此工厂` });
-                return;
-            }
             
             if (!canAfford(company.gameData.inventory, factory.cost)) {
                 socket.emit('error', { message: '资源不足，无法建造工厂' });
@@ -815,27 +743,30 @@ io.on('connection', (socket) => {
             
             payCost(company.gameData.inventory, factory.cost);
             
-            const factoryId = 'factory_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            company.gameData.factories[factoryId] = {
-                type: factoryType,
-                level: 1,
-                efficiency: factory.efficiency,
-                currentTask: null,
-                productionQueue: [],
-                totalProduced: 0
-            };
+            // 合并同类工厂
+            if (!company.gameData.factories[factoryType]) {
+                company.gameData.factories[factoryType] = {
+                    type: factoryType,
+                    count: 0,
+                    level: 1,
+                    efficiency: factory.efficiency,
+                    productionTasks: [],
+                    totalProduced: 0
+                };
+            }
+            
+            company.gameData.factories[factoryType].count++;
             
             socket.emit('factoryBuilt', {
-                factoryId: factoryId,
                 factoryType: factoryType,
-                message: `成功建造 ${factory.name}！`,
+                message: `成功建造 ${factory.name}！现在拥有 ${company.gameData.factories[factoryType].count} 个`,
                 playerData: {
                     inventory: company.gameData.inventory,
                     factories: company.gameData.factories
                 }
             });
             
-            addChatMessage('工业快讯', `${company.name} 建造了 ${factory.name}`);
+            addChatMessage('工业快讯', `${company.name} 建造了 ${factory.name}，总数达到 ${company.gameData.factories[factoryType].count} 个`);
             
         } catch (error) {
             console.error('buildFactory error:', error);
@@ -845,18 +776,23 @@ io.on('connection', (socket) => {
     // 开始生产 - 全自动化
     socket.on('startProduction', (data) => {
         try {
-            const { factoryId, productId, quantity } = data;
+            const { factoryType, productId, quantity } = data;
             const company = gameState.companies.get(socket.id);
             
-            if (!company || !company.gameData.factories[factoryId]) {
+            if (!company || !company.gameData.factories[factoryType]) {
                 return;
             }
             
-            const factory = company.gameData.factories[factoryId];
-            const factoryType = FACTORY_TYPES[factory.type];
+            const factory = company.gameData.factories[factoryType];
+            const factoryTypeData = FACTORY_TYPES[factory.type];
             
-            if (!factoryType.produces.includes(productId)) {
+            if (!factoryTypeData.produces.includes(productId)) {
                 socket.emit('error', { message: '此工厂无法生产该产品' });
+                return;
+            }
+            
+            if (factory.count === 0) {
+                socket.emit('error', { message: '没有可用的工厂' });
                 return;
             }
             
@@ -881,16 +817,11 @@ io.on('connection', (socket) => {
                 payCost(company.gameData.inventory, totalRecipe);
             }
             
-            const task = new ProductionTask(factoryId, productId, quantity, socket.id);
+            const task = new ProductionTask(factoryType, productId, quantity, socket.id);
             
-            // 如果工厂空闲，立即开始生产
-            if (!factory.currentTask) {
-                factory.currentTask = task;
-            } else {
-                // 否则加入队列
-                if (!factory.productionQueue) factory.productionQueue = [];
-                factory.productionQueue.push(task);
-            }
+            // 添加到生产任务列表
+            if (!factory.productionTasks) factory.productionTasks = [];
+            factory.productionTasks.push(task);
             
             socket.emit('productionStarted', {
                 task: {
@@ -912,6 +843,140 @@ io.on('connection', (socket) => {
         }
     });
     
+    // 金融市场交易 - 新增
+    socket.on('stockTrade', (data) => {
+        try {
+            const { action, companyId, shares, multiplier } = data;
+            const company = gameState.companies.get(socket.id);
+            
+            if (!company) return;
+            
+            // 找到目标公司（AI公司或玩家公司）
+            let targetCompany = gameState.aiCompanies.find(ai => ai.id === companyId);
+            if (!targetCompany) {
+                const playerCompany = Array.from(gameState.companies.values()).find(c => c.id === companyId);
+                if (playerCompany) {
+                    targetCompany = {
+                        id: playerCompany.id,
+                        name: playerCompany.name,
+                        sharePrice: Math.floor(calculateCompanyValue(playerCompany.gameData) / 1000000),
+                        totalShares: 1000000,
+                        tradingVolume: 0
+                    };
+                }
+            }
+            
+            if (!targetCompany) return;
+            
+            const tradeShares = shares * (multiplier || 1);
+            const totalCost = targetCompany.sharePrice * tradeShares;
+            const tradeFee = totalCost * 0.01; // 1%手续费
+            
+            if (!company.gameData.stockPortfolio) {
+                company.gameData.stockPortfolio = {};
+            }
+            
+            if (action === 'buy') {
+                if (company.gameData.inventory.money >= totalCost + tradeFee) {
+                    company.gameData.inventory.money -= totalCost + tradeFee;
+                    company.gameData.stockPortfolio[companyId] = (company.gameData.stockPortfolio[companyId] || 0) + tradeShares;
+                    
+                    // 更新目标公司股价（买入推高股价）
+                    const priceImpact = Math.min(0.05, tradeShares / targetCompany.totalShares * 10);
+                    targetCompany.sharePrice = Math.floor(targetCompany.sharePrice * (1 + priceImpact));
+                    targetCompany.tradingVolume += tradeShares;
+                    
+                    socket.emit('stockTradeSuccess', {
+                        action, companyId, shares: tradeShares,
+                        message: `买入 ${targetCompany.name} ${tradeShares} 股，花费 ${formatNumber(totalCost)} 💰`,
+                        playerData: {
+                            money: company.gameData.inventory.money,
+                            stockPortfolio: company.gameData.stockPortfolio
+                        }
+                    });
+                    
+                    // 检查持股节点事件
+                    checkShareholdingEvent(company, targetCompany, tradeShares, 'buy');
+                    
+                    addChatMessage('金融快讯', `${company.name} 买入 ${targetCompany.name} ${formatNumber(tradeShares)} 股`);
+                }
+            }
+            else if (action === 'sell') {
+                const ownedShares = company.gameData.stockPortfolio[companyId] || 0;
+                if (ownedShares >= tradeShares) {
+                    const sellValue = targetCompany.sharePrice * tradeShares - tradeFee;
+                    company.gameData.inventory.money += sellValue;
+                    company.gameData.stockPortfolio[companyId] -= tradeShares;
+                    
+                    if (company.gameData.stockPortfolio[companyId] <= 0) {
+                        delete company.gameData.stockPortfolio[companyId];
+                    }
+                    
+                    // 更新目标公司股价（卖出压低股价）
+                    const priceImpact = Math.min(0.05, tradeShares / targetCompany.totalShares * 10);
+                    targetCompany.sharePrice = Math.floor(targetCompany.sharePrice * (1 - priceImpact));
+                    targetCompany.tradingVolume += tradeShares;
+                    
+                    socket.emit('stockTradeSuccess', {
+                        action, companyId, shares: tradeShares,
+                        message: `卖出 ${targetCompany.name} ${tradeShares} 股，获得 ${formatNumber(sellValue)} 💰`,
+                        playerData: {
+                            money: company.gameData.inventory.money,
+                            stockPortfolio: company.gameData.stockPortfolio
+                        }
+                    });
+                    
+                    // 检查抛售节点事件
+                    checkShareholdingEvent(company, targetCompany, tradeShares, 'sell');
+                    
+                    addChatMessage('金融快讯', `${company.name} 卖出 ${targetCompany.name} ${formatNumber(tradeShares)} 股`);
+                }
+            }
+            else if (action === 'short') {
+                // 做空操作
+                const shortCost = totalCost * 0.5; // 保证金
+                if (company.gameData.inventory.money >= shortCost + tradeFee) {
+                    company.gameData.inventory.money -= shortCost + tradeFee;
+                    
+                    if (!company.gameData.shortPositions) {
+                        company.gameData.shortPositions = {};
+                    }
+                    
+                    if (!company.gameData.shortPositions[companyId]) {
+                        company.gameData.shortPositions[companyId] = [];
+                    }
+                    
+                    company.gameData.shortPositions[companyId].push({
+                        shares: tradeShares,
+                        entryPrice: targetCompany.sharePrice,
+                        timestamp: Date.now()
+                    });
+                    
+                    socket.emit('stockTradeSuccess', {
+                        action, companyId, shares: tradeShares,
+                        message: `做空 ${targetCompany.name} ${tradeShares} 股，保证金 ${formatNumber(shortCost)} 💰`,
+                        playerData: {
+                            money: company.gameData.inventory.money,
+                            shortPositions: company.gameData.shortPositions
+                        }
+                    });
+                    
+                    addChatMessage('金融快讯', `${company.name} 做空 ${targetCompany.name} ${formatNumber(tradeShares)} 股`);
+                }
+            }
+            
+            // 广播股价更新
+            io.emit('stockPriceUpdate', {
+                companyId: targetCompany.id,
+                sharePrice: targetCompany.sharePrice,
+                tradingVolume: targetCompany.tradingVolume
+            });
+            
+        } catch (error) {
+            console.error('stockTrade error:', error);
+        }
+    });
+    
     // 市场交易
     socket.on('marketTrade', (data) => {
         try {
@@ -923,14 +988,6 @@ io.on('connection', (socket) => {
             }
             
             const market = gameState.globalMarkets[marketType][productId];
-            const marketInfo = MARKET_TIERS[marketType];
-            const playerLevel = calculateCompanyLevel(company.gameData);
-            
-            if (playerLevel < marketInfo.unlockLevel) {
-                socket.emit('error', { message: `需要等级 ${marketInfo.unlockLevel} 才能进入此市场` });
-                return;
-            }
-            
             const tradeAmount = quantity * (multiplier || 1);
             
             if (action === 'buy' && company.gameData.inventory.money >= market.price * tradeAmount) {
@@ -943,7 +1000,7 @@ io.on('connection', (socket) => {
                 
                 socket.emit('tradeSuccess', {
                     action, productId, quantity: tradeAmount, marketType,
-                    message: `在${marketInfo.name}购买了${tradeAmount}个${getProductByKey(productId).name}`,
+                    message: `在${MARKET_TIERS[marketType].name}购买了${tradeAmount}个${getProductByKey(productId).name}`,
                     playerData: {
                         inventory: company.gameData.inventory
                     }
@@ -962,7 +1019,7 @@ io.on('connection', (socket) => {
                 
                 socket.emit('tradeSuccess', {
                     action, productId, quantity: tradeAmount, marketType,
-                    message: `在${marketInfo.name}卖出了${tradeAmount}个${getProductByKey(productId).name}`,
+                    message: `在${MARKET_TIERS[marketType].name}卖出了${tradeAmount}个${getProductByKey(productId).name}`,
                     playerData: {
                         inventory: company.gameData.inventory
                     }
@@ -986,12 +1043,6 @@ io.on('connection', (socket) => {
             }
             
             const tech = TECH_TREE[techId];
-            const playerLevel = calculateCompanyLevel(company.gameData);
-            
-            if (playerLevel < tech.unlockLevel) {
-                socket.emit('error', { message: `需要等级 ${tech.unlockLevel} 才能研发此技术` });
-                return;
-            }
             
             if (company.gameData.technologies.includes(techId)) {
                 socket.emit('error', { message: '技术已研发' });
@@ -1101,6 +1152,8 @@ function createNewCompany(companyType = 'tech') {
         },
         factories: {},
         technologies: [],
+        stockPortfolio: {}, // 股票持仓
+        shortPositions: {}, // 做空持仓
         companyType: companyType,
         level: 0,
         experience: 0,
@@ -1136,13 +1189,24 @@ function calculateCompanyValue(gameData) {
     });
     
     // 工厂价值
-    Object.keys(gameData.factories || {}).forEach(factoryId => {
-        const factory = gameData.factories[factoryId];
-        const factoryType = FACTORY_TYPES[factory.type];
-        if (factoryType) {
-            value += factoryType.cost.money * factory.level;
+    Object.keys(gameData.factories || {}).forEach(factoryType => {
+        const factory = gameData.factories[factoryType];
+        const factoryTypeData = FACTORY_TYPES[factory.type];
+        if (factoryTypeData) {
+            value += factoryTypeData.cost.money * factory.count * factory.level;
         }
     });
+    
+    // 股票持仓价值
+    if (gameData.stockPortfolio) {
+        Object.keys(gameData.stockPortfolio).forEach(companyId => {
+            const shares = gameData.stockPortfolio[companyId];
+            const aiCompany = gameState.aiCompanies.find(ai => ai.id === companyId);
+            if (aiCompany && shares > 0) {
+                value += shares * aiCompany.sharePrice;
+            }
+        });
+    }
     
     return Math.max(0, value);
 }
@@ -1161,16 +1225,84 @@ function payCost(inventory, cost) {
 function applyTechEffects(gameData, techId) {
     switch (techId) {
         case 'efficiency_1':
-            Object.keys(gameData.factories).forEach(factoryId => {
-                gameData.factories[factoryId].efficiency *= 1.25;
+            Object.keys(gameData.factories).forEach(factoryType => {
+                gameData.factories[factoryType].efficiency *= 1.25;
             });
             break;
         case 'advanced_manufacturing':
-            Object.keys(gameData.factories).forEach(factoryId => {
-                gameData.factories[factoryId].efficiency *= 1.5;
+            Object.keys(gameData.factories).forEach(factoryType => {
+                gameData.factories[factoryType].efficiency *= 1.5;
             });
             break;
-        // 可以添加更多技术效果
+    }
+}
+
+function checkShareholdingEvent(company, targetCompany, shares, action) {
+    try {
+        const totalShares = company.gameData.stockPortfolio[targetCompany.id] || 0;
+        const percentage = (totalShares / targetCompany.totalShares) * 100;
+        
+        if (action === 'buy') {
+            if (percentage >= 5 && percentage < 10) {
+                addNewsEvent(`📈 ${company.name} 持有 ${targetCompany.name} 5%以上股份，成为重要股东`);
+                triggerShareholderEvent(company, targetCompany, 'major_shareholder');
+            } else if (percentage >= 10 && percentage < 25) {
+                addNewsEvent(`🔥 ${company.name} 持有 ${targetCompany.name} 10%以上股份，市场震动`);
+                triggerShareholderEvent(company, targetCompany, 'large_shareholder');
+            } else if (percentage >= 25) {
+                addNewsEvent(`💥 ${company.name} 持有 ${targetCompany.name} 25%以上股份，可能发起收购`);
+                triggerShareholderEvent(company, targetCompany, 'controlling_interest');
+            }
+        } else if (action === 'sell') {
+            if (shares >= targetCompany.totalShares * 0.05) {
+                addNewsEvent(`📉 ${company.name} 大量抛售 ${targetCompany.name} 股票，引发市场恐慌`);
+                triggerShareholderEvent(company, targetCompany, 'mass_sell_off');
+            }
+        }
+    } catch (error) {
+        console.error('checkShareholdingEvent error:', error);
+    }
+}
+
+function triggerShareholderEvent(company, targetCompany, eventType) {
+    try {
+        switch (eventType) {
+            case 'major_shareholder':
+                // 5%股东权益：获得分红
+                const dividend = targetCompany.sharePrice * (company.gameData.stockPortfolio[targetCompany.id] || 0) * 0.02;
+                company.gameData.inventory.money += dividend;
+                company.socket.emit('shareholderEvent', {
+                    type: 'dividend',
+                    message: `作为 ${targetCompany.name} 的重要股东，获得分红 ${formatNumber(dividend)} 💰`,
+                    amount: dividend
+                });
+                break;
+                
+            case 'large_shareholder':
+                // 10%股东权益：影响公司股价
+                targetCompany.sharePrice = Math.floor(targetCompany.sharePrice * 1.05);
+                addNewsEvent(`📊 ${company.name} 的投资推高了 ${targetCompany.name} 股价`);
+                break;
+                
+            case 'controlling_interest':
+                // 25%控股权：可以影响公司决策
+                const bonus = targetCompany.value * 0.01;
+                company.gameData.inventory.money += bonus;
+                company.socket.emit('shareholderEvent', {
+                    type: 'control_bonus',
+                    message: `获得 ${targetCompany.name} 控股权，获得管理奖金 ${formatNumber(bonus)} 💰`,
+                    amount: bonus
+                });
+                break;
+                
+            case 'mass_sell_off':
+                // 大量抛售：股价下跌
+                targetCompany.sharePrice = Math.floor(targetCompany.sharePrice * 0.9);
+                addNewsEvent(`💔 ${targetCompany.name} 股价因大量抛售下跌10%`);
+                break;
+        }
+    } catch (error) {
+        console.error('triggerShareholderEvent error:', error);
     }
 }
 
@@ -1187,7 +1319,9 @@ function getLeaderboard() {
                     value: value,
                     level: calculateCompanyLevel(company.gameData),
                     online: company.online,
-                    companyType: company.companyType || 'tech'
+                    companyType: company.companyType || 'tech',
+                    sharePrice: Math.floor(value / 1000000),
+                    stockHistory: company.stockHistory || []
                 };
             });
         
@@ -1259,59 +1393,74 @@ function getOnlineStats() {
     };
 }
 
-// 处理生产任务完成 - 全自动化，1秒更新
+function formatNumber(num) {
+    if (num >= 1000000000) {
+        return (num / 1000000000).toFixed(1) + 'B';
+    } else if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'K';
+    } else {
+        return Math.floor(num).toString();
+    }
+}
+
+// 处理生产任务完成 - 考虑工厂数量和产能
 function processProductionTasks() {
     gameState.companies.forEach(company => {
         if (!company.gameData.factories) return;
         
-        Object.keys(company.gameData.factories).forEach(factoryId => {
-            const factory = company.gameData.factories[factoryId];
+        Object.keys(company.gameData.factories).forEach(factoryType => {
+            const factory = company.gameData.factories[factoryType];
             
-            // 检查当前任务完成
-            if (factory.currentTask && factory.currentTask.isReady()) {
-                const task = factory.currentTask;
-                const product = getProductByKey(task.productId);
-                
-                // 完成生产
-                company.gameData.inventory[task.productId] = (company.gameData.inventory[task.productId] || 0) + task.quantity;
-                company.gameData.experience = (company.gameData.experience || 0) + task.quantity * 10;
-                factory.totalProduced += task.quantity;
-                
-                if (company.socket) {
-                    company.socket.emit('productionCompleted', {
-                        taskId: task.id,
-                        productId: task.productId,
-                        quantity: task.quantity,
-                        message: `生产完成：${product.name} x${task.quantity}`,
-                        playerData: {
-                            inventory: company.gameData.inventory,
-                            experience: company.gameData.experience,
-                            level: calculateCompanyLevel(company.gameData)
-                        }
-                    });
-                }
-                
-                factory.currentTask = null;
-                
-                // 自动开始下一个任务（如果队列中有）
-                if (factory.productionQueue && factory.productionQueue.length > 0) {
-                    factory.currentTask = factory.productionQueue.shift();
-                }
-            }
+            if (!factory.productionTasks) return;
             
-            // 更新任务进度
-            if (factory.currentTask) {
-                factory.currentTask.progress = factory.currentTask.getProgress();
-                
-                if (company.socket) {
-                    company.socket.emit('productionProgress', {
-                        factoryId: factoryId,
-                        taskId: factory.currentTask.id,
-                        progress: factory.currentTask.progress,
-                        remainingTime: factory.currentTask.getRemainingTime()
-                    });
+            // 并行处理多个任务（基于工厂数量）
+            const maxConcurrentTasks = Math.min(factory.count, 10); // 最多同时10个任务
+            const activeTasks = factory.productionTasks.filter(task => !task.completed).slice(0, maxConcurrentTasks);
+            
+            activeTasks.forEach(task => {
+                if (task.isReady()) {
+                    const product = getProductByKey(task.productId);
+                    
+                    // 完成生产
+                    company.gameData.inventory[task.productId] = (company.gameData.inventory[task.productId] || 0) + task.quantity;
+                    company.gameData.experience = (company.gameData.experience || 0) + task.quantity * 10;
+                    factory.totalProduced += task.quantity;
+                    task.completed = true;
+                    
+                    if (company.socket) {
+                        company.socket.emit('productionCompleted', {
+                            taskId: task.id,
+                            productId: task.productId,
+                            quantity: task.quantity,
+                            message: `生产完成：${product.name} x${task.quantity}`,
+                            playerData: {
+                                inventory: company.gameData.inventory,
+                                experience: company.gameData.experience,
+                                level: calculateCompanyLevel(company.gameData)
+                            }
+                        });
+                    }
                 }
-            }
+                
+                // 更新任务进度
+                if (!task.completed) {
+                    task.progress = task.getProgress();
+                    
+                    if (company.socket) {
+                        company.socket.emit('productionProgress', {
+                            factoryType: factoryType,
+                            taskId: task.id,
+                            progress: task.progress,
+                            remainingTime: task.getRemainingTime()
+                        });
+                    }
+                }
+            });
+            
+            // 清理已完成的任务
+            factory.productionTasks = factory.productionTasks.filter(task => !task.completed);
         });
     });
 }
@@ -1397,7 +1546,7 @@ function getTierByProduct(productId) {
 // 频繁的AI和市场变化
 function updateMarketsAndAI() {
     try {
-        // 更新AI公司价值（更频繁，更不可预测）
+        // 更新AI公司价值和股价
         gameState.aiCompanies.forEach(company => {
             const volatility = company.volatility * (1 + Math.random() * 0.5);
             let change = (Math.random() - 0.5) * volatility * 2;
@@ -1410,31 +1559,35 @@ function updateMarketsAndAI() {
             }
             
             const oldValue = company.value;
+            const oldPrice = company.sharePrice;
+            
             company.value = Math.max(1000000, Math.floor(company.value * (1 + change)));
+            company.sharePrice = Math.max(1, Math.floor(company.sharePrice * (1 + change)));
             company.trend = change > 0.02 ? 1 : change < -0.02 ? -1 : 0;
             
             // 记录股价历史
             company.stockHistory.push({
                 time: Date.now(),
-                price: company.value,
-                change: change
+                price: company.sharePrice,
+                change: change,
+                volume: company.tradingVolume || 0
             });
             
-            if (company.stockHistory.length > 50) {
+            if (company.stockHistory.length > 100) {
                 company.stockHistory.shift();
             }
+            
+            // 重置交易量
+            company.tradingVolume = 0;
         });
         
-        // 更新市场价格（更频繁的波动）
+        // 更新市场价格
         Object.keys(gameState.globalMarkets).forEach(marketType => {
             Object.keys(gameState.globalMarkets[marketType]).forEach(productId => {
                 const market = gameState.globalMarkets[marketType][productId];
                 
-                // 供需模拟
                 const supplyDemandRatio = (market.demand + 1) / (market.supply + 1);
                 let priceChange = (supplyDemandRatio - 1) * 0.05;
-                
-                // 随机市场噪音
                 priceChange += (Math.random() - 0.5) * 0.08;
                 
                 const oldPrice = market.price;
@@ -1458,6 +1611,7 @@ function updateMarketsAndAI() {
         });
         
         io.emit('marketUpdate', gameState.globalMarkets);
+        io.emit('stockUpdate', gameState.aiCompanies);
         
     } catch (error) {
         console.error('updateMarketsAndAI error:', error);
@@ -1485,10 +1639,10 @@ server.listen(PORT, (error) => {
         console.error('服务器启动失败:', error);
         process.exit(1);
     } else {
-        console.log(`🚀 黑心公司大亨 v2.1 服务器运行在端口 ${PORT}`);
+        console.log(`🚀 黑心公司大亨 v2.2 服务器运行在端口 ${PORT}`);
         console.log(`🌐 访问地址: http://localhost:${PORT}`);
-        console.log(`💼 等待CEO们体验全新的多产业线制造系统...`);
-        console.log(`📊 新特性: 多产业线 | 全自动化 | 可视化图表 | 10个AI巨头`);
+        console.log(`💼 等待CEO们体验全新的金融交易系统...`);
+        console.log(`📊 新特性: 合并工厂 | 金融市场 | 股票交易 | 做空机制`);
     }
 });
 
