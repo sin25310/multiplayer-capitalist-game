@@ -1803,7 +1803,6 @@
                     }
                 });
                 
-                // 其他Socket监听器保持不变...
                 this.socket.on('marketUpdate', (data) => {
                     if (data.marketType) {
                         this.globalMarkets[data.marketType] = data.market;
@@ -1850,6 +1849,769 @@
                 this.socket.on('error', (data) => {
                     this.showNotification(`❌ ${data.message || '发生错误'}`, 'error');
                 });
+            }
+
+            // 完整的渲染方法
+            renderFactories() {
+                const container = document.getElementById('factories');
+                if (!container || !this.factoryTypes) return;
+                
+                container.innerHTML = '';
+                
+                Object.keys(this.factoryTypes).forEach(factoryType => {
+                    const factory = this.factoryTypes[factoryType];
+                    const div = document.createElement('div');
+                    
+                    const canAfford = this.canAfford(factory.cost);
+                    const ownedFactory = this.gameData.factories[factoryType];
+                    const ownedCount = ownedFactory ? ownedFactory.count : 0;
+                    
+                    div.className = `factory-item ${canAfford ? '' : 'insufficient'}`;
+                    
+                    // 显示生产依赖关系
+                    let dependencyInfo = '';
+                    if (factory.produces && factory.produces.length > 0) {
+                        const sampleProduct = this.getProductByKey(factory.produces[0]);
+                        if (sampleProduct && sampleProduct.recipe) {
+                            dependencyInfo = `
+                                <div class="dependency-chain">
+                                    <div style="font-size: 11px; color: #74b9ff; margin-bottom: 5px;">生产依赖:</div>
+                                    ${Object.keys(sampleProduct.recipe).map(material => {
+                                        const materialProduct = this.getProductByKey(material);
+                                        return `<div class="dependency-item">${materialProduct ? materialProduct.name : material} x${sampleProduct.recipe[material]}</div>`;
+                                    }).join('')}
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    div.innerHTML = `
+                        <div class="factory-header">
+                            <div class="factory-name">${factory.emoji || '🏭'} ${factory.name}</div>
+                            <div class="factory-count">拥有: ${ownedCount}</div>
+                        </div>
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">${factory.description}</div>
+                        <div style="font-size: 10px; color: #f39c12; margin-bottom: 8px;">
+                            电力消耗: ${factory.powerConsumption || 0} ⚡/秒
+                        </div>
+                        <div style="font-size: 12px; color: #ddd; margin-bottom: 8px;">
+                            建造费用: ${this.formatCost(factory.cost)}
+                        </div>
+                        <div style="font-size: 11px; color: #00b894; margin-bottom: 8px;">
+                            可生产: ${factory.produces ? factory.produces.slice(0, 3).map(p => this.getProductName(p)).join(', ') : '无'}${factory.produces && factory.produces.length > 3 ? '...' : ''}
+                        </div>
+                        ${dependencyInfo}
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 8px;">
+                            <input type="number" id="quantity_${factoryType}" placeholder="数量" min="1" value="1" 
+                                style="padding: 6px; border-radius: 4px; border: 1px solid #ccc; background: #2d3436; color: #ddd;">
+                            <button class="btn build" onclick="game.buildFactory('${factoryType}')" 
+                                ${canAfford ? '' : 'disabled'}>
+                                建造
+                            </button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            renderProduction() {
+                const container = document.getElementById('production');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                if (Object.keys(this.gameData.factories).length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">先建造工厂才能开始生产</div>';
+                    return;
+                }
+                
+                Object.keys(this.gameData.factories).forEach(factoryType => {
+                    const factory = this.gameData.factories[factoryType];
+                    const factoryTypeData = this.factoryTypes[factory.type];
+                    if (!factoryTypeData) return;
+                    
+                    const div = document.createElement('div');
+                    div.className = 'production-item';
+                    
+                    const activeTasks = (factory.productionTasks || []).filter(task => !task.completed);
+                    const maxConcurrent = Math.min(factory.count, 10);
+                    const producing = activeTasks.filter(task => !task.paused).length;
+                    const paused = activeTasks.filter(task => task.paused).length;
+                    const queued = Math.max(0, activeTasks.length - maxConcurrent);
+                    
+                    let statusText = `${factory.count} 个工厂`;
+                    if (producing > 0) statusText += `，${producing} 个生产中`;
+                    if (paused > 0) statusText += `，${paused} 个电力不足`;
+                    if (queued > 0) statusText += `，${queued} 个排队`;
+                    
+                    let progressBars = '';
+                    
+                    activeTasks.slice(0, 5).forEach(task => {
+                        const progress = task.progress || 0;
+                        const product = this.getProductByKey(task.productId);
+                        const isPaused = task.paused;
+                        
+                        progressBars += `
+                            <div style="margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                                <div style="font-size: 11px; color: #ddd; margin-bottom: 4px;">
+                                    ${product ? product.name : task.productId} x${task.quantity}
+                                </div>
+                                <div class="production-progress">
+                                    <div class="production-progress-bar ${isPaused ? 'paused' : ''}" 
+                                         id="progress_${task.id}" style="width: ${progress * 100}%"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 10px; margin-top: 4px;">
+                                    <span class="production-status ${isPaused ? 'paused' : ''}" id="status_${task.id}">
+                                        ${isPaused ? '⚡ 电力不足' : '🔄 生产中'}
+                                    </span>
+                                    <span style="color: #bbb;">
+                                        进度: ${Math.floor(progress * 100)}% | 剩余: <span id="time_${task.id}">${this.formatTime(task.remainingTime || 0)}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    if (activeTasks.length > 5) {
+                        progressBars += `<div style="font-size: 10px; color: #888; margin-top: 5px; text-align: center;">还有 ${activeTasks.length - 5} 个任务...</div>`;
+                    }
+                    
+                    // 计算电力消耗
+                    const powerConsumption = Math.min(activeTasks.length, factory.count) * (factoryTypeData.powerConsumption || 0);
+                    
+                    div.innerHTML = `
+                        <div class="production-header">
+                            <div class="production-name">${factoryTypeData.emoji || '🏭'} ${factoryTypeData.name}</div>
+                            <div style="font-size: 12px; color: #f39c12;">
+                                ⚡ ${powerConsumption}/秒
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #ddd; margin-bottom: 8px;">
+                            状态: ${statusText}
+                        </div>
+                        ${progressBars}
+                        <div style="margin-top: 10px;">
+                            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 5px; margin-bottom: 8px;">
+                                <select id="product_${factoryType}" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; background: #2d3436; color: #ddd;">
+                                    ${factoryTypeData.produces ? factoryTypeData.produces.map(productId => {
+                                        const product = this.getProductByKey(productId);
+                                        const dependencies = product && product.recipe ? 
+                                            Object.keys(product.recipe).map(m => this.getProductName(m)).join('+') : '无';
+                                        return `<option value="${productId}" title="需要: ${dependencies}">${product ? product.name : productId}</option>`;
+                                    }).join('') : ''}
+                                </select>
+                                <input type="number" id="quantity_${factoryType}" placeholder="数量" min="1" value="1" 
+                                    style="width: 60px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; background: #2d3436; color: #ddd;">
+                                <button class="btn" onclick="game.startProduction('${factoryType}')" style="padding: 5px 10px;">
+                                    生产
+                                </button>
+                            </div>
+                            <div style="font-size: 10px; color: #74b9ff;">
+                                点击产品查看依赖关系
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            renderWarehouse() {
+                const container = document.getElementById('warehouse');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                // 按类别分组显示库存
+                const categories = {
+                    'BASIC': { name: '基础资源', items: [], color: '#95a5a6' },
+                    'T1': { name: '初级产品', items: [], color: '#74b9ff' },
+                    'T2': { name: '中级产品', items: [], color: '#a29bfe' },
+                    'T3': { name: '高级产品', items: [], color: '#fd79a8' },
+                    'T4': { name: '奢侈品', items: [], color: '#00b894' }
+                };
+                
+                Object.keys(this.gameData.inventory).forEach(item => {
+                    if (item !== 'money' && this.gameData.inventory[item] > 0) {
+                        const tier = this.getProductTier(item);
+                        if (tier && categories[tier]) {
+                            const product = this.getProductByKey(item);
+                            categories[tier].items.push({
+                                id: item,
+                                name: product ? product.name : item,
+                                quantity: this.gameData.inventory[item],
+                                price: product ? product.basePrice : 0
+                            });
+                        }
+                    }
+                });
+                
+                Object.keys(categories).forEach(tierKey => {
+                    const category = categories[tierKey];
+                    if (category.items.length > 0) {
+                        const categoryDiv = document.createElement('div');
+                        categoryDiv.style.cssText = `
+                            background: rgba(0,0,0,0.6);
+                            border-radius: 10px;
+                            padding: 15px;
+                            margin-bottom: 15px;
+                            border-left: 4px solid ${category.color};
+                        `;
+                        
+                        let totalValue = category.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+                        
+                        categoryDiv.innerHTML = `
+                            <div style="color: ${category.color}; font-weight: bold; margin-bottom: 10px; font-size: 16px;">
+                                ${category.name} (总价值: ${this.formatNumber(totalValue)} 💰)
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                                ${category.items.map(item => `
+                                    <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid ${category.color}40;">
+                                        <div style="font-weight: bold; color: #ddd; margin-bottom: 4px;">${item.name}</div>
+                                        <div style="font-size: 12px; color: #bbb;">
+                                            数量: <span style="color: ${category.color};">${this.formatNumber(item.quantity)}</span><br>
+                                            单价: ${this.formatNumber(item.price)} 💰<br>
+                                            总值: ${this.formatNumber(item.quantity * item.price)} 💰
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                        
+                        container.appendChild(categoryDiv);
+                    }
+                });
+                
+                if (container.innerHTML === '') {
+                    container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">仓库空空如也，快去生产一些产品吧！</div>';
+                }
+            }
+
+            renderMarkets() {
+                const container = document.getElementById('markets');
+                if (!container || !this.globalMarkets || !this.marketTiers) return;
+                
+                container.innerHTML = '';
+                
+                const marketGrid = document.createElement('div');
+                marketGrid.className = 'market-grid';
+                
+                Object.keys(this.marketTiers).forEach(marketType => {
+                    const marketInfo = this.marketTiers[marketType];
+                    const market = this.globalMarkets[marketType] || {};
+                    
+                    const marketDiv = document.createElement('div');
+                    marketDiv.className = 'market-tier';
+                    
+                    let productsHtml = '';
+                    Object.keys(market).forEach(productId => {
+                        const productData = market[productId];
+                        const product = this.getProductByKey(productId);
+                        if (product) {
+                            const trendIcon = productData.trend > 0 ? '📈' : productData.trend < 0 ? '📉' : '➡️';
+                            const tier = this.getProductTier(productId);
+                            
+                            // 显示生产依赖
+                            let dependencyText = '';
+                            if (product.recipe) {
+                                dependencyText = `<div style="font-size: 9px; color: #74b9ff; margin: 2px 0;">
+                                    需要: ${Object.keys(product.recipe).map(m => `${this.getProductName(m)} x${product.recipe[m]}`).join(', ')}
+                                </div>`;
+                            }
+                            
+                            productsHtml += `
+                                <div class="product-item" style="margin-bottom: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-size: 12px; font-weight: bold;">${product.name}
+                                            <span class="tier-badge ${tier || ''}">${tier || ''}</span>
+                                        </span>
+                                        <span>${trendIcon}</span>
+                                    </div>
+                                    ${dependencyText}
+                                    <div style="font-size: 11px; color: #bbb; margin: 4px 0;">
+                                        价格: ${this.formatNumber(productData.price)} 💰 | 库存: ${this.formatNumber(this.gameData.inventory[productId] || 0)}
+                                    </div>
+                                    <div class="multiplier-selector">
+                                        <button class="multiplier-btn ${this.selectedMultiplier === 1 ? 'active' : ''}" onclick="game.setMultiplier(1)">1x</button>
+                                        <button class="multiplier-btn ${this.selectedMultiplier === 100 ? 'active' : ''}" onclick="game.setMultiplier(100)">100x</button>
+                                        <button class="multiplier-btn ${this.selectedMultiplier === 10000 ? 'active' : ''}" onclick="game.setMultiplier(10000)">10K</button>
+                                    </div>
+                                    <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                        <button class="btn buy" style="flex: 1; padding: 4px; font-size: 10px;" 
+                                            onclick="game.buyProduct('${productId}', '${marketType}')">
+                                            买入
+                                        </button>
+                                        <button class="btn sell" style="flex: 1; padding: 4px; font-size: 10px;" 
+                                            onclick="game.sellProduct('${productId}', '${marketType}')">
+                                            卖出
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    marketDiv.innerHTML = `
+                        <div class="market-tier-header">
+                            ${marketInfo.emoji || '🏪'} ${marketInfo.name}
+                        </div>
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 10px;">
+                            ${marketInfo.description}
+                        </div>
+                        <div class="product-list">
+                            ${productsHtml}
+                        </div>
+                    `;
+                    
+                    marketGrid.appendChild(marketDiv);
+                });
+                
+                container.appendChild(marketGrid);
+            }
+
+            renderFinance() {
+                const container = document.getElementById('finance');
+                if (!container || !this.aiCompanies) return;
+                
+                container.innerHTML = '';
+                
+                // 显示贷款列表
+                const loanListContainer = document.getElementById('loanList');
+                if (loanListContainer) {
+                    loanListContainer.innerHTML = '';
+                    
+                    if (this.gameData.loans && this.gameData.loans.length > 0) {
+                        this.gameData.loans.forEach(loan => {
+                            const div = document.createElement('div');
+                            div.className = 'loan-item';
+                            
+                            const monthlyRate = (loan.interestRate / 12 * 100).toFixed(2);
+                            
+                            div.innerHTML = `
+                                <div class="loan-header">
+                                    <div class="loan-name">💰 贷款 #${loan.id.slice(-4)}</div>
+                                    <div class="loan-amount">${loan.leverage}x杠杆</div>
+                                </div>
+                                <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
+                                    借款金额: ${this.formatNumber(loan.amount)} 💰<br>
+                                    年利率: ${(loan.interestRate * 100).toFixed(2)}% | 月利率: ${monthlyRate}%<br>
+                                    月还款: ${this.formatNumber(loan.monthlyPayment)} 💰
+                                </div>
+                                <button class="btn" onclick="game.repayLoan('${loan.id}', ${Math.min(loan.amount, this.gameData.inventory.money)})" 
+                                    style="width: 100%; font-size: 11px;">
+                                    偿还贷款
+                                </button>
+                            `;
+                            
+                            loanListContainer.appendChild(div);
+                        });
+                    } else {
+                        loanListContainer.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 12px;">暂无贷款</div>';
+                    }
+                }
+                
+                // AI公司股票列表
+                this.aiCompanies.forEach(company => {
+                    const div = document.createElement('div');
+                    const ownedShares = this.gameData.stockPortfolio[company.id] || 0;
+                    const leveragedPositions = this.gameData.leveragedPositions && this.gameData.leveragedPositions[company.id] || [];
+                    const totalLeveragedShares = leveragedPositions.reduce((sum, pos) => sum + pos.shares, 0);
+                    
+                    div.className = 'stock-item';
+                    
+                    const trendIcon = company.trend > 0 ? '📈' : company.trend < 0 ? '📉' : '➡️';
+                    const changePercent = company.lastChange ? (company.lastChange * 100).toFixed(2) : '0.00';
+                    
+                    // 显示最近的冲击事件
+                    let shockInfo = '';
+                    if (company.shockEvents && company.shockEvents.length > 0) {
+                        const latestShock = company.shockEvents[company.shockEvents.length - 1];
+                        const timeSince = Date.now() - latestShock.timestamp;
+                        if (timeSince < 300000) { // 5分钟内的冲击事件
+                            shockInfo = `<div style="font-size: 10px; color: ${latestShock.magnitude > 0 ? '#00b894' : '#e74c3c'}; margin-bottom: 4px;">
+                                ⚡ ${latestShock.description}
+                            </div>`;
+                        }
+                    }
+                    
+                    div.innerHTML = `
+                        <div class="stock-header">
+                            <div class="stock-name">${this.getCompanyTypeEmoji(company.companyType)} ${company.name}</div>
+                            <div class="stock-price">$${company.sharePrice}</div>
+                        </div>
+                        ${shockInfo}
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
+                            ${company.sector} | 波动率: ${(company.volatility * 100).toFixed(1)}%
+                        </div>
+                        <div style="font-size: 12px; color: #ddd; margin-bottom: 6px;">
+                            持股: ${this.formatNumber(ownedShares)} | 杠杆: ${this.formatNumber(totalLeveragedShares)}
+                        </div>
+                        <div style="font-size: 10px; color: ${parseFloat(changePercent) >= 0 ? '#00b894' : '#e74c3c'}; margin-bottom: 8px;">
+                            ${trendIcon} ${parseFloat(changePercent) >= 0 ? '+' : ''}${changePercent}%
+                        </div>
+                        
+                        <div class="multiplier-selector">
+                            <span style="color: #bbb; font-size: 11px; margin-right: 10px;">数量:</span>
+                            <button class="multiplier-btn ${this.selectedMultiplier === 1 ? 'active' : ''}" onclick="game.setMultiplier(1)">1x</button>
+                            <button class="multiplier-btn ${this.selectedMultiplier === 100 ? 'active' : ''}" onclick="game.setMultiplier(100)">100x</button>
+                            <button class="multiplier-btn ${this.selectedMultiplier === 10000 ? 'active' : ''}" onclick="game.setMultiplier(10000)">10K</button>
+                        </div>
+                        
+                        <div class="leverage-selector" style="margin: 8px 0;">
+                            <span style="color: #9b59b6; font-size: 11px; margin-right: 10px;">杠杆:</span>
+                            <button class="leverage-btn ${this.selectedLeverage === 1 ? 'active' : ''}" onclick="game.selectLeverage(1)">1x</button>
+                            <button class="leverage-btn ${this.selectedLeverage === 2 ? 'active' : ''}" onclick="game.selectLeverage(2)">2x</button>
+                            <button class="leverage-btn ${this.selectedLeverage === 5 ? 'active' : ''}" onclick="game.selectLeverage(5)">5x</button>
+                            <button class="leverage-btn ${this.selectedLeverage === 10 ? 'active' : ''}" onclick="game.selectLeverage(10)">10x</button>
+                        </div>
+                        
+                        <div class="stock-controls">
+                            <button class="stock-btn buy" onclick="game.buyStock('${company.id}')">
+                                买入
+                            </button>
+                            <button class="stock-btn sell" onclick="game.sellStock('${company.id}')" 
+                                ${ownedShares > 0 || totalLeveragedShares > 0 ? '' : 'disabled'}>
+                                卖出
+                            </button>
+                            <button class="stock-btn short" onclick="game.shortStock('${company.id}')">
+                                做空
+                            </button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+                
+                // 显示投资组合总结
+                if (Object.keys(this.gameData.stockPortfolio).length > 0 || Object.keys(this.gameData.leveragedPositions || {}).length > 0) {
+                    const summaryDiv = document.createElement('div');
+                    summaryDiv.style.cssText = `
+                        background: rgba(0,0,0,0.6);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-top: 20px;
+                        border: 2px solid #fdcb6e;
+                    `;
+                    
+                    let totalStockValue = 0;
+                    let totalLeverageValue = 0;
+                    let totalInvestment = 0;
+                    
+                    // 普通持股价值
+                    Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
+                        const shares = this.gameData.stockPortfolio[companyId];
+                        const aiCompany = this.aiCompanies.find(ai => ai.id === companyId);
+                        if (aiCompany && shares > 0) {
+                            totalStockValue += shares * aiCompany.sharePrice;
+                            totalInvestment += shares * 100; // 假设平均买入价格
+                        }
+                    });
+                    
+                    // 杠杆持仓价值
+                    Object.keys(this.gameData.leveragedPositions || {}).forEach(companyId => {
+                        const positions = this.gameData.leveragedPositions[companyId] || [];
+                        positions.forEach(position => {
+                            const aiCompany = this.aiCompanies.find(ai => ai.id === companyId);
+                            if (aiCompany) {
+                                const currentValue = position.shares * aiCompany.sharePrice;
+                                const netValue = currentValue - position.borrowedAmount;
+                                totalLeverageValue += netValue;
+                                totalInvestment += currentValue / position.leverage;
+                            }
+                        });
+                    });
+                    
+                    const totalPortfolioValue = totalStockValue + totalLeverageValue;
+                    const returnRate = totalInvestment > 0 ? ((totalPortfolioValue - totalInvestment) / totalInvestment * 100) : 0;
+                    
+                    summaryDiv.innerHTML = `
+                        <div style="color: #fdcb6e; font-weight: bold; margin-bottom: 10px;">📊 投资组合总结</div>
+                        <div style="font-size: 12px; color: #ddd;">
+                            普通持股: ${this.formatNumber(totalStockValue)} 💰<br>
+                            杠杆持仓: ${this.formatNumber(totalLeverageValue)} 💰<br>
+                            总市值: ${this.formatNumber(totalPortfolioValue)} 💰<br>
+                            总收益率: <span style="color: ${returnRate >= 0 ? '#00b894' : '#e74c3c'};">${returnRate >= 0 ? '+' : ''}${returnRate.toFixed(2)}%</span>
+                        </div>
+                    `;
+                    
+                    container.appendChild(summaryDiv);
+                }
+            }
+
+            renderResearch() {
+                const container = document.getElementById('research');
+                if (!container || !this.techTree) return;
+                
+                container.innerHTML = '';
+                
+                Object.keys(this.techTree).forEach(techId => {
+                    const tech = this.techTree[techId];
+                    const div = document.createElement('div');
+                    
+                    const canAfford = this.canAfford(tech.cost);
+                    const isResearched = this.gameData.technologies.includes(techId);
+                    const requirementsMet = !tech.requires || tech.requires.every(reqTech => this.gameData.technologies.includes(reqTech));
+                    
+                    div.className = `tech-item ${canAfford && requirementsMet && !isResearched ? '' : 'insufficient'}`;
+                    
+                    let requirementsText = '';
+                    if (tech.requires) {
+                        requirementsText = `<div style="font-size: 10px; color: #888; margin-bottom: 6px;">
+                            前置科技: ${tech.requires.map(reqTech => 
+                                this.techTree[reqTech] ? this.techTree[reqTech].name : reqTech
+                            ).join(', ')}
+                        </div>`;
+                    }
+                    
+                    div.innerHTML = `
+                        <div class="tech-header">
+                            <div class="tech-name">🔬 ${tech.name}</div>
+                            <div style="font-size: 12px; color: ${isResearched ? '#00b894' : '#bbb'};">
+                                ${isResearched ? '✅ 已研发' : '🔬 待研发'}
+                            </div>
+                        </div>
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">${tech.description}</div>
+                        ${requirementsText}
+                        <div style="font-size: 12px; color: #ddd; margin-bottom: 8px;">
+                            研发费用: ${this.formatCost(tech.cost)}
+                        </div>
+                        <div style="font-size: 11px; color: #00b894; margin-bottom: 8px;">
+                            效果: ${tech.effect}
+                        </div>
+                        <button class="btn" onclick="game.researchTech('${techId}')" 
+                            ${canAfford && requirementsMet && !isResearched ? '' : 'disabled'} style="width: 100%;">
+                            ${isResearched ? '已研发' : '开始研发'}
+                        </button>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            renderLeaderboard() {
+                const container = document.getElementById('leaderboard');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                this.leaderboard.slice(0, 12).forEach((company, index) => {
+                    const div = document.createElement('div');
+                    div.className = `company-rank ${company.isPlayer ? 'player' : 'ai'} ${company.debt > company.value ? 'bankrupt' : ''}`;
+                    
+                    const typeEmoji = this.getCompanyTypeEmoji(company.companyType);
+                    const debtRatio = company.debt ? (company.debt / company.value * 100).toFixed(1) : '0';
+                    
+                    div.innerHTML = `
+                        <div class="rank-number">#${index + 1}</div>
+                        <div class="rank-info">
+                            <div class="rank-name">
+                                ${typeEmoji} ${company.name} ${company.isPlayer && company.name === this.companyName ? '(你)' : ''}
+                                <span style="font-size: 10px; color: #bbb; margin-left: 5px;">Lv.${company.level || 0}</span>
+                                ${company.debt > 0 ? `<span style="font-size: 9px; color: #e74c3c; margin-left: 5px;">负债${debtRatio}%</span>` : ''}
+                            </div>
+                            <div class="rank-value">
+                                价值: ${this.formatNumber(company.value)} 💰
+                                ${company.sharePrice ? ` | 股价: $${company.sharePrice}` : ''}
+                                ${company.debt > 0 ? ` | 债务: ${this.formatNumber(company.debt)} 💰` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            renderChat() {
+                const container = document.getElementById('chatMessages');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                this.chatMessages.slice(-15).forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = 'chat-message';
+                    
+                    const time = new Date(msg.timestamp).toLocaleTimeString().slice(0, 5);
+                    const isSystem = ['系统', '市场快讯', '全球事件', '金融快讯', '工业快讯', '科技快讯', '生产快讯', '破产公告'].includes(msg.player);
+                    
+                    div.innerHTML = `
+                        <span class="chat-time">[${time}]</span>
+                        <span class="chat-player" style="color: ${isSystem ? '#e17055' : '#fdcb6e'};">${msg.player}:</span>
+                        <span class="chat-text">${msg.message}</span>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+                
+                container.scrollTop = container.scrollHeight;
+            }
+
+            // 完整的图表更新方法
+            updateFactoryChart() {
+                if (!this.factoryChart) return;
+                
+                const factoryTypes = {};
+                Object.keys(this.gameData.factories).forEach(factoryType => {
+                    const factory = this.gameData.factories[factoryType];
+                    const type = this.factoryTypes[factory.type];
+                    if (type) {
+                        factoryTypes[type.name] = factory.count;
+                    }
+                });
+                
+                this.factoryChart.data.labels = Object.keys(factoryTypes);
+                this.factoryChart.data.datasets[0].data = Object.values(factoryTypes);
+                this.factoryChart.update();
+            }
+
+            updateProductionChart() {
+                if (!this.productionChart) return;
+                
+                let idle = 0, producing = 0, queued = 0, powerShortage = 0;
+                
+                Object.keys(this.gameData.factories).forEach(factoryType => {
+                    const factory = this.gameData.factories[factoryType];
+                    const activeTasks = (factory.productionTasks || []).filter(task => !task.completed);
+                    const maxConcurrent = Math.min(factory.count, 10);
+                    
+                    const pausedTasks = activeTasks.filter(task => task.paused).length;
+                    const runningTasks = activeTasks.filter(task => !task.paused).length;
+                    
+                    producing += Math.min(runningTasks, maxConcurrent);
+                    queued += Math.max(0, runningTasks - maxConcurrent);
+                    powerShortage += pausedTasks;
+                    idle += Math.max(0, factory.count - activeTasks.length);
+                });
+                
+                this.productionChart.data.datasets[0].data = [idle, producing, queued, powerShortage];
+                this.productionChart.update();
+            }
+
+            updateWarehouseChart() {
+                if (!this.warehouseChart) return;
+                
+                const inventory = this.gameData.inventory || {};
+                const labels = [];
+                const data = [];
+                
+                Object.keys(inventory).forEach(item => {
+                    if (item !== 'money' && inventory[item] > 0) {
+                        const product = this.getProductByKey(item);
+                        labels.push(product ? product.name : item);
+                        data.push(inventory[item]);
+                    }
+                });
+                
+                this.warehouseChart.data.labels = labels;
+                this.warehouseChart.data.datasets[0].data = data;
+                this.warehouseChart.update();
+            }
+
+            updateMarketChart() {
+                if (!this.marketChart || !this.globalMarkets.local) return;
+                
+                const now = new Date();
+                const timeLabel = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                if (this.marketChart.data.labels.length >= 20) {
+                    this.marketChart.data.labels.shift();
+                }
+                this.marketChart.data.labels.push(timeLabel);
+                
+                const trackedProducts = ['electricity', 'steel', 'smartphone', 'luxury_car'];
+                const colors = ['#f39c12', '#74b9ff', '#fd79a8', '#fab1a0'];
+                
+                trackedProducts.forEach((productId, index) => {
+                    let price = 0;
+                    
+                    for (const marketType of Object.keys(this.globalMarkets)) {
+                        if (this.globalMarkets[marketType][productId]) {
+                            price = this.globalMarkets[marketType][productId].price;
+                            break;
+                        }
+                    }
+                    
+                    if (!this.marketChart.data.datasets[index]) {
+                        this.marketChart.data.datasets[index] = {
+                            label: this.getProductName(productId),
+                            data: [],
+                            borderColor: colors[index],
+                            backgroundColor: colors[index] + '20',
+                            tension: 0.1,
+                            fill: false
+                        };
+                    }
+                    
+                    const dataset = this.marketChart.data.datasets[index];
+                    
+                    if (dataset.data.length >= 20) {
+                        dataset.data.shift();
+                    }
+                    dataset.data.push(price);
+                });
+                
+                this.marketChart.update();
+            }
+
+            updateFinanceChart() {
+                if (!this.financeChart) return;
+                
+                const cash = Math.max(0, this.gameData.inventory.money || 0);
+                const debt = this.gameData.debt || 0;
+                let stockValue = 0;
+                let leverageValue = 0;
+                
+                // 计算股票投资价值
+                if (this.gameData.stockPortfolio) {
+                    Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
+                        const shares = this.gameData.stockPortfolio[companyId];
+                        const company = this.aiCompanies.find(ai => ai.id === companyId);
+                        if (company && shares > 0) {
+                            stockValue += shares * company.sharePrice;
+                        }
+                    });
+                }
+                
+                // 计算杠杆持仓价值
+                if (this.gameData.leveragedPositions) {
+                    Object.keys(this.gameData.leveragedPositions).forEach(companyId => {
+                        const positions = this.gameData.leveragedPositions[companyId] || [];
+                        positions.forEach(position => {
+                            const company = this.aiCompanies.find(ai => ai.id === companyId);
+                            if (company) {
+                                const currentValue = position.shares * company.sharePrice;
+                                leverageValue += currentValue - position.borrowedAmount;
+                            }
+                        });
+                    });
+                }
+                
+                this.financeChart.data.datasets[0].data = [cash, stockValue, leverageValue, debt];
+                this.financeChart.update();
+            }
+
+            updateTechChart() {
+                if (!this.techChart) return;
+                
+                const categories = {
+                    'efficiency': 0,
+                    'automation': 0,
+                    'logistics': 0,
+                    'quality': 0,
+                    'power': 0,
+                    'ai': 0
+                };
+                
+                this.gameData.technologies.forEach(techId => {
+                    const tech = this.techTree[techId];
+                    if (tech && categories[tech.category] !== undefined) {
+                        categories[tech.category]++;
+                    }
+                });
+                
+                this.techChart.data.datasets[0].data = Object.values(categories);
+                this.techChart.update();
             }
 
             // 显示相关方法
@@ -2159,92 +2921,240 @@
                 }
             }
 
-            // 渲染方法占位符 - 这里会实现具体的渲染逻辑
-            renderFactories() {
-                const container = document.getElementById('factories');
-                if (!container) return;
+            // 完整的游戏操作方法
+            buildFactory(factoryType) {
+                const quantityInput = document.getElementById(`quantity_${factoryType}`);
+                const quantity = parseInt(quantityInput.value) || 1;
                 
-                container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">工厂建造功能加载中...</div>';
-            }
-            
-            renderProduction() {
-                const container = document.getElementById('production');
-                if (!container) return;
-                
-                container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">生产管理功能加载中...</div>';
-            }
-            
-            renderWarehouse() {
-                const container = document.getElementById('warehouse');
-                if (!container) return;
-                
-                container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">仓库管理功能加载中...</div>';
-            }
-            
-            renderMarkets() {
-                const container = document.getElementById('markets');
-                if (!container) return;
-                
-                container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">市场交易功能加载中...</div>';
-            }
-            
-            renderFinance() {
-                const container = document.getElementById('finance');
-                if (!container) return;
-                
-                container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">金融投资功能加载中...</div>';
-            }
-            
-            renderResearch() {
-                const container = document.getElementById('research');
-                if (!container) return;
-                
-                container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">科技研发功能加载中...</div>';
-            }
-            
-            renderLeaderboard() {
-                const container = document.getElementById('leaderboard');
-                if (!container) return;
-                
-                container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 20px;">排行榜加载中...</div>';
-            }
-            
-            renderChat() {
-                const container = document.getElementById('chatMessages');
-                if (!container) return;
-                
-                container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 20px;">聊天室加载中...</div>';
+                this.socket.emit('buildFactory', { factoryType, quantity });
             }
 
-            // 图表更新方法占位符
-            updateFactoryChart() {
-                if (!this.factoryChart) return;
-                // 工厂图表更新逻辑
+            batchBuildFactory() {
+                const factorySelect = document.getElementById('batchFactoryType');
+                const quantityInput = document.getElementById('batchQuantity');
+                
+                const factoryType = factorySelect.value;
+                const quantity = parseInt(quantityInput.value) || 1;
+                
+                if (!factoryType) {
+                    this.showNotification('请选择工厂类型', 'error');
+                    return;
+                }
+                
+                this.socket.emit('buildFactory', { factoryType, quantity });
             }
-            
-            updateProductionChart() {
-                if (!this.productionChart) return;
-                // 生产图表更新逻辑
+
+            startProduction(factoryType) {
+             const productSelect = document.getElementById(`product_${factoryType}`);
+                const quantityInput = document.getElementById(`quantity_${factoryType}`);
+                
+                const productId = productSelect.value;
+                const quantity = parseInt(quantityInput.value) || 1;
+                
+                this.socket.emit('startProduction', {
+                    factoryType: factoryType,
+                    productId: productId,
+                    quantity: quantity
+                });
             }
-            
-            updateWarehouseChart() {
-                if (!this.warehouseChart) return;
-                // 仓库图表更新逻辑
+
+            batchProduction() {
+                const productSelect = document.getElementById('batchProductType');
+                const quantityInput = document.getElementById('batchProductQuantity');
+                
+                const productId = productSelect.value;
+                const quantity = parseInt(quantityInput.value) || 1;
+                
+                if (!productId) {
+                    this.showNotification('请选择产品类型', 'error');
+                    return;
+                }
+                
+                // 找到可以生产该产品的所有工厂
+                const operations = [];
+                Object.keys(this.gameData.factories).forEach(factoryType => {
+                    const factory = this.gameData.factories[factoryType];
+                    const factoryTypeData = this.factoryTypes[factory.type];
+                    
+                    if (factoryTypeData && factoryTypeData.produces && factoryTypeData.produces.includes(productId) && factory.count > 0) {
+                        operations.push({
+                            factoryType: factoryType,
+                            productId: productId,
+                            quantity: quantity
+                        });
+                    }
+                });
+                
+                if (operations.length === 0) {
+                    this.showNotification('没有可以生产该产品的工厂', 'error');
+                    return;
+                }
+                
+                this.socket.emit('batchProduction', { operations });
             }
-            
-            updateMarketChart() {
-                if (!this.marketChart) return;
-                // 市场图表更新逻辑
+
+            showDependencyChain() {
+                // 显示生产依赖关系图
+                const dialog = document.createElement('div');
+                dialog.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0,0,0,0.95);
+                    color: #ddd;
+                    padding: 30px;
+                    border-radius: 15px;
+                    border: 2px solid #fdcb6e;
+                    z-index: 9999;
+                    max-width: 80%;
+                    max-height: 80%;
+                    overflow-y: auto;
+                `;
+                
+                let chainHtml = '<div style="color: #fdcb6e; font-size: 20px; font-weight: bold; margin-bottom: 20px;">🔗 生产依赖关系图</div>';
+                
+                Object.keys(this.productTiers).forEach(tier => {
+                    chainHtml += `<div style="margin-bottom: 20px;">
+                        <div style="color: #74b9ff; font-weight: bold; margin-bottom: 10px;">${tier} 级产品</div>`;
+                    
+                    Object.keys(this.productTiers[tier]).forEach(productId => {
+                        const product = this.productTiers[tier][productId];
+                        chainHtml += `<div style="margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 6px;">
+                            <span style="font-weight: bold;">${product.name}</span>`;
+                        
+                        if (product.recipe) {
+                            chainHtml += ` ← `;
+                            chainHtml += Object.keys(product.recipe).map(material => {
+                                const materialProduct = this.getProductByKey(material);
+                                return `${materialProduct ? materialProduct.name : material} x${product.recipe[material]}`;
+                            }).join(' + ');
+                        } else {
+                            chainHtml += ` (基础资源)`;
+                        }
+                        
+                        chainHtml += `</div>`;
+                    });
+                    
+                    chainHtml += '</div>';
+                });
+                
+                dialog.innerHTML = chainHtml + `
+                    <button onclick="this.parentElement.remove()" style="
+                        background: #fdcb6e; color: #2d3436; border: none; 
+                        padding: 10px 20px; border-radius: 8px; 
+                        font-weight: bold; cursor: pointer; margin-top: 20px;">
+                        关闭
+                    </button>
+                `;
+                
+                document.body.appendChild(dialog);
             }
-            
-            updateFinanceChart() {
-                if (!this.financeChart) return;
-                // 金融图表更新逻辑
+
+            setMultiplier(multiplier) {
+                this.selectedMultiplier = multiplier;
+                this.renderMarkets();
+                this.renderFinance();
             }
-            
-            updateTechChart() {
-                if (!this.techChart) return;
-                // 科技图表更新逻辑
+
+            selectLeverage(leverage) {
+                this.selectedLeverage = leverage;
+                document.querySelectorAll('.leverage-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                const targetBtn = document.querySelector(`[data-leverage="${leverage}"]`);
+                if (targetBtn) {
+                    targetBtn.classList.add('active');
+                }
+                this.renderFinance();
+            }
+
+            requestLoan() {
+                const amountInput = document.getElementById('loanAmount');
+                const amount = parseInt(amountInput.value);
+                
+                if (!amount || amount < 10000) {
+                    this.showNotification('贷款金额至少为 10,000 💰', 'error');
+                    return;
+                }
+                
+                this.socket.emit('requestLoan', {
+                    amount: amount,
+                    leverage: this.selectedLeverage
+                });
+                
+                amountInput.value = '';
+            }
+
+            repayLoan(loanId, amount) {
+                this.socket.emit('repayLoan', {
+                    loanId: loanId,
+                    amount: amount
+                });
+            }
+
+            buyProduct(productId, marketType) {
+                this.socket.emit('marketTrade', {
+                    action: 'buy',
+                    productId: productId,
+                    quantity: 1,
+                    marketType: marketType,
+                    multiplier: this.selectedMultiplier
+                });
+            }
+
+            sellProduct(productId, marketType) {
+                this.socket.emit('marketTrade', {
+                    action: 'sell',
+                    productId: productId,
+                    quantity: 1,
+                    marketType: marketType,
+                    multiplier: this.selectedMultiplier
+                });
+            }
+
+            buyStock(companyId) {
+                this.socket.emit('stockTrade', {
+                    action: 'buy',
+                    companyId: companyId,
+                    shares: 1,
+                    multiplier: this.selectedMultiplier,
+                    leverage: this.selectedLeverage
+                });
+            }
+
+            sellStock(companyId) {
+                this.socket.emit('stockTrade', {
+                    action: 'sell',
+                    companyId: companyId,
+                    shares: 1,
+                    multiplier: this.selectedMultiplier,
+                    leverage: this.selectedLeverage
+                });
+            }
+
+            shortStock(companyId) {
+                this.socket.emit('stockTrade', {
+                    action: 'short',
+                    companyId: companyId,
+                    shares: 1,
+                    multiplier: this.selectedMultiplier,
+                    leverage: this.selectedLeverage
+                });
+            }
+
+            researchTech(techId) {
+                this.socket.emit('researchTech', { techId });
+            }
+
+            sendMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input ? input.value.trim() : '';
+                
+                if (message && this.companyName) {
+                    this.socket.emit('chatMessage', message);
+                    input.value = '';
+                }
             }
 
             updateDisplay() {
@@ -2259,6 +3169,38 @@
                     const debt = this.gameData.debt || 0;
                     const netWorth = money - debt;
                     
+                    // 计算电力供需
+                    let powerProduction = 0;
+                    let powerConsumption = 0;
+                    
+                    Object.keys(this.gameData.factories).forEach(factoryType => {
+                        const factory = this.gameData.factories[factoryType];
+                        const factoryTypeData = this.factoryTypes[factory.type];
+                        
+                        if (factoryTypeData && factoryTypeData.produces && factoryTypeData.produces.includes('electricity')) {
+                            powerProduction += factory.count * 10; // 每个发电厂产10单位电
+                        }
+                        
+                        if (factory.productionTasks) {
+                            const activeTasks = factory.productionTasks.filter(task => !task.completed && !task.paused);
+                            const runningTasks = Math.min(activeTasks.length, factory.count);
+                            powerConsumption += runningTasks * (factoryTypeData ? factoryTypeData.powerConsumption : 0);
+                        }
+                    });
+                    
+                    const powerStatus = powerConsumption <= powerProduction ? '充足' : '不足';
+                    
+                    // 计算杠杆倍数
+                    let totalLeveragedValue = 0;
+                    Object.keys(this.gameData.leveragedPositions || {}).forEach(companyId => {
+                        const positions = this.gameData.leveragedPositions[companyId] || [];
+                        positions.forEach(position => {
+                            totalLeveragedValue += position.borrowedAmount;
+                        });
+                    });
+                    
+                    const effectiveLeverage = money > 0 ? ((debt + totalLeveragedValue) / money).toFixed(1) : '0';
+                    
                     const financeItems = [
                         { 
                             label: '💰 净资产', 
@@ -2272,12 +3214,13 @@
                         },
                         { 
                             label: '⚡ 电力', 
-                            value: '充足', 
-                            class: 'power'
+                            value: `${powerProduction}/${powerConsumption}`, 
+                            class: 'power',
+                            extra: powerStatus
                         },
                         { 
                             label: '📈 杠杆', 
-                            value: '1x', 
+                            value: `${effectiveLeverage}x`, 
                             class: 'leverage' 
                         }
                     ];
@@ -2285,9 +3228,18 @@
                     financeItems.forEach(item => {
                         const div = document.createElement('div');
                         div.className = `finance-item ${item.class}`;
-                        div.innerHTML = `${item.label}<br><strong>${item.value}</strong>`;
+                        div.innerHTML = `${item.label}<br><strong>${item.value}</strong>${item.extra ? `<br><span style="font-size: 10px;">${item.extra}</span>` : ''}`;
                         financeContainer.appendChild(div);
                     });
+                    
+                    // 更新电力不足警告
+                    if (powerConsumption > powerProduction && !this.powerShortage) {
+                        this.powerShortage = true;
+                        document.getElementById('powerShortage').style.display = 'block';
+                    } else if (powerConsumption <= powerProduction && this.powerShortage) {
+                        this.powerShortage = false;
+                        document.getElementById('powerShortage').style.display = 'none';
+                    }
                 } catch (error) {
                     console.error('更新显示时出错:', error);
                 }
@@ -2307,51 +3259,44 @@
                     if (onlineCountEl) onlineCountEl.textContent = this.leaderboard.filter(c => c.isPlayer && c.online !== false).length;
                     if (companyValueEl) companyValueEl.textContent = myCompany ? this.formatNumber(myCompany.value) : '0';
                     if (companyLevelEl) companyLevelEl.textContent = this.gameData.level;
+                    
+                    // 计算股票收益率
+                    let totalReturn = 0;
+                    let totalInvestment = 0;
+                    
+                    if (this.gameData.stockPortfolio) {
+                        Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
+                            const shares = this.gameData.stockPortfolio[companyId];
+                            const company = this.aiCompanies.find(ai => ai.id === companyId);
+                            if (company && shares > 0) {
+                                totalReturn += shares * company.sharePrice;
+                                totalInvestment += shares * 100; // 假设平均买入价
+                            }
+                        });
+                    }
+                    
+                    if (this.gameData.leveragedPositions) {
+                        Object.keys(this.gameData.leveragedPositions).forEach(companyId => {
+                            const positions = this.gameData.leveragedPositions[companyId] || [];
+                            positions.forEach(position => {
+                                const company = this.aiCompanies.find(ai => ai.id === companyId);
+                                if (company) {
+                                    const currentValue = position.shares * company.sharePrice;
+                                    totalReturn += currentValue - position.borrowedAmount;
+                                    totalInvestment += currentValue / position.leverage;
+                                }
+                            });
+                        });
+                    }
+                    
+                    const returnPercent = totalInvestment > 0 ? ((totalReturn - totalInvestment) / totalInvestment * 100) : 0;
+                    const stockReturnElement = document.getElementById('stockReturn');
+                    if (stockReturnElement) {
+                        stockReturnElement.textContent = `${returnPercent >= 0 ? '+' : ''}${returnPercent.toFixed(1)}%`;
+                        stockReturnElement.style.color = returnPercent >= 0 ? '#00b894' : '#e74c3c';
+                    }
                 } catch (error) {
                     console.error('更新公司统计时出错:', error);
-                }
-            }
-
-            // 游戏操作方法占位符
-            buildFactory(factoryType) {
-                this.socket.emit('buildFactory', { factoryType, quantity: 1 });
-            }
-            
-            batchBuildFactory() {
-                // 批量建造逻辑
-            }
-            
-            startProduction(factoryType) {
-                // 生产逻辑
-            }
-            
-            batchProduction() {
-                // 批量生产逻辑
-            }
-            
-            showDependencyChain() {
-                // 显示依赖链逻辑
-            }
-            
-            setMultiplier(multiplier) {
-                this.selectedMultiplier = multiplier;
-            }
-            
-            selectLeverage(leverage) {
-                this.selectedLeverage = leverage;
-            }
-            
-            requestLoan() {
-                // 申请贷款逻辑
-            }
-            
-            sendMessage() {
-                const input = document.getElementById('chatInput');
-                const message = input ? input.value.trim() : '';
-                
-                if (message && this.companyName) {
-                    this.socket.emit('chatMessage', message);
-                    input.value = '';
                 }
             }
 
