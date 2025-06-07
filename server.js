@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 产品定义系统 - 修复生产消耗不能为0的问题
+// 产品定义系统
 const PRODUCT_TIERS = {
     BASIC: {
         electricity: { name: '电力', basePrice: 5, category: 'energy', productionTime: 2 },
@@ -70,7 +70,7 @@ const PRODUCT_TIERS = {
     }
 };
 
-// 修复工厂类型定义，确保电力消耗不为0
+// 工厂类型定义
 const FACTORY_TYPES = {
     power_plant: {
         name: '发电厂',
@@ -519,7 +519,8 @@ const gameState = {
             tradingVolume: 0,
             momentum: 0,
             shockEvents: [],
-            lastChange: 0
+            lastChange: 0,
+            priceHistory: [180]
         },
         {
             id: 'ai_micro_soft',
@@ -537,7 +538,8 @@ const gameState = {
             tradingVolume: 0,
             momentum: 0,
             shockEvents: [],
-            lastChange: 0
+            lastChange: 0,
+            priceHistory: [165]
         },
         {
             id: 'ai_google_search',
@@ -555,7 +557,8 @@ const gameState = {
             tradingVolume: 0,
             momentum: 0,
             shockEvents: [],
-            lastChange: 0
+            lastChange: 0,
+            priceHistory: [170]
         },
         {
             id: 'ai_tesla_auto',
@@ -573,7 +576,8 @@ const gameState = {
             tradingVolume: 0,
             momentum: 0,
             shockEvents: [],
-            lastChange: 0
+            lastChange: 0,
+            priceHistory: [95]
         },
         {
             id: 'ai_amazon_retail',
@@ -591,7 +595,8 @@ const gameState = {
             tradingVolume: 0,
             momentum: 0,
             shockEvents: [],
-            lastChange: 0
+            lastChange: 0,
+            priceHistory: [140]
         }
     ],
     globalMarkets: {},
@@ -603,7 +608,11 @@ const gameState = {
     serverStartTime: Date.now(),
     lastEventTime: Date.now(),
     eventDuration: 10 * 60 * 1000,
-    gameVersion: '2.3.1'
+    gameVersion: '2.3.1',
+    stockPriceHistory: {
+        labels: [],
+        datasets: {}
+    }
 };
 
 // 初始化市场
@@ -646,12 +655,12 @@ class ProductionTask {
         this.startTime = Date.now();
         this.completed = false;
         this.paused = false;
+        this.pausedDuration = 0;
         
         const product = this.getProductInfo();
         this.totalTime = product.productionTime * 1000 * quantity;
-        this.completionTime = this.startTime + this.totalTime;
+        this.baseCompletionTime = this.startTime + this.totalTime;
         this.progress = 0;
-        this.pausedTime = 0;
     }
     
     getProductInfo() {
@@ -663,36 +672,45 @@ class ProductionTask {
         return null;
     }
     
+    getCompletionTime() {
+        return this.baseCompletionTime + this.pausedDuration;
+    }
+    
     isReady() {
-        if (this.paused) return false;
-        return Date.now() >= this.completionTime;
+        if (this.paused || this.completed) return false;
+        return Date.now() >= this.getCompletionTime();
     }
     
     getProgress() {
+        if (this.completed) return 1;
         if (this.paused) return this.progress;
-        const elapsed = Date.now() - this.startTime - this.pausedTime;
+        
+        const elapsed = Date.now() - this.startTime - this.pausedDuration;
         const progress = Math.min(elapsed / this.totalTime, 1);
         this.progress = progress;
         return progress;
     }
     
     getRemainingTime() {
-        if (this.paused) return this.totalTime - (this.progress * this.totalTime);
-        return Math.max(0, this.completionTime - Date.now());
+        if (this.completed) return 0;
+        if (this.paused) return this.totalTime * (1 - this.progress);
+        
+        return Math.max(0, this.getCompletionTime() - Date.now());
     }
     
     pause() {
-        if (!this.paused) {
+        if (!this.paused && !this.completed) {
             this.paused = true;
             this.pauseStartTime = Date.now();
+            this.progress = this.getProgress();
         }
     }
     
     resume() {
         if (this.paused) {
-            this.pausedTime += Date.now() - this.pauseStartTime;
-            this.completionTime = Date.now() + this.getRemainingTime();
+            this.pausedDuration += Date.now() - this.pauseStartTime;
             this.paused = false;
+            delete this.pauseStartTime;
         }
     }
 }
@@ -719,6 +737,8 @@ io.on('connection', (socket) => {
                 return;
             }
             
+            const initialSharePrice = Math.floor(Math.random() * 50 + 50); // 50-100的随机初始股价
+            
             const companyData = {
                 id: socket.id,
                 name: companyName,
@@ -728,9 +748,13 @@ io.on('connection', (socket) => {
                 online: true,
                 lastSeen: Date.now(),
                 socket: socket,
-                sharePrice: 100,
+                sharePrice: initialSharePrice,
                 totalShares: 1000000,
-                availableShares: 1000000
+                availableShares: 1000000,
+                priceHistory: [initialSharePrice],
+                lastChange: 0,
+                volatility: 0.15,
+                momentum: 0
             };
             
             gameState.companies.set(socket.id, companyData);
@@ -749,18 +773,15 @@ io.on('connection', (socket) => {
                 marketTiers: MARKET_TIERS,
                 techTree: TECH_TREE,
                 aiCompanies: gameState.aiCompanies,
-                playerCompanies: Array.from(gameState.companies.values()).map(c => ({
-                    id: c.id,
-                    name: c.name,
-                    sharePrice: c.sharePrice,
-                    totalShares: c.totalShares,
-                    availableShares: c.availableShares,
-                    companyType: c.companyType
-                }))
+                playerCompanies: getPlayerCompaniesForClient(),
+                stockPriceHistory: gameState.stockPriceHistory
             });
             
             // 广播聊天消息
             broadcastChatMessage('系统', `${companyName} 的CEO加入了游戏`, 'system');
+            
+            // 广播股价更新
+            broadcastStockPrices();
             
         } catch (error) {
             console.error('joinGame error:', error);
@@ -816,6 +837,7 @@ io.on('connection', (socket) => {
             });
             
             updateLeaderboard();
+            broadcastStockPrices();
             
         } catch (error) {
             console.error('buildFactory error:', error);
@@ -828,6 +850,7 @@ io.on('connection', (socket) => {
             const company = gameState.companies.get(socket.id);
             
             if (!company || !company.gameData.factories[factoryType]) {
+                socket.emit('error', { message: '工厂不存在' });
                 return;
             }
             
@@ -847,6 +870,16 @@ io.on('connection', (socket) => {
             const product = getProductByKey(productId);
             if (!product) {
                 socket.emit('error', { message: '未知产品' });
+                return;
+            }
+            
+            // 检查电力供应
+            const powerRequired = factoryTypeData.powerConsumption || 0;
+            const currentPowerConsumption = calculateTotalPowerConsumption(company);
+            const powerProduction = calculatePowerProduction(company);
+            
+            if (currentPowerConsumption + powerRequired > powerProduction) {
+                socket.emit('error', { message: '电力不足，请先建造更多发电厂' });
                 return;
             }
             
@@ -874,9 +907,10 @@ io.on('connection', (socket) => {
                     id: task.id,
                     productId: task.productId,
                     quantity: task.quantity,
-                    completionTime: task.completionTime,
+                    completionTime: task.getCompletionTime(),
                     progress: task.getProgress(),
-                    remainingTime: task.getRemainingTime()
+                    remainingTime: task.getRemainingTime(),
+                    paused: task.paused
                 },
                 playerData: {
                     inventory: company.gameData.inventory,
@@ -886,6 +920,7 @@ io.on('connection', (socket) => {
             
         } catch (error) {
             console.error('startProduction error:', error);
+            socket.emit('error', { message: '生产启动失败' });
         }
     });
     
@@ -942,6 +977,7 @@ io.on('connection', (socket) => {
             }
             
             updateLeaderboard();
+            broadcastStockPrices();
             io.emit('marketUpdate', { marketType, market: gameState.globalMarkets[marketType] });
             
         } catch (error) {
@@ -1045,6 +1081,7 @@ io.on('connection', (socket) => {
             }
             
             updateLeaderboard();
+            broadcastStockPrices();
             
         } catch (error) {
             console.error('stockTrade error:', error);
@@ -1052,7 +1089,7 @@ io.on('connection', (socket) => {
         }
     });
     
-    // 修复借贷系统 - 限制借贷金额不超过净资产的5倍
+    // 修复借贷系统
     socket.on('requestLoan', (data) => {
         try {
             const { amount, leverage = 1 } = data;
@@ -1071,7 +1108,7 @@ io.on('connection', (socket) => {
                 return;
             }
             
-            const interestRate = 0.05 + (leverage - 1) * 0.02; // 基础利率5%，杠杆每倍增加2%
+            const interestRate = 0.05 + (leverage - 1) * 0.02;
             const monthlyPayment = amount * (interestRate / 12 + 0.01);
             
             const loan = {
@@ -1103,6 +1140,7 @@ io.on('connection', (socket) => {
             });
             
             updateLeaderboard();
+            broadcastStockPrices();
             
         } catch (error) {
             console.error('requestLoan error:', error);
@@ -1152,6 +1190,7 @@ io.on('connection', (socket) => {
             });
             
             updateLeaderboard();
+            broadcastStockPrices();
             
         } catch (error) {
             console.error('repayLoan error:', error);
@@ -1215,6 +1254,7 @@ io.on('connection', (socket) => {
             });
             
             updateLeaderboard();
+            broadcastStockPrices();
             
         } catch (error) {
             console.error('researchTech error:', error);
@@ -1232,6 +1272,7 @@ io.on('connection', (socket) => {
                 
                 broadcastChatMessage('系统', `${company.name} 的CEO离开了游戏`, 'system');
                 updateLeaderboard();
+                broadcastStockPrices();
             }
         } catch (error) {
             console.error('disconnect error:', error);
@@ -1285,12 +1326,81 @@ function payCost(inventory, cost) {
     });
 }
 
+function calculateTotalPowerConsumption(company) {
+    let totalConsumption = 0;
+    
+    Object.keys(company.gameData.factories).forEach(factoryType => {
+        const factory = company.gameData.factories[factoryType];
+        const factoryTypeData = FACTORY_TYPES[factory.type];
+        
+        if (factory.productionTasks && factoryTypeData) {
+            const activeTasks = factory.productionTasks.filter(task => !task.completed && !task.paused);
+            const runningTasks = Math.min(activeTasks.length, factory.count);
+            totalConsumption += runningTasks * (factoryTypeData.powerConsumption || 0);
+        }
+    });
+    
+    return totalConsumption;
+}
+
+function calculatePowerProduction(company) {
+    let totalProduction = 0;
+    
+    Object.keys(company.gameData.factories).forEach(factoryType => {
+        const factory = company.gameData.factories[factoryType];
+        const factoryTypeData = FACTORY_TYPES[factory.type];
+        
+        if (factoryTypeData && factoryTypeData.produces && factoryTypeData.produces.includes('electricity')) {
+            totalProduction += factory.count * 10; // 每个发电厂产10单位电
+        }
+    });
+    
+    return totalProduction;
+}
+
+function updatePowerStatus() {
+    gameState.companies.forEach(company => {
+        if (!company.gameData.factories) return;
+        
+        const powerProduction = calculatePowerProduction(company);
+        const powerConsumption = calculateTotalPowerConsumption(company);
+        
+        Object.keys(company.gameData.factories).forEach(factoryType => {
+            const factory = company.gameData.factories[factoryType];
+            if (!factory.productionTasks) return;
+            
+            factory.productionTasks.forEach(task => {
+                if (task.completed) return;
+                
+                if (powerConsumption > powerProduction) {
+                    if (!task.paused) {
+                        task.pause();
+                    }
+                } else {
+                    if (task.paused) {
+                        task.resume();
+                    }
+                }
+            });
+        });
+    });
+}
+
 function updateLeaderboard() {
     const companies = Array.from(gameState.companies.values()).map(company => {
         const totalValue = calculateCompanyValue(company);
         
         // 更新玩家公司股价
+        const oldPrice = company.sharePrice;
         company.sharePrice = Math.max(1, Math.floor(totalValue / 10000));
+        company.lastChange = oldPrice > 0 ? (company.sharePrice - oldPrice) / oldPrice : 0;
+        
+        // 更新价格历史
+        if (!company.priceHistory) company.priceHistory = [company.sharePrice];
+        company.priceHistory.push(company.sharePrice);
+        if (company.priceHistory.length > 50) {
+            company.priceHistory = company.priceHistory.slice(-50);
+        }
         
         return {
             id: company.id,
@@ -1303,7 +1413,8 @@ function updateLeaderboard() {
             companyType: company.companyType,
             sharePrice: company.sharePrice,
             totalShares: company.totalShares,
-            availableShares: company.availableShares
+            availableShares: company.availableShares,
+            lastChange: company.lastChange
         };
     });
     
@@ -1336,7 +1447,7 @@ function calculateCompanyValue(company) {
         const factory = company.gameData.factories[factoryType];
         const factoryData = FACTORY_TYPES[factoryType];
         if (factoryData && factoryData.cost.money) {
-            totalValue += factory.count * factoryData.cost.money * 0.7; // 工厂折旧价值
+            totalValue += factory.count * factoryData.cost.money * 0.7;
         }
     });
     
@@ -1370,7 +1481,8 @@ function getLeaderboard() {
                 level: company.gameData.level || 0,
                 online: company.online,
                 companyType: company.companyType,
-                sharePrice: company.sharePrice
+                sharePrice: company.sharePrice,
+                lastChange: company.lastChange || 0
             }));
         
         const allCompanies = [...companies, ...gameState.aiCompanies.map(ai => ({
@@ -1388,6 +1500,20 @@ function getLeaderboard() {
     }
 }
 
+function getPlayerCompaniesForClient() {
+    return Array.from(gameState.companies.values()).map(company => ({
+        id: company.id,
+        name: company.name,
+        sharePrice: company.sharePrice,
+        totalShares: company.totalShares,
+        availableShares: company.availableShares,
+        companyType: company.companyType,
+        lastChange: company.lastChange || 0,
+        priceHistory: company.priceHistory || [],
+        online: company.online
+    }));
+}
+
 function broadcastChatMessage(playerName, message, type = 'player') {
     const chatMessage = {
         player: playerName,
@@ -1398,12 +1524,48 @@ function broadcastChatMessage(playerName, message, type = 'player') {
     
     gameState.chatMessages.push(chatMessage);
     
-    // 保持聊天记录在合理数量
     if (gameState.chatMessages.length > 100) {
         gameState.chatMessages = gameState.chatMessages.slice(-50);
     }
     
     io.emit('chatMessage', chatMessage);
+}
+
+function broadcastStockPrices() {
+    const allCompanies = [...gameState.aiCompanies, ...getPlayerCompaniesForClient()];
+    
+    // 更新股价历史数据
+    const now = new Date();
+    const timeLabel = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    
+    if (!gameState.stockPriceHistory.labels) {
+        gameState.stockPriceHistory.labels = [];
+        gameState.stockPriceHistory.datasets = {};
+    }
+    
+    gameState.stockPriceHistory.labels.push(timeLabel);
+    if (gameState.stockPriceHistory.labels.length > 50) {
+        gameState.stockPriceHistory.labels = gameState.stockPriceHistory.labels.slice(-50);
+    }
+    
+    allCompanies.slice(0, 6).forEach(company => {
+        if (!gameState.stockPriceHistory.datasets[company.id]) {
+            gameState.stockPriceHistory.datasets[company.id] = {
+                label: company.name,
+                data: []
+            };
+        }
+        
+        gameState.stockPriceHistory.datasets[company.id].data.push(company.sharePrice);
+        if (gameState.stockPriceHistory.datasets[company.id].data.length > 50) {
+            gameState.stockPriceHistory.datasets[company.id].data = gameState.stockPriceHistory.datasets[company.id].data.slice(-50);
+        }
+    });
+    
+    io.emit('stockPricesUpdate', {
+        companies: allCompanies,
+        history: gameState.stockPriceHistory
+    });
 }
 
 // 处理生产任务
@@ -1455,6 +1617,13 @@ function updateAIStockPrices() {
         company.sharePrice = Math.max(1, Math.floor(company.sharePrice * (1 + change)));
         company.lastChange = (company.sharePrice - oldPrice) / oldPrice;
         
+        // 更新价格历史
+        if (!company.priceHistory) company.priceHistory = [company.sharePrice];
+        company.priceHistory.push(company.sharePrice);
+        if (company.priceHistory.length > 50) {
+            company.priceHistory = company.priceHistory.slice(-50);
+        }
+        
         // 偶发冲击事件
         if (Math.random() < 0.01) {
             const shockMagnitude = (Math.random() - 0.5) * 0.3;
@@ -1476,7 +1645,6 @@ function updateAIStockPrices() {
                 description: events[Math.floor(Math.random() * events.length)]
             });
             
-            // 保持事件记录在合理数量
             if (company.shockEvents.length > 5) {
                 company.shockEvents = company.shockEvents.slice(-3);
             }
@@ -1484,8 +1652,20 @@ function updateAIStockPrices() {
     });
 }
 
-setInterval(processProductionTasks, 1000);
-setInterval(updateAIStockPrices, 10000);
+// 定时任务
+setInterval(() => {
+    processProductionTasks();
+    updatePowerStatus();
+}, 1000);
+
+setInterval(() => {
+    updateAIStockPrices();
+    broadcastStockPrices();
+}, 5000);
+
+setInterval(() => {
+    updateLeaderboard();
+}, 10000);
 
 const PORT = process.env.PORT || 3000;
 
