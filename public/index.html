@@ -222,6 +222,9 @@
         .resource.money { background: linear-gradient(135deg, #f39c12, #e67e22); }
         .resource.food { background: linear-gradient(135deg, #27ae60, #2ecc71); }
         .resource.materials { background: linear-gradient(135deg, #8e44ad, #9b59b6); }
+        .resource.wood { background: linear-gradient(135deg, #d35400, #e67e22); }
+        .resource.stone { background: linear-gradient(135deg, #7f8c8d, #95a5a6); }
+        .resource.fish { background: linear-gradient(135deg, #3498db, #2980b9); }
         .resource.knowledge { background: linear-gradient(135deg, #3498db, #2980b9); }
         .resource.magic { background: linear-gradient(135deg, #e74c3c, #c0392b); }
         .resource.artifacts { background: linear-gradient(135deg, #f1c40f, #f39c12); }
@@ -345,7 +348,7 @@
         
         .tab-button {
             flex: 1;
-            padding: 15px;
+            padding: 15px 10px;
             border: none;
             background: transparent;
             color: #bdc3c7;
@@ -353,6 +356,7 @@
             transition: all 0.3s ease;
             border-bottom: 3px solid transparent;
             font-weight: bold;
+            font-size: 12px;
         }
         
         .tab-button:hover {
@@ -378,7 +382,7 @@
         
         .employee-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 15px;
         }
         
@@ -464,6 +468,39 @@
         .stat-fill.mood { background: linear-gradient(90deg, #27ae60, #2ecc71); }
         .stat-fill.energy { background: linear-gradient(90deg, #f1c40f, #f39c12); }
         
+        .employee-skills {
+            margin-bottom: 10px;
+        }
+        
+        .skill-item {
+            display: inline-block;
+            background: rgba(52,152,219,0.2);
+            color: #3498db;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            margin: 2px;
+        }
+        
+        .employee-equipment {
+            margin-bottom: 10px;
+        }
+        
+        .equipment-slot {
+            display: inline-block;
+            background: rgba(39,174,96,0.2);
+            color: #27ae60;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            margin: 2px;
+        }
+        
+        .equipment-slot.empty {
+            background: rgba(127,140,141,0.2);
+            color: #7f8c8d;
+        }
+        
         .employee-traits {
             margin-bottom: 10px;
         }
@@ -506,10 +543,12 @@
         .employee-actions {
             display: flex;
             gap: 5px;
+            flex-wrap: wrap;
         }
         
         .btn-small {
             flex: 1;
+            min-width: 60px;
             padding: 6px;
             border: none;
             border-radius: 4px;
@@ -526,6 +565,11 @@
         
         .btn-rest {
             background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .btn-equipment {
+            background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
         }
         
@@ -589,6 +633,86 @@
             opacity: 0.7;
         }
         
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .activity-card {
+            background: linear-gradient(135deg, rgba(52,73,94,0.8), rgba(44,62,80,0.8));
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .activity-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(155,89,182,0.5);
+        }
+        
+        .activity-card.gathering {
+            border-left: 4px solid #27ae60;
+        }
+        
+        .activity-card.dungeon {
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .activity-title {
+            font-weight: bold;
+            color: #9b59b6;
+            font-size: 16px;
+        }
+        
+        .activity-type {
+            background: rgba(155,89,182,0.3);
+            color: #9b59b6;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+        
+        .activity-description {
+            color: #bdc3c7;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .activity-requirements {
+            background: rgba(231,76,60,0.2);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .activity-rewards {
+            background: rgba(39,174,96,0.2);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .activity-info-title {
+            color: #e74c3c;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .activity-rewards .activity-info-title {
+            color: #27ae60;
+        }
+        
         .btn {
             background: linear-gradient(135deg, #8e44ad, #9b59b6);
             color: white;
@@ -650,7 +774,7 @@
             padding: 30px;
             border-radius: 15px;
             border: 2px solid #9b59b6;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
@@ -663,27 +787,68 @@
             text-align: center;
         }
         
-        .task-list {
-            display: grid;
-            gap: 10px;
+        .equipment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
         }
         
-        .task-item {
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .equipment-slot-large {
             background: rgba(0,0,0,0.3);
-            padding: 15px;
+            border: 2px solid rgba(155,89,182,0.3);
             border-radius: 8px;
-            border: 2px solid transparent;
+            padding: 15px;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .equipment-slot-large.occupied {
+            border-color: #27ae60;
+            background: rgba(39,174,96,0.1);
+        }
+        
+        .equipment-slot-large.empty {
+            border-color: rgba(127,140,141,0.3);
+        }
+        
+        .available-equipment {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid rgba(155,89,182,0.3);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .equipment-item {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
+            border: 1px solid transparent;
         }
         
-        .task-item:hover {
+        .equipment-item:hover {
             border-color: #9b59b6;
-        }
-        
-        .task-item.unsuitable {
-            opacity: 0.6;
-            border-color: rgba(231,76,60,0.5);
+            background: rgba(155,89,182,0.1);
         }
         
         @media (max-width: 1200px) {
@@ -694,6 +859,14 @@
             .right-panel {
                 border-left: none;
                 border-top: 2px solid rgba(155,89,182,0.3);
+            }
+            
+            .tabs-header {
+                flex-wrap: wrap;
+            }
+            
+            .tab-button {
+                min-width: 100px;
             }
         }
         
@@ -707,6 +880,10 @@
             }
             
             .recruit-pool {
+                grid-template-columns: 1fr;
+            }
+            
+            .activity-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -744,8 +921,8 @@
             <button class="login-btn" onclick="joinGame()">开始奇幻创业</button>
             <div style="margin-top: 25px; font-size: 14px; color: #bdc3c7; line-height: 1.5;">
                 🎯 目标：在现代奇幻都市中建立最强公司<br>
-                👥 员工：招募不同种族的员工，管理他们的情绪和需求<br>
-                ⚔️ 任务：派遣员工进行采集、战斗和研究任务<br>
+                👥 员工：招募不同种族的员工，管理他们的技能和装备<br>
+                ⚔️ 冒险：派遣员工进行采集任务和地牢探险<br>
                 🏗️ 建设：升级设施，提升公司实力
             </div>
         </div>
@@ -754,12 +931,34 @@
     <!-- 任务分配模态框 -->
     <div class="assignment-modal" id="assignmentModal">
         <div class="modal-content">
-            <div class="modal-title">选择任务</div>
-            <div class="task-list" id="taskList">
-                <!-- 任务列表将由JavaScript生成 -->
+            <div class="modal-title">选择活动</div>
+            <div class="activity-grid" id="activityList">
+                <!-- 活动列表将由JavaScript生成 -->
             </div>
             <div style="text-align: center; margin-top: 20px;">
                 <button class="btn" onclick="closeAssignmentModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 装备管理模态框 -->
+    <div class="equipment-modal" id="equipmentModal">
+        <div class="modal-content">
+            <div class="modal-title" id="equipmentModalTitle">装备管理</div>
+            
+            <div class="equipment-grid" id="employeeEquipment">
+                <!-- 装备槽位 -->
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="color: #9b59b6; font-weight: bold; margin-bottom: 10px;">可用装备:</div>
+                <div class="available-equipment" id="availableEquipment">
+                    <!-- 可用装备列表 -->
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" onclick="closeEquipmentModal()">关闭</button>
             </div>
         </div>
     </div>
@@ -805,6 +1004,9 @@
                 <div class="resource money">💰 资金: <span id="money">5000</span></div>
                 <div class="resource food">🍖 食物: <span id="food">100</span></div>
                 <div class="resource materials">⚒️ 材料: <span id="materials">50</span></div>
+                <div class="resource wood">🪵 木材: <span id="wood">30</span></div>
+                <div class="resource stone">🪨 石材: <span id="stone">20</span></div>
+                <div class="resource fish">🐟 鱼类: <span id="fish">15</span></div>
                 <div class="resource knowledge">📚 知识: <span id="knowledge">20</span></div>
                 <div class="resource magic">🔮 魔力: <span id="magic">30</span></div>
                 <div class="resource artifacts">✨ 神器: <span id="artifacts">0</span></div>
@@ -817,8 +1019,9 @@
                     <div class="tabs-header">
                         <button class="tab-button active" onclick="switchTab('employees')">👥 员工管理</button>
                         <button class="tab-button" onclick="switchTab('recruit')">🎯 招募中心</button>
+                        <button class="tab-button" onclick="switchTab('gathering')">🌲 采集活动</button>
+                        <button class="tab-button" onclick="switchTab('dungeons')">⚔️ 地牢探险</button>
                         <button class="tab-button" onclick="switchTab('facilities')">🏗️ 设施建设</button>
-                        <button class="tab-button" onclick="switchTab('missions')">⚔️ 任务中心</button>
                     </div>
                     
                     <div class="tab-content active" id="employees-tab">
@@ -836,17 +1039,21 @@
                         </div>
                     </div>
                     
-                    <div class="tab-content" id="facilities-tab">
-                        <div id="facilities" class="facility-list">
-                            <!-- 设施列表将由JavaScript生成 -->
+                    <div class="tab-content" id="gathering-tab">
+                        <div id="gatheringActivities" class="activity-grid">
+                            <!-- 采集活动将由JavaScript生成 -->
                         </div>
                     </div>
                     
-                    <div class="tab-content" id="missions-tab">
-                        <div style="text-align: center; color: #bdc3c7; margin-top: 100px;">
-                            <div style="font-size: 24px; margin-bottom: 15px;">⚔️</div>
-                            <div>任务系统正在开发中...</div>
-                            <div style="font-size: 12px; margin-top: 10px;">敬请期待更多冒险内容</div>
+                    <div class="tab-content" id="dungeons-tab">
+                        <div id="dungeonActivities" class="activity-grid">
+                            <!-- 地牢活动将由JavaScript生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="facilities-tab">
+                        <div id="facilities" class="facility-list">
+                            <!-- 设施列表将由JavaScript生成 -->
                         </div>
                     </div>
                 </div>
@@ -884,22 +1091,26 @@
                         money: 5000,
                         food: 100,
                         materials: 50,
+                        wood: 30,
+                        stone: 20,
+                        fish: 15,
                         knowledge: 20,
                         magic: 30,
                         artifacts: 0
                     },
                     employees: [],
                     facilities: {
-                        dormitory: 0,  // 宿舍
-                        cafeteria: 0,  // 食堂
-                        library: 0,    // 图书馆
-                        workshop: 0,   // 工坊
-                        laboratory: 0, // 实验室
-                        armory: 0      // 军械库
+                        dormitory: 0,
+                        cafeteria: 0,
+                        library: 0,
+                        workshop: 0,
+                        laboratory: 0,
+                        armory: 0
                     },
                     companyLevel: 1,
                     reputation: 100,
-                    companyType: 'arcane'
+                    companyType: 'arcane',
+                    equipment: []
                 };
                 
                 this.recruitPool = [];
@@ -920,15 +1131,63 @@
                 
                 // 职业配置
                 this.jobs = {
-                    warrior: { name: '战士', emoji: '⚔️', primaryStat: 'strength', tasks: ['combat', 'guard'] },
-                    mage: { name: '法师', emoji: '🧙', primaryStat: 'magic', tasks: ['research', 'enchant'] },
-                    scholar: { name: '学者', emoji: '📚', primaryStat: 'intelligence', tasks: ['research', 'analyze'] },
-                    rogue: { name: '盗贼', emoji: '🗡️', primaryStat: 'dexterity', tasks: ['stealth', 'gather'] },
-                    engineer: { name: '工程师', emoji: '🔧', primaryStat: 'intelligence', tasks: ['build', 'repair'] },
-                    healer: { name: '治疗师', emoji: '💊', primaryStat: 'magic', tasks: ['heal', 'support'] },
-                    merchant: { name: '商人', emoji: '💰', primaryStat: 'charisma', tasks: ['trade', 'negotiate'] },
-                    artisan: { name: '工匠', emoji: '🔨', primaryStat: 'dexterity', tasks: ['craft', 'create'] }
+                    warrior: { name: '战士', emoji: '⚔️', primaryStat: 'strength', skills: ['combat', 'defense'] },
+                    mage: { name: '法师', emoji: '🧙', primaryStat: 'magic', skills: ['spellcasting', 'enchanting'] },
+                    scholar: { name: '学者', emoji: '📚', primaryStat: 'intelligence', skills: ['research', 'analysis'] },
+                    rogue: { name: '盗贼', emoji: '🗡️', primaryStat: 'dexterity', skills: ['stealth', 'lockpicking'] },
+                    engineer: { name: '工程师', emoji: '🔧', primaryStat: 'intelligence', skills: ['construction', 'repair'] },
+                    healer: { name: '治疗师', emoji: '💊', primaryStat: 'magic', skills: ['healing', 'support'] },
+                    merchant: { name: '商人', emoji: '💰', primaryStat: 'charisma', skills: ['trading', 'negotiation'] },
+                    artisan: { name: '工匠', emoji: '🔨', primaryStat: 'dexterity', skills: ['crafting', 'creation'] }
                 };
+                
+                // 技能系统
+                this.skillTypes = {
+                    combat: { name: '战斗技能', emoji: '⚔️', description: '提升战斗效率和存活率' },
+                    defense: { name: '防御技能', emoji: '🛡️', description: '减少受到的伤害' },
+                    spellcasting: { name: '施法技能', emoji: '🔮', description: '提升魔法威力和成功率' },
+                    enchanting: { name: '附魔技能', emoji: '✨', description: '为装备添加魔法效果' },
+                    research: { name: '研究技能', emoji: '📖', description: '提升学习和发现新知识的能力' },
+                    analysis: { name: '分析技能', emoji: '🔍', description: '更好地理解复杂问题' },
+                    stealth: { name: '潜行技能', emoji: '👤', description: '避免被发现的能力' },
+                    lockpicking: { name: '开锁技能', emoji: '🔓', description: '打开各种锁具和机关' },
+                    construction: { name: '建造技能', emoji: '🏗️', description: '建造和修理建筑物' },
+                    repair: { name: '修理技能', emoji: '🔧', description: '修复损坏的设备和物品' },
+                    healing: { name: '治疗技能', emoji: '💚', description: '恢复生命值和治疗疾病' },
+                    support: { name: '支援技能', emoji: '🤝', description: '增强队友的能力' },
+                    trading: { name: '交易技能', emoji: '💱', description: '获得更好的交易价格' },
+                    negotiation: { name: '谈判技能', emoji: '🗣️', description: '在对话中获得优势' },
+                    crafting: { name: '制作技能', emoji: '⚒️', description: '制造各种物品和装备' },
+                    creation: { name: '创造技能', emoji: '🎨', description: '发明新的物品和技术' }
+                };
+                
+                // 装备系统
+                this.equipmentTypes = {
+                    weapon: { name: '武器', slot: 'weapon', emoji: '⚔️' },
+                    armor: { name: '护甲', slot: 'armor', emoji: '🛡️' },
+                    accessory: { name: '饰品', slot: 'accessory', emoji: '💍' }
+                };
+                
+                // 预定义装备
+                this.availableEquipment = [
+                    // 武器
+                    { id: 'sword_basic', name: '铁剑', type: 'weapon', rarity: 'common', stats: { strength: 5 }, price: 200 },
+                    { id: 'staff_basic', name: '法师杖', type: 'weapon', rarity: 'common', stats: { magic: 5 }, price: 200 },
+                    { id: 'dagger_basic', name: '短剑', type: 'weapon', rarity: 'common', stats: { dexterity: 5 }, price: 150 },
+                    { id: 'sword_steel', name: '钢剑', type: 'weapon', rarity: 'uncommon', stats: { strength: 10 }, price: 500 },
+                    { id: 'staff_crystal', name: '水晶法杖', type: 'weapon', rarity: 'rare', stats: { magic: 15, intelligence: 5 }, price: 1000 },
+                    
+                    // 护甲
+                    { id: 'leather_armor', name: '皮甲', type: 'armor', rarity: 'common', stats: { constitution: 5 }, price: 250 },
+                    { id: 'chain_mail', name: '锁甲', type: 'armor', rarity: 'uncommon', stats: { constitution: 10, strength: 3 }, price: 600 },
+                    { id: 'robe_mage', name: '法师袍', type: 'armor', rarity: 'uncommon', stats: { magic: 8, intelligence: 5 }, price: 550 },
+                    { id: 'plate_armor', name: '板甲', type: 'armor', rarity: 'rare', stats: { constitution: 15, strength: 5 }, price: 1200 },
+                    
+                    // 饰品
+                    { id: 'ring_strength', name: '力量戒指', type: 'accessory', rarity: 'uncommon', stats: { strength: 8 }, price: 400 },
+                    { id: 'amulet_wisdom', name: '智慧护符', type: 'accessory', rarity: 'uncommon', stats: { intelligence: 8 }, price: 400 },
+                    { id: 'necklace_magic', name: '魔力项链', type: 'accessory', rarity: 'rare', stats: { magic: 12 }, price: 800 }
+                ];
                 
                 // 特质配置
                 this.traits = {
@@ -958,47 +1217,106 @@
                     '食物', '休息', '娱乐', '社交', '安全感', '成就感', '自由', '奢侈品'
                 ];
                 
-                // 任务类型
-                this.taskTypes = {
-                    gather_materials: {
-                        name: '材料采集',
-                        description: '到城市废墟收集建筑材料',
-                        duration: 120, // 2分钟
-                        requirements: { strength: 30 },
-                        rewards: { materials: 15, money: 200 },
-                        risks: ['受伤', '迷路']
-                    },
-                    magic_research: {
-                        name: '魔法研究',
-                        description: '在图书馆研究古老的魔法',
-                        duration: 180, // 3分钟
-                        requirements: { magic: 40, intelligence: 30 },
-                        rewards: { knowledge: 10, magic: 5, money: 300 },
-                        risks: ['魔法反噬', '精神疲劳']
-                    },
-                    combat_training: {
-                        name: '战斗训练',
-                        description: '在训练场提升战斗技能',
-                        duration: 90, // 1.5分钟
+                // 采集活动配置
+                this.gatheringActivities = {
+                    lumber: {
+                        name: '伐木工作',
+                        emoji: '🪵',
+                        description: '前往魔法森林采集珍贵木材',
+                        duration: 180,
                         requirements: { strength: 25 },
-                        rewards: { money: 150 },
-                        risks: ['肌肉拉伤']
+                        rewards: { wood: 20, materials: 5, money: 150 },
+                        risks: ['树精袭击', '迷路']
                     },
-                    artifact_hunt: {
-                        name: '神器探索',
-                        description: '探索神秘遗迹寻找古老神器',
-                        duration: 300, // 5分钟
-                        requirements: { strength: 50, magic: 40, intelligence: 35 },
-                        rewards: { artifacts: 1, knowledge: 20, money: 1000 },
-                        risks: ['遇到怪物', '触发陷阱', '诅咒']
+                    mining: {
+                        name: '采矿作业',
+                        emoji: '⛏️',
+                        description: '在地下矿洞挖掘稀有矿石',
+                        duration: 240,
+                        requirements: { strength: 30, constitution: 25 },
+                        rewards: { stone: 25, materials: 10, money: 200 },
+                        risks: ['矿洞坍塌', '地下生物']
                     },
-                    trade_mission: {
-                        name: '贸易任务',
-                        description: '与其他种族进行贸易谈判',
-                        duration: 150, // 2.5分钟
-                        requirements: { charisma: 35, intelligence: 25 },
-                        rewards: { money: 500, food: 30 },
-                        risks: ['谈判失败', '被欺骗']
+                    fishing: {
+                        name: '魔法捕鱼',
+                        emoji: '🎣',
+                        description: '在魔法湖泊捕捉神奇鱼类',
+                        duration: 120,
+                        requirements: { dexterity: 20, intelligence: 15 },
+                        rewards: { fish: 15, food: 10, money: 100 },
+                        risks: ['水怪出现', '恶劣天气']
+                    },
+                    herb_gathering: {
+                        name: '草药采集',
+                        emoji: '🌿',
+                        description: '收集各种魔法草药和植物',
+                        duration: 150,
+                        requirements: { intelligence: 25, magic: 20 },
+                        rewards: { materials: 15, magic: 8, money: 180 },
+                        risks: ['有毒植物', '野兽攻击']
+                    },
+                    crystal_harvesting: {
+                        name: '水晶收集',
+                        emoji: '💎',
+                        description: '采集含有魔力的能量水晶',
+                        duration: 300,
+                        requirements: { magic: 35, intelligence: 30 },
+                        rewards: { magic: 20, artifacts: 1, money: 400 },
+                        risks: ['魔法反噬', '水晶守护者']
+                    }
+                };
+                
+                // 地牢活动配置
+                this.dungeonActivities = {
+                    goblin_cave: {
+                        name: '哥布林洞穴',
+                        emoji: '👹',
+                        description: '清理被哥布林占据的洞穴',
+                        duration: 200,
+                        difficulty: 'easy',
+                        requirements: { strength: 30, dexterity: 20 },
+                        rewards: { money: 300, materials: 12, artifacts: 1 },
+                        risks: ['哥布林伏击', '陷阱机关']
+                    },
+                    undead_crypt: {
+                        name: '亡灵墓穴',
+                        emoji: '⚰️',
+                        description: '探索古老的亡灵墓穴',
+                        duration: 350,
+                        difficulty: 'medium',
+                        requirements: { magic: 40, intelligence: 35, strength: 25 },
+                        rewards: { knowledge: 25, magic: 15, artifacts: 2, money: 600 },
+                        risks: ['亡灵诅咒', '失去生命力', '迷失方向']
+                    },
+                    dragon_lair: {
+                        name: '巨龙巢穴',
+                        emoji: '🐲',
+                        description: '挑战传说中的古龙',
+                        duration: 500,
+                        difficulty: 'hard',
+                        requirements: { strength: 60, magic: 50, intelligence: 40, dexterity: 35 },
+                        rewards: { artifacts: 5, knowledge: 40, magic: 30, money: 2000 },
+                        risks: ['龙息攻击', '严重烧伤', '装备损坏']
+                    },
+                    elemental_tower: {
+                        name: '元素法师塔',
+                        emoji: '🗼',
+                        description: '挑战失控的元素魔法',
+                        duration: 400,
+                        difficulty: 'medium',
+                        requirements: { magic: 45, intelligence: 40, constitution: 30 },
+                        rewards: { magic: 25, knowledge: 30, artifacts: 3, money: 800 },
+                        risks: ['元素失控', '魔法反噬', '传送错误']
+                    },
+                    demon_portal: {
+                        name: '恶魔传送门',
+                        emoji: '🌀',
+                        description: '关闭危险的恶魔传送门',
+                        duration: 450,
+                        difficulty: 'hard',
+                        requirements: { magic: 55, strength: 45, intelligence: 35 },
+                        rewards: { artifacts: 4, magic: 20, knowledge: 35, money: 1500 },
+                        risks: ['恶魔侵蚀', '精神污染', '被传送到地狱']
                     }
                 };
                 
@@ -1055,6 +1373,7 @@
                 this.setupCompanyTypeSelector();
                 this.setupSocketListeners();
                 this.generateInitialRecruitPool();
+                this.generateInitialEquipment();
                 this.startGameLoop();
             }
             
@@ -1122,6 +1441,15 @@
                 }
             }
             
+            generateInitialEquipment() {
+                // 为公司生成一些初始装备
+                this.gameData.equipment = [
+                    { ...this.availableEquipment.find(e => e.id === 'sword_basic'), quantity: 2 },
+                    { ...this.availableEquipment.find(e => e.id === 'leather_armor'), quantity: 1 },
+                    { ...this.availableEquipment.find(e => e.id === 'staff_basic'), quantity: 1 }
+                ];
+            }
+            
             generateRandomEmployee() {
                 const raceKeys = Object.keys(this.races);
                 const jobKeys = Object.keys(this.jobs);
@@ -1142,11 +1470,17 @@
                         constitution: Math.floor(Math.random() * 60) + 20
                     },
                     status: {
-                        mood: Math.floor(Math.random() * 40) + 60, // 60-100
-                        energy: Math.floor(Math.random() * 40) + 60, // 60-100
+                        mood: Math.floor(Math.random() * 40) + 60,
+                        energy: Math.floor(Math.random() * 40) + 60,
                         health: 100,
-                        hunger: Math.floor(Math.random() * 30) + 30, // 30-60
+                        hunger: Math.floor(Math.random() * 30) + 30,
                         happiness: Math.floor(Math.random() * 40) + 50
+                    },
+                    skills: {},
+                    equipment: {
+                        weapon: null,
+                        armor: null,
+                        accessory: null
                     },
                     traits: [],
                     needs: [],
@@ -1164,6 +1498,12 @@
                     if (employee.stats[stat]) {
                         employee.stats[stat] += raceBonus[stat];
                     }
+                });
+                
+                // 初始化职业技能
+                const jobSkills = this.jobs[job].skills;
+                jobSkills.forEach(skill => {
+                    employee.skills[skill] = Math.floor(Math.random() * 30) + 10;
                 });
                 
                 // 随机添加特质
@@ -1218,7 +1558,7 @@
             
             generateNeeds() {
                 const needs = [];
-                const needCount = Math.floor(Math.random() * 3) + 2; // 2-4个需求
+                const needCount = Math.floor(Math.random() * 3) + 2;
                 
                 for (let i = 0; i < needCount; i++) {
                     const needType = this.needTypes[Math.floor(Math.random() * this.needTypes.length)];
@@ -1263,6 +1603,7 @@
                         if (saved.resources) this.gameData.resources = saved.resources;
                         if (saved.employees) this.gameData.employees = saved.employees;
                         if (saved.facilities) this.gameData.facilities = saved.facilities;
+                        if (saved.equipment) this.gameData.equipment = saved.equipment;
                         if (saved.companyLevel) this.gameData.companyLevel = saved.companyLevel;
                         if (saved.reputation) this.gameData.reputation = saved.reputation;
                         console.log('💾 加载公司存档成功');
@@ -1299,6 +1640,13 @@
                 // 更新内容显示
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 document.getElementById(`${tabName}-tab`).classList.add('active');
+                
+                // 根据选项卡渲染特定内容
+                if (tabName === 'gathering') {
+                    this.renderGatheringActivities();
+                } else if (tabName === 'dungeons') {
+                    this.renderDungeonActivities();
+                }
             }
             
             updateConnectionStatus() {
@@ -1363,6 +1711,9 @@
                     const raceInfo = this.races[employee.race];
                     const jobInfo = this.jobs[employee.job];
                     
+                    // 计算装备加成后的属性
+                    const totalStats = this.calculateEmployeeStats(employee);
+                    
                     div.innerHTML = `
                         <div class="employee-header">
                             <div class="employee-name">${raceInfo.emoji} ${employee.name}</div>
@@ -1372,20 +1723,20 @@
                         
                         <div class="employee-stats">
                             <div>
-                                <div style="color: #e74c3c;">💪 力量: ${employee.stats.strength}</div>
-                                <div class="stat-bar"><div class="stat-fill strength" style="width: ${employee.stats.strength}%"></div></div>
+                                <div style="color: #e74c3c;">💪 力量: ${totalStats.strength}</div>
+                                <div class="stat-bar"><div class="stat-fill strength" style="width: ${Math.min(100, totalStats.strength)}%"></div></div>
                             </div>
                             <div>
-                                <div style="color: #3498db;">🧠 智力: ${employee.stats.intelligence}</div>
-                                <div class="stat-bar"><div class="stat-fill intelligence" style="width: ${employee.stats.intelligence}%"></div></div>
+                                <div style="color: #3498db;">🧠 智力: ${totalStats.intelligence}</div>
+                                <div class="stat-bar"><div class="stat-fill intelligence" style="width: ${Math.min(100, totalStats.intelligence)}%"></div></div>
                             </div>
                             <div>
-                                <div style="color: #9b59b6;">🔮 魔力: ${employee.stats.magic}</div>
-                                <div class="stat-bar"><div class="stat-fill magic" style="width: ${employee.stats.magic}%"></div></div>
+                                <div style="color: #9b59b6;">🔮 魔力: ${totalStats.magic}</div>
+                                <div class="stat-bar"><div class="stat-fill magic" style="width: ${Math.min(100, totalStats.magic)}%"></div></div>
                             </div>
                             <div>
-                                <div style="color: #f39c12;">⚡ 敏捷: ${employee.stats.dexterity}</div>
-                                <div class="stat-bar"><div class="stat-fill dexterity" style="width: ${employee.stats.dexterity}%"></div></div>
+                                <div style="color: #f39c12;">⚡ 敏捷: ${totalStats.dexterity}</div>
+                                <div class="stat-bar"><div class="stat-fill dexterity" style="width: ${Math.min(100, totalStats.dexterity)}%"></div></div>
                             </div>
                             <div>
                                 <div style="color: #27ae60;">😊 心情: ${employee.status.mood}</div>
@@ -1395,6 +1746,26 @@
                                 <div style="color: #f1c40f;">💪 体力: ${employee.status.energy}</div>
                                 <div class="stat-bar"><div class="stat-fill energy" style="width: ${employee.status.energy}%"></div></div>
                             </div>
+                        </div>
+                        
+                        <div class="employee-skills">
+                            <div style="font-size: 11px; color: #9b59b6; margin-bottom: 5px;">技能:</div>
+                            ${Object.keys(employee.skills).map(skill => {
+                                const skillInfo = this.skillTypes[skill];
+                                return `<span class="skill-item" title="${skillInfo ? skillInfo.description : ''}">${skillInfo ? skillInfo.emoji : '🔧'} ${skill}: ${employee.skills[skill]}</span>`;
+                            }).join('')}
+                        </div>
+                        
+                        <div class="employee-equipment">
+                            <div style="font-size: 11px; color: #9b59b6; margin-bottom: 5px;">装备:</div>
+                            ${Object.keys(employee.equipment).map(slot => {
+                                const item = employee.equipment[slot];
+                                if (item) {
+                                    return `<span class="equipment-slot">${this.equipmentTypes[item.type].emoji} ${item.name}</span>`;
+                                } else {
+                                    return `<span class="equipment-slot empty">${this.equipmentTypes[slot] ? this.equipmentTypes[slot].emoji : '❓'} 空</span>`;
+                                }
+                            }).join('')}
                         </div>
                         
                         <div class="employee-traits">
@@ -1417,13 +1788,14 @@
                         ${employee.currentTask ? `
                             <div style="background: rgba(39,174,96,0.2); padding: 8px; border-radius: 4px; margin-bottom: 10px;">
                                 <div style="color: #27ae60; font-size: 11px; font-weight: bold;">🔄 执行任务中</div>
-                                <div style="color: #ecf0f1; font-size: 10px;">${this.taskTypes[employee.currentTask]?.name || '未知任务'}</div>
+                                <div style="color: #ecf0f1; font-size: 10px;">${this.getActivityName(employee.currentTask)}</div>
                                 <div style="color: #bdc3c7; font-size: 9px;">剩余: ${this.getTaskTimeRemaining(employee.taskEndTime)}</div>
                             </div>
                         ` : `
                             <div class="employee-actions">
                                 <button class="btn-small btn-assign" onclick="game.openTaskAssignment('${employee.id}')">分配任务</button>
                                 <button class="btn-small btn-rest" onclick="game.restEmployee('${employee.id}')">休息</button>
+                                <button class="btn-small btn-equipment" onclick="game.openEquipmentModal('${employee.id}')">装备</button>
                                 <button class="btn-small btn-dismiss" onclick="game.dismissEmployee('${employee.id}')">解雇</button>
                             </div>
                         `}
@@ -1443,7 +1815,7 @@
                     
                     const raceInfo = this.races[employee.race];
                     const jobInfo = this.jobs[employee.job];
-                    const canAfford = this.gameData.resources.money >= employee.salary * 5; // 5倍工资作为招募费
+                    const canAfford = this.gameData.resources.money >= employee.salary * 5;
                     
                     div.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -1459,6 +1831,10 @@
                             <div>⚡ ${employee.stats.dexterity}</div>
                         </div>
                         
+                        <div style="font-size: 10px; color: #3498db; margin-bottom: 8px;">
+                            技能: ${Object.keys(employee.skills).map(skill => `${skill}:${employee.skills[skill]}`).join(', ')}
+                        </div>
+                        
                         <div style="font-size: 10px; color: #bdc3c7; margin-bottom: 8px;">
                             特质: ${employee.traits.map(t => t.name).join(', ') || '无'}
                         </div>
@@ -1470,6 +1846,114 @@
                         <button class="btn" onclick="game.recruitEmployee('${employee.id}')" 
                             ${canAfford ? '' : 'disabled'} style="width: 100%;">
                             ${canAfford ? '招募' : '资金不足'}
+                        </button>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+            
+            renderGatheringActivities() {
+                const container = document.getElementById('gatheringActivities');
+                container.innerHTML = '';
+                
+                Object.keys(this.gatheringActivities).forEach(activityKey => {
+                    const activity = this.gatheringActivities[activityKey];
+                    
+                    const div = document.createElement('div');
+                    div.className = 'activity-card gathering';
+                    
+                    div.innerHTML = `
+                        <div class="activity-header">
+                            <div class="activity-title">${activity.emoji} ${activity.name}</div>
+                            <div class="activity-type">采集</div>
+                        </div>
+                        
+                        <div class="activity-description">${activity.description}</div>
+                        
+                        <div class="activity-requirements">
+                            <div class="activity-info-title">要求:</div>
+                            <div style="font-size: 10px; color: #ecf0f1;">
+                                ${Object.keys(activity.requirements).map(req => `${req}: ${activity.requirements[req]}`).join(' | ')}
+                            </div>
+                        </div>
+                        
+                        <div class="activity-rewards">
+                            <div class="activity-info-title">奖励:</div>
+                            <div style="font-size: 10px; color: #ecf0f1;">
+                                ${this.formatCost(activity.rewards)}
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(231,76,60,0.2); padding: 8px; border-radius: 6px; margin-bottom: 10px;">
+                            <div style="color: #e74c3c; font-size: 11px; font-weight: bold;">风险:</div>
+                            <div style="color: #ecf0f1; font-size: 10px;">${activity.risks.join(', ')}</div>
+                        </div>
+                        
+                        <div style="font-size: 10px; color: #bdc3c7; margin-bottom: 10px;">
+                            预计时间: ${Math.floor(activity.duration / 60)} 分钟
+                        </div>
+                        
+                        <button class="btn" onclick="game.selectActivity('gathering', '${activityKey}')" style="width: 100%;">
+                            选择此采集活动
+                        </button>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+            
+            renderDungeonActivities() {
+                const container = document.getElementById('dungeonActivities');
+                container.innerHTML = '';
+                
+                Object.keys(this.dungeonActivities).forEach(activityKey => {
+                    const activity = this.dungeonActivities[activityKey];
+                    
+                    const div = document.createElement('div');
+                    div.className = 'activity-card dungeon';
+                    
+                    const difficultyColors = {
+                        easy: '#27ae60',
+                        medium: '#f39c12',
+                        hard: '#e74c3c'
+                    };
+                    
+                    div.innerHTML = `
+                        <div class="activity-header">
+                            <div class="activity-title">${activity.emoji} ${activity.name}</div>
+                            <div class="activity-type" style="background: rgba(231,76,60,0.3); color: ${difficultyColors[activity.difficulty]};">
+                                ${activity.difficulty.toUpperCase()}
+                            </div>
+                        </div>
+                        
+                        <div class="activity-description">${activity.description}</div>
+                        
+                        <div class="activity-requirements">
+                            <div class="activity-info-title">要求:</div>
+                            <div style="font-size: 10px; color: #ecf0f1;">
+                                ${Object.keys(activity.requirements).map(req => `${req}: ${activity.requirements[req]}`).join(' | ')}
+                            </div>
+                        </div>
+                        
+                        <div class="activity-rewards">
+                            <div class="activity-info-title">奖励:</div>
+                            <div style="font-size: 10px; color: #ecf0f1;">
+                                ${this.formatCost(activity.rewards)}
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(231,76,60,0.2); padding: 8px; border-radius: 6px; margin-bottom: 10px;">
+                            <div style="color: #e74c3c; font-size: 11px; font-weight: bold;">危险:</div>
+                            <div style="color: #ecf0f1; font-size: 10px;">${activity.risks.join(', ')}</div>
+                        </div>
+                        
+                        <div style="font-size: 10px; color: #bdc3c7; margin-bottom: 10px;">
+                            预计时间: ${Math.floor(activity.duration / 60)} 分钟 | 难度: <span style="color: ${difficultyColors[activity.difficulty]};">${activity.difficulty}</span>
+                        </div>
+                        
+                        <button class="btn" onclick="game.selectActivity('dungeon', '${activityKey}')" style="width: 100%;">
+                            挑战此地牢
                         </button>
                     `;
                     
@@ -1547,52 +2031,156 @@
                 container.scrollTop = container.scrollHeight;
             }
             
-            openTaskAssignment(employeeId) {
-                this.selectedEmployee = employeeId;
-                const employee = this.gameData.employees.find(e => e.id === employeeId);
-                if (!employee) return;
+            selectActivity(type, activityKey) {
+                this.selectedActivityType = type;
+                this.selectedActivityKey = activityKey;
+                this.openTaskAssignment(null, true);
+            }
+            
+            openTaskAssignment(employeeId, fromActivity = false) {
+                if (!fromActivity) {
+                    this.selectedEmployee = employeeId;
+                }
                 
                 const modal = document.getElementById('assignmentModal');
-                const taskList = document.getElementById('taskList');
-                taskList.innerHTML = '';
+                const activityList = document.getElementById('activityList');
+                activityList.innerHTML = '';
                 
-                Object.keys(this.taskTypes).forEach(taskKey => {
-                    const task = this.taskTypes[taskKey];
-                    const suitable = this.isEmployeeSuitableForTask(employee, task);
+                if (fromActivity) {
+                    // 显示可分配的员工
+                    modal.querySelector('.modal-title').textContent = '选择员工';
                     
-                    const div = document.createElement('div');
-                    div.className = `task-item ${suitable ? '' : 'unsuitable'}`;
+                    this.gameData.employees.forEach(employee => {
+                        if (employee.currentTask) return; // 跳过正在工作的员工
+                        
+                        const activity = this.selectedActivityType === 'gathering' 
+                            ? this.gatheringActivities[this.selectedActivityKey]
+                            : this.dungeonActivities[this.selectedActivityKey];
+                        
+                        const suitable = this.isEmployeeSuitableForActivity(employee, activity);
+                        const totalStats = this.calculateEmployeeStats(employee);
+                        
+                        const div = document.createElement('div');
+                        div.className = `activity-card ${suitable ? '' : 'unsuitable'}`;
+                        
+                        const raceInfo = this.races[employee.race];
+                        const jobInfo = this.jobs[employee.job];
+                        
+                        div.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <div style="font-weight: bold; color: #9b59b6;">${raceInfo.emoji} ${employee.name}</div>
+                                <div style="color: #3498db; font-size: 12px;">${jobInfo.emoji} ${jobInfo.name}</div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px; font-size: 11px;">
+                                <div>💪 力量: ${totalStats.strength}</div>
+                                <div>🧠 智力: ${totalStats.intelligence}</div>
+                                <div>🔮 魔力: ${totalStats.magic}</div>
+                                <div>⚡ 敏捷: ${totalStats.dexterity}</div>
+                            </div>
+                            
+                            <div style="font-size: 10px; color: #bdc3c7; margin-bottom: 10px;">
+                                要求: ${Object.keys(activity.requirements).map(req => `${req} ${activity.requirements[req]}`).join(', ')}
+                            </div>
+                            
+                            <div style="font-size: 10px; color: ${suitable ? '#27ae60' : '#e74c3c'}; margin-bottom: 10px;">
+                                ${suitable ? '✅ 符合要求' : '❌ 能力不足'}
+                            </div>
+                        `;
+                        
+                        if (suitable) {
+                            div.onclick = () => {
+                                this.assignActivity(employee.id, this.selectedActivityType, this.selectedActivityKey);
+                                this.closeAssignmentModal();
+                            };
+                        }
+                        
+                        activityList.appendChild(div);
+                    });
+                } else {
+                    // 显示所有活动
+                    modal.querySelector('.modal-title').textContent = '选择活动';
                     
-                    div.innerHTML = `
-                        <div style="font-weight: bold; color: #9b59b6; margin-bottom: 5px;">
-                            ${task.name}
-                        </div>
-                        <div style="font-size: 12px; color: #bdc3c7; margin-bottom: 8px;">
-                            ${task.description}
-                        </div>
-                        <div style="font-size: 11px; color: #3498db; margin-bottom: 5px;">
-                            持续时间: ${Math.floor(task.duration / 60)}分钟
-                        </div>
-                        <div style="font-size: 11px; color: #e74c3c; margin-bottom: 5px;">
-                            要求: ${Object.keys(task.requirements).map(req => `${req} ${task.requirements[req]}`).join(', ')}
-                        </div>
-                        <div style="font-size: 11px; color: #27ae60; margin-bottom: 8px;">
-                            奖励: ${this.formatCost(task.rewards)}
-                        </div>
-                        <div style="font-size: 10px; color: #f39c12;">
-                            风险: ${task.risks.join(', ')}
-                        </div>
-                    `;
+                    // 添加采集活动
+                    Object.keys(this.gatheringActivities).forEach(activityKey => {
+                        const activity = this.gatheringActivities[activityKey];
+                        const employee = this.gameData.employees.find(e => e.id === employeeId);
+                        const suitable = employee ? this.isEmployeeSuitableForActivity(employee, activity) : false;
+                        
+                        const div = document.createElement('div');
+                        div.className = `activity-card gathering ${suitable ? '' : 'unsuitable'}`;
+                        
+                        div.innerHTML = `
+                            <div class="activity-header">
+                                <div class="activity-title">${activity.emoji} ${activity.name}</div>
+                                <div class="activity-type">采集</div>
+                            </div>
+                            <div class="activity-description">${activity.description}</div>
+                            <div style="font-size: 11px; color: #e74c3c; margin: 5px 0;">
+                                要求: ${Object.keys(activity.requirements).map(req => `${req} ${activity.requirements[req]}`).join(', ')}
+                            </div>
+                            <div style="font-size: 11px; color: #27ae60; margin: 5px 0;">
+                                奖励: ${this.formatCost(activity.rewards)}
+                            </div>
+                            <div style="font-size: 10px; color: #f39c12;">
+                                风险: ${activity.risks.join(', ')}
+                            </div>
+                        `;
+                        
+                        if (suitable) {
+                            div.onclick = () => {
+                                this.assignActivity(employeeId, 'gathering', activityKey);
+                                this.closeAssignmentModal();
+                            };
+                        }
+                        
+                        activityList.appendChild(div);
+                    });
                     
-                    if (suitable) {
-                        div.onclick = () => {
-                            this.assignTask(employeeId, taskKey);
-                            this.closeAssignmentModal();
+                    // 添加地牢活动
+                    Object.keys(this.dungeonActivities).forEach(activityKey => {
+                        const activity = this.dungeonActivities[activityKey];
+                        const employee = this.gameData.employees.find(e => e.id === employeeId);
+                        const suitable = employee ? this.isEmployeeSuitableForActivity(employee, activity) : false;
+                        
+                        const div = document.createElement('div');
+                        div.className = `activity-card dungeon ${suitable ? '' : 'unsuitable'}`;
+                        
+                        const difficultyColors = {
+                            easy: '#27ae60',
+                            medium: '#f39c12',
+                            hard: '#e74c3c'
                         };
-                    }
-                    
-                    taskList.appendChild(div);
-                });
+                        
+                        div.innerHTML = `
+                            <div class="activity-header">
+                                <div class="activity-title">${activity.emoji} ${activity.name}</div>
+                                <div class="activity-type" style="background: rgba(231,76,60,0.3); color: ${difficultyColors[activity.difficulty]};">
+                                    ${activity.difficulty.toUpperCase()}
+                                </div>
+                            </div>
+                            <div class="activity-description">${activity.description}</div>
+                            <div style="font-size: 11px; color: #e74c3c; margin: 5px 0;">
+                                要求: ${Object.keys(activity.requirements).map(req => `${req} ${activity.requirements[req]}`).join(', ')}
+                            </div>
+                            <div style="font-size: 11px; color: #27ae60; margin: 5px 0;">
+                                奖励: ${this.formatCost(activity.rewards)}
+                            </div>
+                            <div style="font-size: 10px; color: #f39c12;">
+                                危险: ${activity.risks.join(', ')}
+                            </div>
+                        `;
+                        
+                        if (suitable) {
+                            div.onclick = () => {
+                                this.assignActivity(employeeId, 'dungeon', activityKey);
+                                this.closeAssignmentModal();
+                            };
+                        }
+                        
+                        activityList.appendChild(div);
+                    });
+                }
                 
                 modal.style.display = 'flex';
             }
@@ -1600,32 +2188,192 @@
             closeAssignmentModal() {
                 document.getElementById('assignmentModal').style.display = 'none';
                 this.selectedEmployee = null;
+                this.selectedActivityType = null;
+                this.selectedActivityKey = null;
             }
             
-            isEmployeeSuitableForTask(employee, task) {
-                return Object.keys(task.requirements).every(req => {
-                    return employee.stats[req] >= task.requirements[req];
+            openEquipmentModal(employeeId) {
+                this.selectedEmployee = employeeId;
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                if (!employee) return;
+                
+                const modal = document.getElementById('equipmentModal');
+                const title = document.getElementById('equipmentModalTitle');
+                const equipmentGrid = document.getElementById('employeeEquipment');
+                const availableEquipment = document.getElementById('availableEquipment');
+                
+                title.textContent = `${employee.name} 的装备`;
+                
+                // 渲染装备槽位
+                equipmentGrid.innerHTML = '';
+                Object.keys(this.equipmentTypes).forEach(slotType => {
+                    const equippedItem = employee.equipment[slotType];
+                    const slotInfo = this.equipmentTypes[slotType];
+                    
+                    const div = document.createElement('div');
+                    div.className = `equipment-slot-large ${equippedItem ? 'occupied' : 'empty'}`;
+                    
+                    div.innerHTML = `
+                        <div style="font-weight: bold; color: #9b59b6; margin-bottom: 5px;">
+                            ${slotInfo.emoji} ${slotInfo.name}
+                        </div>
+                        ${equippedItem ? `
+                            <div style="color: #27ae60; font-size: 12px; margin-bottom: 5px;">${equippedItem.name}</div>
+                            <div style="color: #bdc3c7; font-size: 10px;">${this.formatItemStats(equippedItem.stats)}</div>
+                            <button class="btn" onclick="game.unequipItem('${employeeId}', '${slotType}')" style="margin-top: 10px; padding: 4px 8px; font-size: 10px;">卸下</button>
+                        ` : `
+                            <div style="color: #7f8c8d; font-size: 12px;">空</div>
+                        `}
+                    `;
+                    
+                    equipmentGrid.appendChild(div);
+                });
+                
+                // 渲染可用装备
+                availableEquipment.innerHTML = '';
+                this.gameData.equipment.forEach((item, index) => {
+                    if (item.quantity > 0) {
+                        const div = document.createElement('div');
+                        div.className = 'equipment-item';
+                        
+                        const rarityColors = {
+                            common: '#95a5a6',
+                            uncommon: '#3498db',
+                            rare: '#9b59b6',
+                            epic: '#e67e22',
+                            legendary: '#f1c40f'
+                        };
+                        
+                        div.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: bold; color: ${rarityColors[item.rarity]};">
+                                        ${this.equipmentTypes[item.type].emoji} ${item.name}
+                                    </div>
+                                    <div style="font-size: 10px; color: #bdc3c7;">
+                                        ${this.formatItemStats(item.stats)} | 数量: ${item.quantity}
+                                    </div>
+                                </div>
+                                <button class="btn" onclick="game.equipItem('${employeeId}', ${index})" style="padding: 4px 8px; font-size: 10px;">
+                                    装备
+                                </button>
+                            </div>
+                        `;
+                        
+                        availableEquipment.appendChild(div);
+                    }
+                });
+                
+                modal.style.display = 'flex';
+            }
+            
+            closeEquipmentModal() {
+                document.getElementById('equipmentModal').style.display = 'none';
+                this.selectedEmployee = null;
+            }
+            
+            equipItem(employeeId, itemIndex) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                const item = this.gameData.equipment[itemIndex];
+                
+                if (!employee || !item || item.quantity <= 0) return;
+                
+                // 如果该部位已有装备，先卸下
+                if (employee.equipment[item.type]) {
+                    this.unequipItem(employeeId, item.type);
+                }
+                
+                // 装备新物品
+                employee.equipment[item.type] = { ...item };
+                item.quantity--;
+                
+                this.showNotification(`${employee.name} 装备了 ${item.name}！`);
+                this.openEquipmentModal(employeeId); // 刷新界面
+                this.renderEmployees();
+                this.saveGame();
+            }
+            
+            unequipItem(employeeId, slotType) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                if (!employee || !employee.equipment[slotType]) return;
+                
+                const item = employee.equipment[slotType];
+                
+                // 将装备放回背包
+                const existingItem = this.gameData.equipment.find(e => e.id === item.id);
+                if (existingItem) {
+                    existingItem.quantity++;
+                } else {
+                    this.gameData.equipment.push({ ...item, quantity: 1 });
+                }
+                
+                // 卸下装备
+                employee.equipment[slotType] = null;
+                
+                this.showNotification(`${employee.name} 卸下了 ${item.name}！`);
+                this.openEquipmentModal(employeeId); // 刷新界面
+                this.renderEmployees();
+                this.saveGame();
+            }
+            
+            calculateEmployeeStats(employee) {
+                const baseStats = { ...employee.stats };
+                
+                // 应用装备加成
+                Object.values(employee.equipment).forEach(item => {
+                    if (item && item.stats) {
+                        Object.keys(item.stats).forEach(stat => {
+                            if (baseStats[stat] !== undefined) {
+                                baseStats[stat] += item.stats[stat];
+                            }
+                        });
+                    }
+                });
+                
+                return baseStats;
+            }
+            
+            formatItemStats(stats) {
+                return Object.keys(stats).map(stat => `${stat}: +${stats[stat]}`).join(', ');
+            }
+            
+            isEmployeeSuitableForActivity(employee, activity) {
+                const totalStats = this.calculateEmployeeStats(employee);
+                return Object.keys(activity.requirements).every(req => {
+                    return totalStats[req] >= activity.requirements[req];
                 });
             }
             
-            assignTask(employeeId, taskKey) {
+            assignActivity(employeeId, activityType, activityKey) {
                 const employee = this.gameData.employees.find(e => e.id === employeeId);
-                const task = this.taskTypes[taskKey];
+                const activity = activityType === 'gathering' 
+                    ? this.gatheringActivities[activityKey]
+                    : this.dungeonActivities[activityKey];
                 
-                if (!employee || !task) return;
+                if (!employee || !activity) return;
                 
-                if (!this.isEmployeeSuitableForTask(employee, task)) {
-                    this.showNotification('该员工不适合执行此任务！');
+                if (!this.isEmployeeSuitableForActivity(employee, activity)) {
+                    this.showNotification('该员工不适合执行此活动！');
                     return;
                 }
                 
-                employee.currentTask = taskKey;
-                employee.taskEndTime = Date.now() + (task.duration * 1000);
+                employee.currentTask = `${activityType}_${activityKey}`;
+                employee.taskEndTime = Date.now() + (activity.duration * 1000);
                 employee.status.energy = Math.max(0, employee.status.energy - 20);
                 
-                this.showNotification(`${employee.name} 开始执行 ${task.name}！`);
+                this.showNotification(`${employee.name} 开始执行 ${activity.name}！`);
                 this.renderEmployees();
                 this.saveGame();
+            }
+            
+            getActivityName(taskKey) {
+                const [type, key] = taskKey.split('_');
+                if (type === 'gathering') {
+                    return this.gatheringActivities[key]?.name || '未知采集活动';
+                } else if (type === 'dungeon') {
+                    return this.dungeonActivities[key]?.name || '未知地牢';
+                }
+                return '未知活动';
             }
             
             restEmployee(employeeId) {
@@ -1645,8 +2393,20 @@
                 if (!employee) return;
                 
                 if (confirm(`确定要解雇 ${employee.name} 吗？`)) {
+                    // 回收员工装备
+                    Object.values(employee.equipment).forEach(item => {
+                        if (item) {
+                            const existingItem = this.gameData.equipment.find(e => e.id === item.id);
+                            if (existingItem) {
+                                existingItem.quantity++;
+                            } else {
+                                this.gameData.equipment.push({ ...item, quantity: 1 });
+                            }
+                        }
+                    });
+                    
                     this.gameData.employees = this.gameData.employees.filter(e => e.id !== employeeId);
-                    this.showNotification(`${employee.name} 已被解雇`);
+                    this.showNotification(`${employee.name} 已被解雇，装备已回收`);
                     this.renderEmployees();
                     this.updateDisplay();
                     this.saveGame();
@@ -1727,9 +2487,9 @@
             
             getResourceEmoji(resource) {
                 const emojis = {
-                    money: '💰', food: '🍖', materials: '⚒️', knowledge: '📚',
-                    magic: '🔮', artifacts: '✨', strength: '💪', intelligence: '🧠',
-                    dexterity: '⚡', charisma: '💬'
+                    money: '💰', food: '🍖', materials: '⚒️', wood: '🪵', stone: '🪨', fish: '🐟',
+                    knowledge: '📚', magic: '🔮', artifacts: '✨', strength: '💪', intelligence: '🧠',
+                    dexterity: '⚡', charisma: '💬', constitution: '🛡️'
                 };
                 return emojis[resource] || '❓';
             }
@@ -1790,14 +2550,14 @@
                     // 检查任务完成
                     this.gameData.employees.forEach(employee => {
                         if (employee.currentTask && employee.taskEndTime && Date.now() >= employee.taskEndTime) {
-                            this.completeTask(employee);
+                            this.completeActivity(employee);
                         }
                     });
                     
                     // 员工状态变化
                     this.gameData.employees.forEach(employee => {
                         // 随机事件
-                        if (Math.random() < 0.001) { // 0.1%概率
+                        if (Math.random() < 0.001) {
                             this.triggerEmployeeEvent(employee);
                         }
                         
@@ -1810,7 +2570,7 @@
                     });
                     
                     // 支付工资
-                    if (Date.now() % 60000 < 2000) { // 每分钟检查一次
+                    if (Date.now() % 60000 < 2000) {
                         this.payEmployeeSalaries();
                     }
                     
@@ -1824,17 +2584,28 @@
                 }, 2000);
             }
             
-            completeTask(employee) {
-                const task = this.taskTypes[employee.currentTask];
-                if (!task) return;
+            completeActivity(employee) {
+                const [type, key] = employee.currentTask.split('_');
+                const activity = type === 'gathering' 
+                    ? this.gatheringActivities[key]
+                    : this.dungeonActivities[key];
+                
+                if (!activity) return;
                 
                 // 计算成功率
-                let successRate = 0.7; // 基础70%成功率
+                let successRate = 0.7;
+                const totalStats = this.calculateEmployeeStats(employee);
                 
-                // 根据员工属性调整成功率
-                Object.keys(task.requirements).forEach(req => {
-                    const ratio = employee.stats[req] / task.requirements[req];
+                Object.keys(activity.requirements).forEach(req => {
+                    const ratio = totalStats[req] / activity.requirements[req];
                     successRate += (ratio - 1) * 0.1;
+                });
+                
+                // 技能加成
+                Object.keys(employee.skills).forEach(skill => {
+                    if (this.isSkillRelevant(skill, activity)) {
+                        successRate += employee.skills[skill] * 0.002; // 每点技能增加0.2%成功率
+                    }
                 });
                 
                 successRate = Math.max(0.2, Math.min(0.95, successRate));
@@ -1843,31 +2614,67 @@
                 
                 if (success) {
                     // 给予奖励
-                    Object.keys(task.rewards).forEach(resource => {
-                        this.gameData.resources[resource] += task.rewards[resource];
+                    Object.keys(activity.rewards).forEach(resource => {
+                        this.gameData.resources[resource] += activity.rewards[resource];
                     });
                     
-                    // 增加经验
+                    // 增加经验和技能
                     employee.experience += 10;
+                    this.gainSkillExperience(employee, activity);
+                    
                     if (employee.experience >= employee.level * 100) {
                         employee.level++;
                         employee.experience = 0;
                         this.showNotification(`${employee.name} 升级到 Lv.${employee.level}！`);
                     }
                     
-                    this.showNotification(`${employee.name} 成功完成 ${task.name}！`);
+                    this.showNotification(`${employee.name} 成功完成 ${activity.name}！`);
                 } else {
-                    // 失败处理
                     employee.status.mood = Math.max(0, employee.status.mood - 15);
                     employee.status.energy = Math.max(0, employee.status.energy - 10);
                     
-                    this.showNotification(`${employee.name} 在执行 ${task.name} 时失败了...`);
+                    this.showNotification(`${employee.name} 在执行 ${activity.name} 时失败了...`);
                 }
                 
                 // 清除任务状态
                 employee.currentTask = null;
                 employee.taskEndTime = null;
                 employee.status.energy = Math.max(0, employee.status.energy - 15);
+            }
+            
+            isSkillRelevant(skill, activity) {
+                // 判断技能是否与活动相关
+                const combatSkills = ['combat', 'defense'];
+                const magicSkills = ['spellcasting', 'enchanting'];
+                const craftsSkills = ['crafting', 'creation', 'construction', 'repair'];
+                const stealthSkills = ['stealth', 'lockpicking'];
+                
+                if (activity.name.includes('战斗') || activity.name.includes('地牢')) {
+                    return combatSkills.includes(skill);
+                }
+                if (activity.name.includes('魔法') || activity.name.includes('水晶')) {
+                    return magicSkills.includes(skill);
+                }
+                if (activity.name.includes('制作') || activity.name.includes('建造')) {
+                    return craftsSkills.includes(skill);
+                }
+                if (activity.name.includes('潜行') || activity.name.includes('盗贼')) {
+                    return stealthSkills.includes(skill);
+                }
+                
+                return false;
+            }
+            
+            gainSkillExperience(employee, activity) {
+                // 根据活动类型增加相关技能经验
+                const jobSkills = this.jobs[employee.job].skills;
+                
+                jobSkills.forEach(skill => {
+                    if (this.isSkillRelevant(skill, activity)) {
+                        if (!employee.skills[skill]) employee.skills[skill] = 0;
+                        employee.skills[skill] = Math.min(100, employee.skills[skill] + Math.floor(Math.random() * 3) + 1);
+                    }
+                });
             }
             
             triggerEmployeeEvent(employee) {
@@ -1887,6 +2694,10 @@
                     {
                         message: `${employee.name} 与同事发生了小摩擦`,
                         effects: { mood: -10 }
+                    },
+                    {
+                        message: `${employee.name} 发现了一件小装备！`,
+                        effects: { mood: 15 }
                     }
                 ];
                 
@@ -1899,6 +2710,17 @@
                         employee.experience += event.effects[stat];
                     }
                 });
+                
+                // 特殊事件：发现装备
+                if (event.message.includes('装备')) {
+                    const randomEquipment = this.availableEquipment[Math.floor(Math.random() * this.availableEquipment.length)];
+                    const existingItem = this.gameData.equipment.find(e => e.id === randomEquipment.id);
+                    if (existingItem) {
+                        existingItem.quantity++;
+                    } else {
+                        this.gameData.equipment.push({ ...randomEquipment, quantity: 1 });
+                    }
+                }
                 
                 this.showNotification(event.message);
             }
