@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>黑心公司大亨 v2.0 - 多级制造系统</title>
+    <title>黑心公司大亨 v2.1 - 多产业线制造系统</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -338,7 +339,7 @@
         
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 250px;
             margin-bottom: 15px;
         }
         
@@ -551,7 +552,7 @@
         }
         
         /* 工厂、市场、产品项目样式 */
-        .factory-item, .market-section, .product-item, .tech-item {
+        .factory-item, .market-section, .product-item, .tech-item, .production-item {
             background: linear-gradient(135deg, rgba(45,52,54,0.8), rgba(99,110,114,0.8));
             padding: 15px;
             border-radius: 10px;
@@ -572,14 +573,14 @@
             border-color: rgba(214,48,49,0.5);
         }
         
-        .factory-header, .product-header, .tech-header {
+        .factory-header, .product-header, .tech-header, .production-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
         
-        .factory-name, .product-name, .tech-name {
+        .factory-name, .product-name, .tech-name, .production-name {
             font-weight: bold;
             color: #fdcb6e;
             font-size: 16px;
@@ -650,6 +651,49 @@
         .multiplier-btn:hover {
             background: rgba(253,203,110,0.2);
         }
+        
+        /* 生产进度条 */
+        .production-progress {
+            background: rgba(0,0,0,0.3);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        
+        .production-progress-bar {
+            background: linear-gradient(90deg, #00b894, #00a085);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .production-status {
+            font-size: 12px;
+            color: #00b894;
+            margin: 5px 0;
+        }
+        
+        .production-queue {
+            font-size: 11px;
+            color: #bbb;
+            margin-top: 5px;
+        }
+        
+        /* 产品等级标识 */
+        .tier-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .tier-badge.T1 { background: #74b9ff; color: white; }
+        .tier-badge.T2 { background: #a29bfe; color: white; }
+        .tier-badge.T3 { background: #fd79a8; color: white; }
+        .tier-badge.T4 { background: #00b894; color: white; }
+        .tier-badge.T5 { background: #fab1a0; color: white; }
         
         .btn {
             background: linear-gradient(135deg, #e17055, #d63031);
@@ -725,37 +769,6 @@
             }
         }
         
-        /* 生产进度条 */
-        .production-progress {
-            background: rgba(0,0,0,0.3);
-            height: 8px;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 8px 0;
-        }
-        
-        .production-progress-bar {
-            background: linear-gradient(90deg, #00b894, #00a085);
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-        
-        /* 产品等级标识 */
-        .tier-badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: bold;
-            margin-left: 5px;
-        }
-        
-        .tier-badge.T1 { background: #74b9ff; color: white; }
-        .tier-badge.T2 { background: #a29bfe; color: white; }
-        .tier-badge.T3 { background: #fd79a8; color: white; }
-        .tier-badge.T4 { background: #00b894; color: white; }
-        .tier-badge.T5 { background: #fab1a0; color: white; }
-        
         /* 滚动条样式 */
         ::-webkit-scrollbar {
             width: 8px;
@@ -813,13 +826,13 @@
 <body>
     <!-- 版本更新横幅 -->
     <div class="version-banner">
-        🎉 欢迎来到黑心公司大亨 v2.0！全新多级产品制造系统上线！🎉
+        🎉 欢迎来到黑心公司大亨 v2.1！全新多产业线制造系统 + 全自动化生产！🎉
     </div>
 
     <!-- 新闻滚动条 -->
     <div class="news-ticker" id="newsTicker">
         <div class="news-content" id="newsContent">
-            📰 全新v2.0版本上线：多级产品制造 | 🏭 5种专业工厂等你建造 | 🌍 4层市场体系 | ⚡ 10分钟事件周期...
+            📰 v2.1全新上线：12种工厂类型 | 🏭 全自动化生产线 | 📊 实时可视化图表 | 🏢 10个AI巨头公司...
         </div>
     </div>
 
@@ -827,8 +840,8 @@
     <div class="login-screen" id="loginScreen">
         <div class="login-form">
             <div class="login-title">🏢 黑心公司大亨 🏢</div>
-            <div class="version-tag">v2.0 多级制造系统</div>
-            <div class="login-subtitle">"从原料到奢侈品的完整产业链"</div>
+            <div class="version-tag">v2.1 多产业线制造系统</div>
+            <div class="login-subtitle">"从农业到奢侈品的完整产业帝国"</div>
             
             <input type="text" class="login-input" id="companyName" placeholder="输入你的制造帝国名称" maxlength="25">
             
@@ -842,39 +855,39 @@
                     <div class="company-type-title">🏭 重工业</div>
                     <div class="company-type-desc">钢铁机械大规模生产</div>
                 </div>
+                <div class="company-type" data-type="agriculture">
+                    <div class="company-type-title">🌾 农业帝国</div>
+                    <div class="company-type-desc">农产品全产业链</div>
+                </div>
                 <div class="company-type" data-type="luxury">
                     <div class="company-type-title">💎 奢侈品</div>
                     <div class="company-type-desc">高端产品精品路线</div>
-                </div>
-                <div class="company-type" data-type="energy">
-                    <div class="company-type-title">⚡ 能源化工</div>
-                    <div class="company-type-desc">能源产品供应链</div>
                 </div>
             </div>
             
             <button class="login-btn" onclick="joinGame()">开始制造之旅</button>
             
             <div class="feature-list">
-                <div style="color: #fdcb6e; font-weight: bold; margin-bottom: 10px;">🆕 v2.0 全新特性：</div>
+                <div style="color: #fdcb6e; font-weight: bold; margin-bottom: 10px;">🆕 v2.1 全新特性：</div>
                 <div class="feature-item">
                     <span class="feature-icon">🏭</span>
-                    <span>5级产品制造链：原料→初级→中级→高级→奢侈品</span>
+                    <span>12种工厂类型：农场、化工厂、食品厂、纺织厂等</span>
                 </div>
                 <div class="feature-item">
-                    <span class="feature-icon">🏪</span>
-                    <span>4层市场体系：本地→国内→国际→奢侈品市场</span>
+                    <span class="feature-icon">⚙️</span>
+                    <span>全自动化生产：可视化进度条，实时显示生产状态</span>
                 </div>
                 <div class="feature-item">
-                    <span class="feature-icon">🤖</span>
-                    <span>智能自动化：后期可设置全自动生产</span>
+                    <span class="feature-icon">📊</span>
+                    <span>智能图表：K线图、生产监控、科技趋势分析</span>
                 </div>
                 <div class="feature-item">
-                    <span class="feature-icon">⏰</span>
-                    <span>10分钟事件周期：更频繁的市场变化</span>
+                    <span class="feature-icon">🏢</span>
+                    <span>10个AI巨头：水果科技、微硬公司、特斯拉汽车等</span>
                 </div>
                 <div class="feature-item">
-                    <span class="feature-icon">🔬</span>
-                    <span>科技研发树：解锁更高效的生产方式</span>
+                    <span class="feature-icon">🌍</span>
+                    <span>多产业耦合：农业、工业、科技、奢侈品产业链</span>
                 </div>
             </div>
         </div>
@@ -883,7 +896,7 @@
     <!-- 游戏主界面 -->
     <div class="game-container" id="gameContainer">
         <div class="header">
-            <div class="company-title">🏭 现代制造业：多级产品制造系统 🏭</div>
+            <div class="company-title">🏭 多产业线制造帝国：全自动化生产系统 🏭</div>
             
             <!-- 全球事件横幅 -->
             <div class="global-event-banner" id="globalEventBanner" style="display: none;">
@@ -932,44 +945,56 @@
         
         <div class="main-layout">
             <div class="left-content">
-                <!-- 生产状态图 -->
-                <div class="chart-section">
-                    <div class="chart-header">
-                        📊 生产监控中心
-                        <span style="font-size: 12px; color: #bbb;">实时生产数据</span>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="productionChart"></canvas>
-                    </div>
-                </div>
-                
                 <div class="tabs-container">
                     <div class="tabs-header">
                         <button class="tab-button active" onclick="switchTab('factories')">🏭 工厂建造</button>
                         <button class="tab-button" onclick="switchTab('production')">⚙️ 生产管理</button>
                         <button class="tab-button" onclick="switchTab('markets')">🏪 市场交易</button>
                         <button class="tab-button" onclick="switchTab('research')">🔬 科技研发</button>
-                        <button class="tab-button" onclick="switchTab('automation')">🤖 自动化</button>
                     </div>
                     
                     <div class="tab-content active" id="factories-tab">
+                        <!-- 工厂产能图表 -->
+                        <div class="chart-section">
+                            <div class="chart-header">📊 工厂产能分析</div>
+                            <div class="chart-container">
+                                <canvas id="factoryChart"></canvas>
+                            </div>
+                        </div>
                         <div id="factories"></div>
                     </div>
                     
                     <div class="tab-content" id="production-tab">
+                        <!-- 生产进度图表 -->
+                        <div class="chart-section">
+                            <div class="chart-header">⚙️ 实时生产监控</div>
+                            <div class="chart-container">
+                                <canvas id="productionChart"></canvas>
+                            </div>
+                        </div>
                         <div id="production"></div>
                     </div>
                     
                     <div class="tab-content" id="markets-tab">
+                        <!-- 市场K线图 -->
+                        <div class="chart-section">
+                            <div class="chart-header">📈 市场价格走势</div>
+                            <div class="chart-container">
+                                <canvas id="marketChart"></canvas>
+                            </div>
+                        </div>
                         <div id="markets"></div>
                     </div>
                     
                     <div class="tab-content" id="research-tab">
+                        <!-- 科技趋势图表 -->
+                        <div class="chart-section">
+                            <div class="chart-header">🔬 科技研发进度</div>
+                            <div class="chart-container">
+                                <canvas id="techChart"></canvas>
+                            </div>
+                        </div>
                         <div id="research"></div>
-                    </div>
-                    
-                    <div class="tab-content" id="automation-tab">
-                        <div id="automation"></div>
                     </div>
                 </div>
             </div>
@@ -1007,19 +1032,27 @@
                 this.playerName = '';
                 this.companyType = 'tech';
                 this.isConnected = false;
-                this.productionChart = null;
                 this.selectedMultiplier = 1;
                 this.newsMessages = [];
                 
+                // 图表实例
+                this.factoryChart = null;
+                this.productionChart = null;
+                this.marketChart = null;
+                this.techChart = null;
+                
+                // 数据存储
+                this.productionTasks = new Map();
+                this.marketPriceHistory = {};
+                
                 this.gameData = {
-                    version: '2.0.0',
+                    version: '2.1.0',
                     inventory: { money: 500000 },
                     factories: {},
                     technologies: [],
                     companyType: 'tech',
                     level: 0,
                     experience: 0,
-                    automationSettings: {},
                     lastUpdate: Date.now()
                 };
                 
@@ -1041,6 +1074,7 @@
                 this.setupSocketListeners();
                 this.initCharts();
                 this.startNewsUpdate();
+                this.startProductionUpdate();
             }
             
             setupCompanyTypeSelector() {
@@ -1057,14 +1091,42 @@
             }
             
             initCharts() {
+                // 工厂产能图表
+                const factoryCtx = document.getElementById('factoryChart').getContext('2d');
+                this.factoryChart = new Chart(factoryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: '工厂数量',
+                            data: [],
+                            backgroundColor: ['#fdcb6e', '#74b9ff', '#a29bfe', '#fd79a8', '#00b894', '#fab1a0'],
+                            borderColor: '#e17055',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#ddd' } }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#bbb' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                            y: { ticks: { color: '#bbb' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                        }
+                    }
+                });
+
+                // 生产进度图表
                 const productionCtx = document.getElementById('productionChart').getContext('2d');
                 this.productionChart = new Chart(productionCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['原材料', '初级产品', '中级产品', '高级产品', '奢侈品'],
+                        labels: ['空闲工厂', '生产中', '排队中'],
                         datasets: [{
-                            data: [0, 0, 0, 0, 0],
-                            backgroundColor: ['#74b9ff', '#a29bfe', '#fd79a8', '#00b894', '#fab1a0'],
+                            data: [1, 0, 0],
+                            backgroundColor: ['#636e72', '#00b894', '#fdcb6e'],
                             borderWidth: 2,
                             borderColor: '#2d3436'
                         }]
@@ -1073,8 +1135,73 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: {
-                                labels: { color: '#ddd' }
+                            legend: { labels: { color: '#ddd' } }
+                        }
+                    }
+                });
+
+                // 市场价格走势图
+                const marketCtx = document.getElementById('marketChart').getContext('2d');
+                this.marketChart = new Chart(marketCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: []
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#ddd' } }
+                        },
+                        scales: {
+                            x: { 
+                                ticks: { color: '#bbb' }, 
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            y: { 
+                                ticks: { 
+                                    color: '#bbb',
+                                    callback: function(value) {
+                                        return value >= 1000000 ? (value / 1000000).toFixed(1) + 'M' : 
+                                               value >= 1000 ? (value / 1000).toFixed(1) + 'K' : value;
+                                    }
+                                }, 
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            }
+                        }
+                    }
+                });
+
+                // 科技研发进度图表
+                const techCtx = document.getElementById('techChart').getContext('2d');
+                this.techChart = new Chart(techCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['效率', '质量', '物流', '市场', '制造', 'AI'],
+                        datasets: [{
+                            label: '研发进度',
+                            data: [0, 0, 0, 0, 0, 0],
+                            borderColor: '#fdcb6e',
+                            backgroundColor: 'rgba(253,203,110,0.2)',
+                            pointBackgroundColor: '#fdcb6e',
+                            pointBorderColor: '#e17055',
+                            pointHoverBackgroundColor: '#e17055',
+                            pointHoverBorderColor: '#fdcb6e'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#ddd' } }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: { color: 'rgba(255,255,255,0.1)' },
+                                grid: { color: 'rgba(255,255,255,0.1)' },
+                                pointLabels: { color: '#bbb' },
+                                ticks: { color: '#bbb', backdropColor: 'transparent' }
                             }
                         }
                     }
@@ -1087,16 +1214,23 @@
                 }, 15000);
             }
 
+            startProductionUpdate() {
+                // 每秒更新生产进度
+                setInterval(() => {
+                    this.updateProductionProgress();
+                }, 1000);
+            }
+
             updateNews() {
                 const newsTemplates = [
-                    "🏭 全球制造业指数上涨",
-                    "📦 供应链效率持续优化", 
-                    "⚡ 新能源技术突破在即",
-                    "🤖 自动化程度再创新高",
-                    "💎 奢侈品市场需求激增",
-                    "🔬 新材料研发取得进展",
-                    "🌍 国际贸易政策调整",
-                    "📈 制造业数字化转型加速"
+                    "🏭 全球制造业指数稳步上升",
+                    "📦 供应链优化技术取得突破", 
+                    "⚡ 新能源政策推动产业升级",
+                    "🤖 智能制造成为行业新趋势",
+                    "💎 奢侈品消费市场持续火热",
+                    "🔬 新材料技术革新制造工艺",
+                    "🌍 国际贸易合作不断深化",
+                    "📈 数字化转型助力企业增长"
                 ];
 
                 const news = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
@@ -1111,6 +1245,33 @@
                 
                 const newsContent = document.getElementById('newsContent');
                 newsContent.textContent = this.newsMessages.join(' | ') + ' | ';
+            }
+
+            updateProductionProgress() {
+                // 更新所有工厂的生产进度
+                Object.keys(this.gameData.factories).forEach(factoryId => {
+                    const factory = this.gameData.factories[factoryId];
+                    if (factory.currentTask) {
+                        const progress = this.calculateTaskProgress(factory.currentTask);
+                        factory.currentTask.progress = progress;
+                        
+                        // 如果在生产管理页面，实时更新进度条
+                        const progressBar = document.getElementById(`progress_${factoryId}`);
+                        if (progressBar) {
+                            progressBar.style.width = `${progress * 100}%`;
+                        }
+                    }
+                });
+                
+                // 更新生产监控图表
+                this.updateProductionChart();
+            }
+
+            calculateTaskProgress(task) {
+                if (!task) return 0;
+                const elapsed = Date.now() - task.startTime;
+                const total = task.completionTime - task.startTime;
+                return Math.min(elapsed / total, 1);
             }
 
             setupSocketListeners() {
@@ -1169,6 +1330,7 @@
                         this.globalMarkets = data;
                     }
                     this.renderMarkets();
+                    this.updateMarketChart();
                 });
                 
                 this.socket.on('leaderboardUpdate', (leaderboard) => {
@@ -1192,13 +1354,35 @@
                     this.updateDisplay();
                     this.renderFactories();
                     this.renderProduction();
+                    this.updateFactoryChart();
                 });
                 
                 this.socket.on('productionStarted', (data) => {
-                    this.showNotification(`⚙️ 开始生产：${data.task.productId}`);
+                    this.showNotification(`⚙️ 开始生产：${this.getProductName(data.task.productId)}`);
                     this.gameData.inventory = data.playerData.inventory;
+                    this.gameData.factories = data.playerData.factories;
                     this.updateDisplay();
                     this.renderProduction();
+                });
+                
+                this.socket.on('productionProgress', (data) => {
+                    // 实时更新生产进度
+                    const factory = this.gameData.factories[data.factoryId];
+                    if (factory && factory.currentTask && factory.currentTask.id === data.taskId) {
+                        factory.currentTask.progress = data.progress;
+                        factory.currentTask.remainingTime = data.remainingTime;
+                        
+                        // 更新UI进度条
+                        const progressBar = document.getElementById(`progress_${data.factoryId}`);
+                        if (progressBar) {
+                            progressBar.style.width = `${data.progress * 100}%`;
+                        }
+                        
+                        const timeElement = document.getElementById(`time_${data.factoryId}`);
+                        if (timeElement) {
+                            timeElement.textContent = this.formatTime(data.remainingTime);
+                        }
+                    }
                 });
                 
                 this.socket.on('productionCompleted', (data) => {
@@ -1207,7 +1391,6 @@
                     this.gameData.experience = data.playerData.experience;
                     this.updateDisplay();
                     this.renderProduction();
-                    this.updateProductionChart();
                 });
                 
                 this.socket.on('tradeSuccess', (data) => {
@@ -1224,6 +1407,7 @@
                     this.updateDisplay();
                     this.renderResearch();
                     this.renderFactories();
+                    this.updateTechChart();
                 });
                 
                 this.socket.on('chatMessage', (message) => {
@@ -1364,22 +1548,23 @@
                 document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 document.getElementById(`${tabName}-tab`).classList.add('active');
                 
-                // 根据标签页渲染内容
+                // 根据标签页更新对应图表
                 switch(tabName) {
                     case 'factories':
                         this.renderFactories();
+                        this.updateFactoryChart();
                         break;
                     case 'production':
                         this.renderProduction();
+                        this.updateProductionChart();
                         break;
                     case 'markets':
                         this.renderMarkets();
+                        this.updateMarketChart();
                         break;
                     case 'research':
                         this.renderResearch();
-                        break;
-                    case 'automation':
-                        this.renderAutomation();
+                        this.updateTechChart();
                         break;
                 }
             }
@@ -1423,11 +1608,126 @@
                 this.renderProduction();
                 this.renderMarkets();
                 this.renderResearch();
-                this.renderAutomation();
                 this.renderLeaderboard();
                 this.renderChat();
                 this.updateDisplay();
+                this.updateAllCharts();
+            }
+
+            updateAllCharts() {
+                this.updateFactoryChart();
                 this.updateProductionChart();
+                this.updateMarketChart();
+                this.updateTechChart();
+            }
+
+            updateFactoryChart() {
+                if (!this.factoryChart) return;
+                
+                const factoryTypes = {};
+                Object.values(this.gameData.factories).forEach(factory => {
+                    const type = this.factoryTypes[factory.type];
+                    if (type) {
+                        factoryTypes[type.name] = (factoryTypes[type.name] || 0) + 1;
+                    }
+                });
+                
+                this.factoryChart.data.labels = Object.keys(factoryTypes);
+                this.factoryChart.data.datasets[0].data = Object.values(factoryTypes);
+                this.factoryChart.update();
+            }
+
+            updateProductionChart() {
+                if (!this.productionChart) return;
+                
+                let idle = 0, producing = 0, queued = 0;
+                
+                Object.values(this.gameData.factories).forEach(factory => {
+                    if (factory.currentTask) {
+                        producing++;
+                    } else {
+                        idle++;
+                    }
+                    
+                    if (factory.productionQueue && factory.productionQueue.length > 0) {
+                        queued += factory.productionQueue.length;
+                    }
+                });
+                
+                this.productionChart.data.datasets[0].data = [idle, producing, queued];
+                this.productionChart.update();
+            }
+
+            updateMarketChart() {
+                if (!this.marketChart || !this.globalMarkets.local) return;
+                
+                const now = new Date();
+                const timeLabel = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                // 限制数据点数量
+                if (this.marketChart.data.labels.length >= 20) {
+                    this.marketChart.data.labels.shift();
+                }
+                this.marketChart.data.labels.push(timeLabel);
+                
+                // 选择几个主要产品显示价格走势
+                const trackedProducts = ['steel', 'chips', 'smartphone', 'luxury_car'];
+                const colors = ['#fdcb6e', '#74b9ff', '#fd79a8', '#fab1a0'];
+                
+                trackedProducts.forEach((productId, index) => {
+                    let price = 0;
+                    
+                    // 从各个市场中找到该产品的价格
+                    for (const marketType of Object.keys(this.globalMarkets)) {
+                        if (this.globalMarkets[marketType][productId]) {
+                            price = this.globalMarkets[marketType][productId].price;
+                            break;
+                        }
+                    }
+                    
+                    if (!this.marketChart.data.datasets[index]) {
+                        this.marketChart.data.datasets[index] = {
+                            label: this.getProductName(productId),
+                            data: [],
+                            borderColor: colors[index],
+                            backgroundColor: colors[index] + '20',
+                            tension: 0.1,
+                            fill: false
+                        };
+                    }
+                    
+                    const dataset = this.marketChart.data.datasets[index];
+                    
+                    if (dataset.data.length >= 20) {
+                        dataset.data.shift();
+                    }
+                    dataset.data.push(price);
+                });
+                
+                this.marketChart.update();
+            }
+
+            updateTechChart() {
+                if (!this.techChart) return;
+                
+                const categories = {
+                    'efficiency': 0,
+                    'quality': 0,
+                    'logistics': 0,
+                    'market': 0,
+                    'manufacturing': 0,
+                    'ai': 0
+                };
+                
+                this.gameData.technologies.forEach(techId => {
+                    const tech = this.techTree[techId];
+                    if (tech && categories[tech.category] !== undefined) {
+                        categories[tech.category]++;
+                    }
+                });
+                
+                this.techChart.data.datasets[0].data = Object.values(categories);
+                this.techChart.update();
             }
 
             renderFactories() {
@@ -1483,47 +1783,57 @@
                     const factoryType = this.factoryTypes[factory.type];
                     const div = document.createElement('div');
                     
-                    div.className = 'factory-item';
+                    div.className = 'production-item';
                     
-                    let statusText = '空闲';
+                    let statusText = '工厂空闲';
                     let progressBar = '';
+                    let queueInfo = '';
                     
                     if (factory.currentTask) {
-                        const progress = Math.min(100, (Date.now() - factory.currentTask.startTime) / 
-                            (factory.currentTask.completionTime - factory.currentTask.startTime) * 100);
+                        const progress = factory.currentTask.progress || 0;
+                        const remainingTime = factory.currentTask.remainingTime || 0;
                         statusText = `生产中: ${this.getProductName(factory.currentTask.productId)} x${factory.currentTask.quantity}`;
                         progressBar = `
                             <div class="production-progress">
-                                <div class="production-progress-bar" style="width: ${progress}%"></div>
+                                <div class="production-progress-bar" id="progress_${factoryId}" style="width: ${progress * 100}%"></div>
+                            </div>
+                            <div class="production-status">
+                                进度: ${Math.floor(progress * 100)}% | 剩余时间: <span id="time_${factoryId}">${this.formatTime(remainingTime)}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    if (factory.productionQueue && factory.productionQueue.length > 0) {
+                        queueInfo = `
+                            <div class="production-queue">
+                                队列中: ${factory.productionQueue.length} 个任务等待生产
                             </div>
                         `;
                     }
                     
                     div.innerHTML = `
-                        <div class="factory-header">
-                            <div class="factory-name">${factoryType.emoji} ${factoryType.name}</div>
-                            <div style="font-size: 12px; color: ${factory.automation ? '#00b894' : '#bbb'};">
-                                ${factory.automation ? '🤖 自动' : '👤 手动'}
+                        <div class="production-header">
+                            <div class="production-name">${factoryType.emoji} ${factoryType.name}</div>
+                            <div style="font-size: 12px; color: #00b894;">
+                                等级: ${factory.level} | 效率: ${Math.floor((factory.efficiency || 1) * 100)}%
                             </div>
                         </div>
                         <div style="font-size: 12px; color: #ddd; margin-bottom: 8px;">
-                            等级: ${factory.level} | 效率: ${Math.floor(factory.efficiency * 100)}%
-                        </div>
-                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
                             状态: ${statusText}
                         </div>
                         ${progressBar}
+                        ${queueInfo}
                         <div style="margin-top: 10px;">
-                            <select id="product_${factoryId}" style="width: 60%; margin-right: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                            <select id="product_${factoryId}" style="width: 45%; margin-right: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; background: #2d3436; color: #ddd;">
                                 ${factoryType.produces.map(productId => 
                                     `<option value="${productId}">${this.getProductName(productId)}</option>`
                                 ).join('')}
                             </select>
                             <input type="number" id="quantity_${factoryId}" placeholder="数量" min="1" value="1" 
-                                style="width: 20%; margin-right: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                style="width: 25%; margin-right: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; background: #2d3436; color: #ddd;">
                             <button class="btn" onclick="game.startProduction('${factoryId}')" 
-                                style="width: 15%; padding: 5px;">
-                                生产
+                                style="width: 20%; padding: 5px;">
+                                开始生产
                             </button>
                         </div>
                     `;
@@ -1661,58 +1971,6 @@
                 });
             }
 
-            renderAutomation() {
-                const container = document.getElementById('automation');
-                container.innerHTML = '';
-                
-                if (Object.keys(this.gameData.factories).length === 0) {
-                    container.innerHTML = '<div style="text-align: center; color: #bbb; margin-top: 50px;">先建造工厂才能设置自动化</div>';
-                    return;
-                }
-                
-                const hasAutomationTech = this.gameData.technologies.includes('automation_2');
-                
-                if (!hasAutomationTech) {
-                    container.innerHTML = `
-                        <div style="text-align: center; color: #bbb; margin-top: 50px;">
-                            <div style="margin-bottom: 15px;">需要研发"高级自动化"技术才能设置自动化</div>
-                            <button class="btn" onclick="switchTab('research')" style="padding: 10px 20px;">
-                                前往研发
-                            </button>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                Object.keys(this.gameData.factories).forEach(factoryId => {
-                    const factory = this.gameData.factories[factoryId];
-                    const factoryType = this.factoryTypes[factory.type];
-                    const div = document.createElement('div');
-                    
-                    div.className = 'factory-item';
-                    
-                    div.innerHTML = `
-                        <div class="factory-header">
-                            <div class="factory-name">${factoryType.emoji} ${factoryType.name}</div>
-                            <div style="font-size: 12px; color: ${factory.automation ? '#00b894' : '#e74c3c'};">
-                                ${factory.automation ? '🤖 已启用' : '👤 手动模式'}
-                            </div>
-                        </div>
-                        <div style="font-size: 11px; color: #bbb; margin-bottom: 10px;">
-                            自动化可以让工厂自动执行预设的生产任务
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <button class="btn ${factory.automation ? 'sell' : 'buy'}" 
-                                onclick="game.toggleAutomation('${factoryId}')" style="width: 100%;">
-                                ${factory.automation ? '关闭自动化' : '启用自动化'}
-                            </button>
-                        </div>
-                    `;
-                    
-                    container.appendChild(div);
-                });
-            }
-
             renderLeaderboard() {
                 const container = document.getElementById('leaderboard');
                 container.innerHTML = '';
@@ -1798,24 +2056,6 @@
                 document.getElementById('companyLevel').textContent = this.gameData.level;
             }
 
-            updateProductionChart() {
-                if (!this.productionChart) return;
-                
-                const tierCounts = { T1: 0, T2: 0, T3: 0, T4: 0, T5: 0 };
-                
-                Object.keys(this.gameData.inventory).forEach(item => {
-                    if (item !== 'money') {
-                        const tier = this.getProductTier(item);
-                        if (tier && tierCounts[tier] !== undefined) {
-                            tierCounts[tier] += this.gameData.inventory[item] || 0;
-                        }
-                    }
-                });
-                
-                this.productionChart.data.datasets[0].data = Object.values(tierCounts);
-                this.productionChart.update();
-            }
-
             // 游戏操作方法
             buildFactory(factoryType) {
                 this.socket.emit('buildFactory', { factoryType });
@@ -1835,7 +2075,7 @@
                 });
             }
 
-           setMultiplier(multiplier) {
+            setMultiplier(multiplier) {
                 this.selectedMultiplier = multiplier;
                 this.renderMarkets();
             }
@@ -1862,17 +2102,6 @@
 
             researchTech(techId) {
                 this.socket.emit('researchTech', { techId });
-            }
-
-            toggleAutomation(factoryId) {
-                // 这里可以添加自动化切换逻辑
-                const factory = this.gameData.factories[factoryId];
-                if (factory) {
-                    factory.automation = !factory.automation;
-                    this.showNotification(`🤖 ${factory.automation ? '启用' : '关闭'}了工厂自动化`);
-                    this.renderAutomation();
-                    this.socket.emit('updateGameData', this.gameData);
-                }
             }
 
             sendMessage() {
@@ -1913,8 +2142,11 @@
                 const emojis = {
                     tech: '💻',
                     manufacturing: '🏭',
+                    agriculture: '🌾',
                     luxury: '💎',
-                    energy: '⚡'
+                    food: '🍔',
+                    beauty: '💄',
+                    retail: '🛒'
                 };
                 return emojis[companyType] || '🏢';
             }
@@ -1945,6 +2177,20 @@
                         return `${this.formatNumber(cost[item])}${product ? product.name : item}`;
                     }
                 }).join(' ');
+            }
+
+            formatTime(milliseconds) {
+                const seconds = Math.floor(milliseconds / 1000);
+                const minutes = Math.floor(seconds / 60);
+                const hours = Math.floor(minutes / 60);
+                
+                if (hours > 0) {
+                    return `${hours}h ${minutes % 60}m`;
+                } else if (minutes > 0) {
+                    return `${minutes}m ${seconds % 60}s`;
+                } else {
+                    return `${seconds}s`;
+                }
             }
         }
         
