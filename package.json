@@ -1,16 +1,7 @@
 {
   "name": "fantasy-company-game",
   "version": "1.0.0",
-  "description": "幻想公司经营游戏",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2"
-  },
-  "engines": {
-    "node": ">=16.0.0"
+    "start": "npx http-server . -p $PORT -a 0.0.0.0"
   }
 }
