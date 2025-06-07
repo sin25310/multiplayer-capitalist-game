@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>黑心公司大亨 - 多人现代商战</title>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -229,12 +230,52 @@
         
         .main-layout {
             display: grid;
-            grid-template-columns: 1fr 400px;
+            grid-template-columns: 2fr 1fr;
             min-height: calc(100vh - 200px);
         }
         
         .left-content {
             padding: 20px;
+        }
+        
+        .chart-section {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .chart-header {
+            color: #fdcb6e;
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 15px;
+        }
+        
+        .market-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .market-item-summary {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #fdcb6e;
         }
         
         .right-panel {
@@ -248,7 +289,7 @@
             flex: 1;
             padding: 20px;
             border-bottom: 2px solid rgba(253,203,110,0.3);
-            min-height: 350px;
+            min-height: 300px;
         }
         
         .chat-header {
@@ -262,7 +303,7 @@
         }
         
         .chat-messages {
-            height: 250px;
+            height: 200px;
             overflow-y: auto;
             margin-bottom: 15px;
             padding: 15px;
@@ -445,7 +486,7 @@
             display: block;
         }
         
-        .department, .market-item, .manipulation-item, .talent-item {
+        .department, .market-item, .stock-item {
             background: linear-gradient(135deg, rgba(45,52,54,0.8), rgba(99,110,114,0.8));
             padding: 15px;
             border-radius: 10px;
@@ -455,13 +496,13 @@
             margin-bottom: 12px;
         }
         
-        .department:hover, .market-item:hover, .manipulation-item:hover, .talent-item:hover {
+        .department:hover, .market-item:hover, .stock-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(253,203,110,0.2);
             border-color: rgba(253,203,110,0.5);
         }
         
-        .department.insufficient, .market-item.expensive, .manipulation-item.insufficient, .talent-item.insufficient {
+        .department.insufficient, .market-item.expensive, .stock-item.expensive {
             opacity: 0.6;
             border-color: rgba(214,48,49,0.5);
         }
@@ -514,17 +555,6 @@
             border: 1px solid rgba(0,184,148,0.3);
         }
         
-        .talent-tree {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-        }
-        
-        .talent-item.unlocked {
-            border-color: #00b894;
-            background: linear-gradient(135deg, rgba(0,184,148,0.1), rgba(0,168,133,0.1));
-        }
-        
         .btn {
             background: linear-gradient(135deg, #e17055, #d63031);
             color: white;
@@ -549,10 +579,18 @@
             transform: none;
         }
         
+        .btn.buy {
+            background: linear-gradient(135deg, #00b894, #00a085);
+        }
+        
+        .btn.sell {
+            background: linear-gradient(135deg, #e17055, #d63031);
+        }
+        
         .notification {
             position: fixed;
             top: 20px;
-            right: 420px;
+            right: 20px;
             background: rgba(0,0,0,0.9);
             color: #fdcb6e;
             padding: 15px 25px;
@@ -574,21 +612,18 @@
             font-size: 14px;
         }
         
-        .manipulation-effect {
-            font-size: 10px;
-            color: #e17055;
+        .profit-indicator {
+            font-size: 12px;
             margin-top: 5px;
-            font-style: italic;
+            font-weight: bold;
         }
         
-        .specialization-bonus {
-            background: rgba(0,184,148,0.1);
-            border: 1px solid rgba(0,184,148,0.3);
-            padding: 8px;
-            border-radius: 6px;
-            margin-top: 8px;
-            font-size: 11px;
+        .profit-indicator.positive {
             color: #00b894;
+        }
+        
+        .profit-indicator.negative {
+            color: #e74c3c;
         }
         
         @media (max-width: 1200px) {
@@ -599,10 +634,6 @@
             .right-panel {
                 border-left: none;
                 border-top: 2px solid rgba(253,203,110,0.3);
-            }
-            
-            .notification {
-                right: 20px;
             }
         }
         
@@ -649,21 +680,14 @@
                     <div class="company-type-title">🛒 零售公司</div>
                     <div class="company-type-desc">垄断市场，价格操控</div>
                 </div>
-                <div class="company-type" data-type="entertainment">
-                    <div class="company-type-title">🎮 娱乐公司</div>
-                    <div class="company-type-desc">成瘾设计，氪金陷阱</div>
-                </div>
-                <div class="company-type" data-type="pharma">
-                    <div class="company-type-title">💊 制药公司</div>
-                    <div class="company-type-desc">天价药物，虚假宣传</div>
-                </div>
             </div>
             
             <button class="login-btn" onclick="joinGame()">开始剥削之旅</button>
             <div style="margin-top: 25px; font-size: 14px; color: #bbb; line-height: 1.5;">
                 🎯 目标：成为最富有的黑心企业<br>
                 💰 手段：不择手段，唯利是图<br>
-                🌍 竞争：击败全球玩家和AI巨头
+                🌍 竞争：击败全球玩家和AI巨头<br>
+                📈 挂机：离线也能持续赚钱
             </div>
         </div>
     </div>
@@ -699,32 +723,44 @@
                         <div class="stat-value" id="marketValue">0</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">行业地位</div>
-                        <div class="stat-value" id="industryRank">#-</div>
+                        <div class="stat-label">每秒收益</div>
+                        <div class="stat-value" id="incomePerSecond">+0</div>
                     </div>
                 </div>
             </div>
             
             <div class="resources">
-                <div class="resource money">💰 资金: <span id="money">500K</span></div>
-                <div class="resource workforce">👥 人力: <span id="workforce">10</span></div>
-                <div class="resource materials">📦 原料: <span id="materials">50</span></div>
-                <div class="resource technology">💻 科技: <span id="technology">20</span></div>
-                <div class="resource energy">⚡ 能源: <span id="energy">30</span></div>
-                <div class="resource data">📊 数据: <span id="data">15</span></div>
+                <div class="resource money">💰 资金: <span id="money">1M</span></div>
+                <div class="resource workforce">👥 人力: <span id="workforce">20</span></div>
+                <div class="resource materials">📦 原料: <span id="materials">100</span></div>
+                <div class="resource technology">💻 科技: <span id="technology">50</span></div>
+                <div class="resource energy">⚡ 能源: <span id="energy">80</span></div>
+                <div class="resource data">📊 数据: <span id="data">30</span></div>
                 <div class="resource reputation">⭐ 声誉: <span id="reputation">100</span></div>
-                <div class="resource influence">🎭 影响力: <span id="influence">5</span></div>
+                <div class="resource influence">🎭 影响力: <span id="influence">10</span></div>
             </div>
         </div>
         
         <div class="main-layout">
             <div class="left-content">
+                <div class="chart-section">
+                    <div class="chart-header">
+                        📈 全球股市实时动态
+                        <span style="font-size: 12px; color: #bbb;">公司市值变化趋势</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="marketChart"></canvas>
+                    </div>
+                    <div class="market-summary" id="marketSummary">
+                        <!-- 市场概览将通过JavaScript生成 -->
+                    </div>
+                </div>
+                
                 <div class="tabs-container">
                     <div class="tabs-header">
                         <button class="tab-button active" onclick="switchTab('departments')">🏭 公司部门</button>
-                        <button class="tab-button" onclick="switchTab('market')">📈 全球市场</button>
-                        <button class="tab-button" onclick="switchTab('manipulations')">🎮 市场操控</button>
-                        <button class="tab-button" onclick="switchTab('talents')">🌳 邪恶天赋</button>
+                        <button class="tab-button" onclick="switchTab('market')">🏪 资源市场</button>
+                        <button class="tab-button" onclick="switchTab('stocks')">📊 股票交易</button>
                     </div>
                     
                     <div class="tab-content active" id="departments-tab">
@@ -735,12 +771,8 @@
                         <div id="market"></div>
                     </div>
                     
-                    <div class="tab-content" id="manipulations-tab">
-                        <div id="manipulations"></div>
-                    </div>
-                    
-                    <div class="tab-content" id="talents-tab">
-                        <div class="talent-tree" id="talents"></div>
+                    <div class="tab-content" id="stocks-tab">
+                        <div id="stocks"></div>
                     </div>
                 </div>
             </div>
@@ -778,29 +810,27 @@
                 this.playerName = '';
                 this.companyType = 'tech';
                 this.isConnected = false;
+                this.chart = null;
+                this.chartData = {
+                    labels: [],
+                    datasets: []
+                };
                 
                 this.gameData = {
                     resources: {
-                        money: 500000, workforce: 10, materials: 50, technology: 20,
-                        energy: 30, data: 15, reputation: 100, influence: 5
+                        money: 1000000, workforce: 20, materials: 100, technology: 50,
+                        energy: 80, data: 30, reputation: 100, influence: 10
                     },
                     departments: {
-                        hr: { name: 'HR部门', count: 0, cost: { money: 30000 } },
-                        manufacturing: { name: '生产部', count: 0, cost: { money: 50000, workforce: 3 } },
-                        rd: { name: '研发部', count: 0, cost: { money: 80000, workforce: 5 } },
-                        marketing: { name: '营销部', count: 0, cost: { money: 60000, workforce: 4 } },
-                        finance: { name: '金融部', count: 0, cost: { money: 100000, workforce: 6 } },
-                        legal: { name: '法务部', count: 0, cost: { money: 120000, workforce: 5 } },
-                        lobbying: { name: '公关部', count: 0, cost: { money: 200000, workforce: 8, reputation: 50 } }
+                        hr: { name: 'HR部门', count: 1, cost: { money: 50000 } },
+                        manufacturing: { name: '生产部', count: 0, cost: { money: 80000, workforce: 5 } },
+                        rd: { name: '研发部', count: 0, cost: { money: 120000, workforce: 8 } },
+                        marketing: { name: '营销部', count: 0, cost: { money: 100000, workforce: 6 } },
+                        finance: { name: '金融部', count: 0, cost: { money: 150000, workforce: 10 } }
                     },
-                    talents: {
-                        basic_exploitation: { unlocked: false, cost: { influence: 10 } },
-                        advanced_manipulation: { unlocked: false, cost: { influence: 25 } },
-                        monopoly_tactics: { unlocked: false, cost: { influence: 50 } },
-                        global_corruption: { unlocked: false, cost: { influence: 100 } }
-                    },
+                    stocks: {},
                     companyType: 'tech',
-                    marketValue: 500000,
+                    marketValue: 1000000,
                     lastUpdate: Date.now()
                 };
                 
@@ -814,140 +844,57 @@
                     tech: {
                         name: '科技公司',
                         emoji: '💻',
-                        bonuses: { technology: 2, data: 2 },
-                        specialDepartment: 'ai_lab'
+                        bonuses: { technology: 30, data: 20 },
+                        specialization: '数据和科技产出+50%'
                     },
                     manufacturing: {
                         name: '制造公司',
                         emoji: '🏭',
-                        bonuses: { materials: 3, energy: 2 },
-                        specialDepartment: 'factory'
+                        bonuses: { materials: 80, energy: 50 },
+                        specialization: '材料和能源产出+50%'
                     },
                     finance: {
                         name: '金融公司',
                         emoji: '💳',
-                        bonuses: { money: 50000, influence: 3 },
-                        specialDepartment: 'trading_floor'
+                        bonuses: { money: 500000, influence: 20 },
+                        specialization: '金钱产出+50%，股票交易费用-50%'
                     },
                     retail: {
                         name: '零售公司',
                         emoji: '🛒',
-                        bonuses: { reputation: 50, workforce: 5 },
-                        specialDepartment: 'supply_chain'
-                    },
-                    entertainment: {
-                        name: '娱乐公司',
-                        emoji: '🎮',
-                        bonuses: { data: 3, reputation: 30 },
-                        specialDepartment: 'content_studio'
-                    },
-                    pharma: {
-                        name: '制药公司',
-                        emoji: '💊',
-                        bonuses: { technology: 3, influence: 2 },
-                        specialDepartment: 'research_lab'
+                        bonuses: { reputation: 80, workforce: 30 },
+                        specialization: '声誉和人力招聘+50%'
                     }
                 };
                 
                 // 部门生产配置
                 this.departmentData = {
                     hr: { 
-                        production: { workforce: 3 }, 
-                        consumption: { money: 15000 },
-                        description: '招聘劳动力，压榨员工价值'
+                        production: { workforce: 2, money: 10000 }, 
+                        consumption: { money: 5000 },
+                        description: '招聘人力，基础收入'
                     },
                     manufacturing: { 
-                        production: { materials: 5, money: 20000 }, 
-                        consumption: { workforce: 2, energy: 8 },
-                        description: '血汗工厂，生产廉价商品'
+                        production: { materials: 8, money: 25000 }, 
+                        consumption: { workforce: 3, energy: 5 },
+                        description: '生产材料，稳定收入'
                     },
                     rd: { 
-                        production: { technology: 2, data: 3 }, 
-                        consumption: { workforce: 4, money: 25000 },
-                        description: '研发黑科技，申请垃圾专利'
+                        production: { technology: 3, data: 4, money: 30000 }, 
+                        consumption: { workforce: 5, money: 8000 },
+                        description: '研发科技，高价值产出'
                     },
                     marketing: { 
-                        production: { reputation: 3, influence: 2 }, 
-                        consumption: { workforce: 3, money: 18000 },
-                        description: '洗脑消费者，操控舆论'
+                        production: { reputation: 4, money: 35000 }, 
+                        consumption: { workforce: 4, money: 10000, data: 2 },
+                        description: '提升声誉，品牌价值'
                     },
                     finance: { 
-                        production: { money: 40000, influence: 1 }, 
-                        consumption: { workforce: 5, data: 4 },
-                        description: '金融诈骗，合法避税'
-                    },
-                    legal: { 
-                        production: { influence: 3 }, 
-                        consumption: { workforce: 4, money: 30000 },
-                        description: '钻法律漏洞，收买官员'
-                    },
-                    lobbying: { 
-                        production: { influence: 6, reputation: 4 }, 
-                        consumption: { workforce: 8, money: 50000 },
-                        description: '政商勾结，制定有利法规'
+                        production: { money: 80000, influence: 2 }, 
+                        consumption: { workforce: 8, data: 6 },
+                        description: '金融投资，高额回报'
                     }
                 };
-                
-                // 天赋系统
-                this.talents = {
-                    basic_exploitation: {
-                        name: '基础剥削术',
-                        description: '所有部门效率提升15%',
-                        cost: { influence: 10 },
-                        effect: { productionBonus: 0.15 }
-                    },
-                    advanced_manipulation: {
-                        name: '高级操控术',
-                        description: '市场操作成功率提升50%',
-                        cost: { influence: 25 },
-                        effect: { manipulationBonus: 0.5 }
-                    },
-                    monopoly_tactics: {
-                        name: '垄断战术',
-                        description: '可以发起恶意收购',
-                        cost: { influence: 50 },
-                        effect: { unlockHostileTakeover: true }
-                    },
-                    global_corruption: {
-                        name: '全球腐败网络',
-                        description: '所有操控行为成本降低30%',
-                        cost: { influence: 100 },
-                        effect: { corruptionDiscount: 0.3 }
-                    }
-                };
-                
-                // 市场操控手段
-                this.manipulations = [
-                    {
-                        id: 'spread_rumors',
-                        name: '散布谣言',
-                        cost: { money: 30000, influence: 5 },
-                        effect: '降低竞争对手声誉',
-                        description: '在网络上雇佣水军，恶意中伤竞争对手'
-                    },
-                    {
-                        id: 'market_manipulation',
-                        name: '操控股价',
-                        cost: { money: 100000, influence: 15 },
-                        effect: '暂时提升市值',
-                        description: '内幕交易，人为制造股价波动'
-                    },
-                    {
-                        id: 'regulatory_capture',
-                        name: '监管俘获',
-                        cost: { money: 300000, influence: 40 },
-                        effect: '获得政策优势',
-                        description: '收买监管机构，制定有利政策'
-                    },
-                    {
-                        id: 'hostile_takeover',
-                        name: '恶意收购',
-                        cost: { money: 1000000, influence: 80 },
-                        effect: '吞并竞争对手',
-                        description: '强行收购，消灭威胁',
-                        requiresTalent: 'monopoly_tactics'
-                    }
-                ];
                 
                 this.init();
             }
@@ -955,6 +902,7 @@
             init() {
                 this.setupCompanyTypeSelector();
                 this.setupSocketListeners();
+                this.initChart();
                 this.startGameLoop();
             }
             
@@ -970,6 +918,50 @@
                 
                 // 默认选择科技公司
                 document.querySelector('.company-type[data-type="tech"]').classList.add('selected');
+            }
+            
+            initChart() {
+                const ctx = document.getElementById('marketChart').getContext('2d');
+                this.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: []
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#ddd'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: '#bbb'
+                                },
+                                grid: {
+                                    color: 'rgba(255,255,255,0.1)'
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    color: '#bbb',
+                                    callback: function(value) {
+                                        return value >= 1000000 ? (value / 1000000).toFixed(1) + 'M' : 
+                                               value >= 1000 ? (value / 1000).toFixed(1) + 'K' : value;
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(255,255,255,0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
             }
             
             setupSocketListeners() {
@@ -1002,6 +994,7 @@
                     this.leaderboard = leaderboard;
                     this.renderLeaderboard();
                     this.updateCompanyStats();
+                    this.updateChart();
                 });
                 
                 this.socket.on('chatMessage', (message) => {
@@ -1022,11 +1015,23 @@
                 
                 this.socket.on('tradeSuccess', (data) => {
                     this.showNotification(`💰 交易成功！${data.message}`);
+                    if (data.resourceData) {
+                        Object.keys(data.resourceData).forEach(resource => {
+                            this.gameData.resources[resource] = data.resourceData[resource];
+                        });
+                        this.updateDisplay();
+                    }
                     this.renderMarket();
                 });
                 
-                this.socket.on('manipulationSuccess', (data) => {
-                    this.showNotification(`🎭 ${data.message}`);
+                this.socket.on('stockTradeSuccess', (data) => {
+                    this.showNotification(`📈 股票交易成功！${data.message}`);
+                    if (data.playerData) {
+                        this.gameData.resources.money = data.playerData.money;
+                        this.gameData.stocks = data.playerData.stocks;
+                        this.updateDisplay();
+                        this.renderStocks();
+                    }
                 });
             }
             
@@ -1057,15 +1062,15 @@
                 if (savedData) {
                     try {
                         const saved = JSON.parse(savedData);
-                        // 合并初始资源和存档资源
-                        Object.keys(this.gameData.resources).forEach(resource => {
-                            if (saved.resources && saved.resources[resource] !== undefined) {
-                                this.gameData.resources[resource] = saved.resources[resource];
-                            }
-                        });
-                        // 保留其他存档数据
+                        if (saved.resources) {
+                            Object.keys(this.gameData.resources).forEach(resource => {
+                                if (saved.resources[resource] !== undefined) {
+                                    this.gameData.resources[resource] = saved.resources[resource];
+                                }
+                            });
+                        }
                         if (saved.departments) this.gameData.departments = saved.departments;
-                        if (saved.talents) this.gameData.talents = saved.talents;
+                        if (saved.stocks) this.gameData.stocks = saved.stocks;
                         if (saved.companyType) this.gameData.companyType = saved.companyType;
                         console.log('💾 加载公司存档成功');
                     } catch (e) {
@@ -1112,6 +1117,72 @@
                 document.getElementById(`${tabName}-tab`).classList.add('active');
             }
             
+            updateChart() {
+                const now = new Date();
+                const timeLabel = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                // 添加时间标签
+                if (this.chart.data.labels.length >= 20) {
+                    this.chart.data.labels.shift();
+                }
+                this.chart.data.labels.push(timeLabel);
+                
+                // 更新数据集
+                const topCompanies = this.leaderboard.slice(0, 6);
+                
+                topCompanies.forEach((company, index) => {
+                    if (!this.chart.data.datasets[index]) {
+                        const colors = ['#fdcb6e', '#74b9ff', '#fd79a8', '#00b894', '#a29bfe', '#fab1a0'];
+                        this.chart.data.datasets[index] = {
+                            label: company.name,
+                            data: [],
+                            borderColor: colors[index % colors.length],
+                            backgroundColor: colors[index % colors.length] + '20',
+                            tension: 0.4
+                        };
+                    }
+                    
+                    const dataset = this.chart.data.datasets[index];
+                    dataset.label = company.name;
+                    
+                    if (dataset.data.length >= 20) {
+                        dataset.data.shift();
+                    }
+                    dataset.data.push(company.value);
+                });
+                
+                this.chart.update();
+                this.renderMarketSummary();
+            }
+            
+            renderMarketSummary() {
+                const container = document.getElementById('marketSummary');
+                container.innerHTML = '';
+                
+                const topCompanies = this.leaderboard.slice(0, 4);
+                topCompanies.forEach(company => {
+                    const div = document.createElement('div');
+                    div.className = 'market-item-summary';
+                    
+                    const trendIcon = company.trend > 0 ? '📈 +' : company.trend < 0 ? '📉 ' : '➡️ ';
+                    const trendPercent = Math.abs(company.trend * 5).toFixed(1);
+                    
+                    div.innerHTML = `
+                        <div style="font-weight: bold; color: #fdcb6e; margin-bottom: 5px;">
+                            ${this.companyTypes[company.companyType]?.emoji || '🏢'} ${company.name}
+                        </div>
+                        <div style="font-size: 12px; color: #ddd;">
+                            市值: ${this.formatNumber(company.value)} 💰
+                        </div>
+                        <div style="font-size: 11px; color: ${company.trend > 0 ? '#00b894' : company.trend < 0 ? '#e74c3c' : '#bbb'};">
+                            ${trendIcon}${trendPercent}%
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+            
             updateConnectionStatus() {
                 const statusElement = document.getElementById('connectionStatus');
                 if (this.isConnected) {
@@ -1137,8 +1208,7 @@
             renderAll() {
                 this.renderDepartments();
                 this.renderMarket();
-                this.renderManipulations();
-                this.renderTalents();
+                this.renderStocks();
                 this.renderLeaderboard();
                 this.renderChat();
                 this.updateDisplay();
@@ -1158,11 +1228,11 @@
                     
                     const productionText = deptData.production ? 
                         Object.keys(deptData.production).map(r => `+${this.formatNumber(deptData.production[r])}/s ${this.getResourceEmoji(r)}`).join(' ') : '';
-                    const consumptionText = deptData.consumption ?
+                    const consumptionText = deptData.consumption && Object.keys(deptData.consumption).length > 0 ?
                         Object.keys(deptData.consumption).map(r => `-${this.formatNumber(deptData.consumption[r])}/s ${this.getResourceEmoji(r)}`).join(' ') : '';
                     
-                    // 检查公司类型加成
-                    const typeBonus = this.getCompanyTypeBonus(key);
+                    // 计算净收益
+                    const netProfit = this.calculateDepartmentProfit(key);
                     
                     div.innerHTML = `
                         <div class="department-header">
@@ -1170,12 +1240,13 @@
                             <div class="department-count">${dept.count}</div>
                         </div>
                         <div style="font-size: 11px; color: #bbb; margin-bottom: 10px;">${deptData.description}</div>
-                        ${typeBonus ? `<div class="specialization-bonus">专业加成: ${typeBonus}</div>` : ''}
                         <div class="department-stats">
                             <div class="cost-display">扩建: ${this.formatCost(dept.cost)}</div>
                             ${consumptionText ? `<div class="cost-display">消耗: ${consumptionText}</div>` : '<div></div>'}
                             ${productionText ? `<div class="production-display">产出: ${productionText}</div>` : '<div></div>'}
-                            <div class="production-display">效率: ${this.getDepartmentEfficiency(key)}%</div>
+                            <div class="profit-indicator ${netProfit >= 0 ? 'positive' : 'negative'}">
+                                净收益: ${netProfit >= 0 ? '+' : ''}${this.formatNumber(netProfit)}/s 💰
+                            </div>
                         </div>
                     `;
                     
@@ -1184,21 +1255,19 @@
                 });
             }
             
-            getCompanyTypeBonus(departmentKey) {
-                const typeConfig = this.companyTypes[this.gameData.companyType];
-                if (!typeConfig) return null;
+            calculateDepartmentProfit(key) {
+                const deptData = this.departmentData[key];
+                let profit = 0;
                 
-                // 根据公司类型给予特定部门加成
-                const bonuses = {
-                    tech: { rd: '+50%科技产出', marketing: '+30%数据收集' },
-                    manufacturing: { manufacturing: '+40%材料产出', energy: '+25%能源效率' },
-                    finance: { finance: '+60%金钱产出', legal: '+30%影响力' },
-                    retail: { marketing: '+40%声誉提升', hr: '+50%人力招聘' },
-                    entertainment: { marketing: '+50%声誉加成', rd: '+30%创意产出' },
-                    pharma: { rd: '+70%科技产出', legal: '+40%监管优势' }
-                };
+                if (deptData.production && deptData.production.money) {
+                    profit += deptData.production.money;
+                }
                 
-                return bonuses[this.gameData.companyType] && bonuses[this.gameData.companyType][departmentKey] || null;
+                if (deptData.consumption && deptData.consumption.money) {
+                    profit -= deptData.consumption.money;
+                }
+                
+                return profit;
             }
             
             renderMarket() {
@@ -1230,12 +1299,12 @@
                             库存: ${this.formatNumber(this.gameData.resources[resource])}
                         </div>
                         <div style="display: flex; gap: 6px;">
-                            <button class="btn" style="flex: 1; padding: 6px;" 
+                            <button class="btn buy" style="flex: 1; padding: 6px;" 
                                 onclick="game.buyResource('${resource}')" 
                                 ${canBuy ? '' : 'disabled'}>
                                 买入
                             </button>
-                            <button class="btn" style="flex: 1; padding: 6px; background: linear-gradient(135deg, #00b894, #00a085);" 
+                            <button class="btn sell" style="flex: 1; padding: 6px;" 
                                 onclick="game.sellResource('${resource}')" 
                                 ${canSell ? '' : 'disabled'}>
                                 卖出
@@ -1247,77 +1316,55 @@
                 });
             }
             
-            renderManipulations() {
-                const container = document.getElementById('manipulations');
+            renderStocks() {
+                const container = document.getElementById('stocks');
                 container.innerHTML = '';
                 
-                this.manipulations.forEach(manipulation => {
+                // 显示可购买的公司股票
+                this.leaderboard.forEach(company => {
+                    if (company.isPlayer && company.name === this.companyName) return; // 不能买自己的股票
+                    
                     const div = document.createElement('div');
+                    const sharePrice = Math.floor(company.value / 1000000) || 1; // 股价 = 市值/100万
+                    const ownedShares = this.gameData.stocks[company.id] || 0;
+                    const canBuy = this.gameData.resources.money >= sharePrice;
+                    const canSell = ownedShares > 0;
                     
-                    let canAfford = this.canAfford(manipulation.cost);
-                    let canUse = true;
+                    // 计算交易费用
+                    const tradeFee = this.gameData.companyType === 'finance' ? sharePrice * 0.01 : sharePrice * 0.02;
                     
-                    // 检查天赋前置条件
-                    if (manipulation.requiresTalent && !this.gameData.talents[manipulation.requiresTalent].unlocked) {
-                        canUse = false;
-                    }
+                    div.className = `stock-item ${canBuy ? '' : 'expensive'}`;
                     
-                    div.className = `manipulation-item ${canAfford && canUse ? '' : 'insufficient'}`;
+                    const trendIcon = company.trend > 0 ? '📈' : company.trend < 0 ? '📉' : '➡️';
                     
                     div.innerHTML = `
-                        <div style="font-weight: bold; color: #fdcb6e; margin-bottom: 6px;">
-                            🎭 ${manipulation.name}
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: bold; color: #fdcb6e;">
+                                ${this.companyTypes[company.companyType]?.emoji || '🏢'} ${company.name}
+                            </span>
+                            <span class="market-trend">${trendIcon}</span>
                         </div>
-                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
-                            ${manipulation.description}
+                        <div style="font-size: 13px; color: #ddd; margin-bottom: 6px;">
+                            股价: ${this.formatNumber(sharePrice)} 💰/股
                         </div>
-                        <div class="cost-display" style="margin-bottom: 6px;">
-                            费用: ${this.formatCost(manipulation.cost)}
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 6px;">
+                            持有: ${ownedShares} 股 | 手续费: ${this.formatNumber(tradeFee)} 💰
                         </div>
-                        <div class="manipulation-effect">
-                            ${manipulation.effect}
+                        <div style="font-size: 10px; color: #777; margin-bottom: 8px;">
+                            市值: ${this.formatNumber(company.value)} 💰
                         </div>
-                        ${manipulation.requiresTalent && !this.gameData.talents[manipulation.requiresTalent].unlocked ? 
-                            '<div style="font-size: 10px; color: #e74c3c; margin-top: 5px;">需要解锁相关天赋</div>' : ''}
-                        <button class="btn" onclick="game.executeManipulation('${manipulation.id}')" 
-                            ${canAfford && canUse ? '' : 'disabled'} style="width: 100%;">
-                            执行计划
-                        </button>
-                    `;
-                    
-                    container.appendChild(div);
-                });
-            }
-            
-            renderTalents() {
-                const container = document.getElementById('talents');
-                container.innerHTML = '';
-                
-                Object.keys(this.talents).forEach(key => {
-                    const talent = this.talents[key];
-                    const div = document.createElement('div');
-                    
-                    const isUnlocked = this.gameData.talents[key].unlocked;
-                    const canAfford = this.canAfford(talent.cost);
-                    
-                    div.className = `talent-item ${isUnlocked ? 'unlocked' : (canAfford ? '' : 'insufficient')}`;
-                    
-                    div.innerHTML = `
-                        <div style="font-weight: bold; color: ${isUnlocked ? '#00b894' : '#fdcb6e'}; margin-bottom: 8px;">
-                            ${isUnlocked ? '✅' : '🔒'} ${talent.name}
-                        </div>
-                        <div style="font-size: 12px; color: #ddd; margin-bottom: 10px;">
-                            ${talent.description}
-                        </div>
-                        <div class="cost-display" style="margin-bottom: 8px;">
-                            ${isUnlocked ? '已解锁' : `费用: ${this.formatCost(talent.cost)}`}
-                        </div>
-                        ${!isUnlocked ? `
-                            <button class="btn" onclick="game.unlockTalent('${key}')" 
-                                ${canAfford ? '' : 'disabled'} style="width: 100%;">
-                                解锁天赋
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn buy" style="flex: 1; padding: 6px;" 
+                                onclick="game.buyStock('${company.id}')" 
+                                ${canBuy ? '' : 'disabled'}>
+                                买入
                             </button>
-                        ` : ''}
+                            <button class="btn sell" style="flex: 1; padding: 6px;" 
+                                onclick="game.sellStock('${company.id}')" 
+                                ${canSell ? '' : 'disabled'}>
+                                卖出
+                            </button>
+                        </div>
                     `;
                     
                     container.appendChild(div);
@@ -1352,7 +1399,7 @@
                 // 按市值排序
                 allCompanies.sort((a, b) => b.value - a.value);
                 
-                allCompanies.slice(0, 12).forEach((company, index) => {
+                allCompanies.slice(0, 10).forEach((company, index) => {
                     const div = document.createElement('div');
                     div.className = `company-rank ${company.isPlayer ? 'player' : 'ai'}`;
                     
@@ -1412,10 +1459,9 @@
                 const marketValue = this.calculateCompanyValue();
                 document.getElementById('marketValue').textContent = this.formatNumber(marketValue);
                 
-                // 更新行业排名
-                const sameTypeCompanies = this.leaderboard.filter(c => c.companyType === this.gameData.companyType);
-                const industryRank = sameTypeCompanies.findIndex(c => c.name === this.companyName) + 1;
-                document.getElementById('industryRank').textContent = industryRank > 0 ? `#${industryRank}` : '#-';
+                // 更新每秒收益
+                const incomePerSecond = this.calculateIncomePerSecond();
+                document.getElementById('incomePerSecond').textContent = `+${this.formatNumber(incomePerSecond)}`;
             }
             
             calculateCompanyValue() {
@@ -1431,38 +1477,43 @@
                 // 部门价值
                 Object.keys(this.gameData.departments).forEach(key => {
                     const dept = this.gameData.departments[key];
-                    value += dept.count * 50000; // 每个部门价值5万
+                    value += dept.count * 100000; // 每个部门价值10万
                 });
                 
-                // 天赋价值
-                Object.keys(this.gameData.talents).forEach(key => {
-                    if (this.gameData.talents[key].unlocked) {
-                        value += 100000; // 每个天赋价值10万
-                    }
-                });
+                // 股票价值
+                if (this.gameData.stocks) {
+                    Object.keys(this.gameData.stocks).forEach(companyId => {
+                        const shares = this.gameData.stocks[companyId];
+                        const company = this.leaderboard.find(c => c.id === companyId);
+                        if (company && shares > 0) {
+                            const sharePrice = Math.floor(company.value / 1000000) || 1;
+                            value += shares * sharePrice;
+                        }
+                    });
+                }
                 
                 return value;
             }
             
-            getDepartmentEfficiency(key) {
-                let efficiency = 100;
+            calculateIncomePerSecond() {
+                let income = 0;
                 
-                // 基础天赋加成
-                if (this.gameData.talents.basic_exploitation.unlocked) {
-                    efficiency += 15;
+                Object.keys(this.gameData.departments).forEach(key => {
+                    const dept = this.gameData.departments[key];
+                    const deptData = this.departmentData[key];
+                    const profit = this.calculateDepartmentProfit(key);
+                    income += profit * dept.count;
+                });
+                
+                // 股票分红（简化）
+                if (this.gameData.stocks) {
+                    Object.keys(this.gameData.stocks).forEach(companyId => {
+                        const shares = this.gameData.stocks[companyId];
+                        income += shares * 100; // 每股每秒100金币分红
+                    });
                 }
                 
-                // 公司类型专业化加成
-                const typeBonus = this.getCompanyTypeBonus(key);
-                if (typeBonus) {
-                    efficiency += 20;
-                }
-                
-                // 基于声誉和影响力的效率加成
-                efficiency += this.gameData.resources.reputation / 20;
-                efficiency += this.gameData.resources.influence / 10;
-                
-                return Math.floor(Math.min(300, efficiency));
+                return income;
             }
             
             expandDepartment(type) {
@@ -1473,7 +1524,7 @@
                     
                     // 动态提升成本
                     Object.keys(dept.cost).forEach(resource => {
-                        dept.cost[resource] = Math.floor(dept.cost[resource] * 1.15);
+                        dept.cost[resource] = Math.floor(dept.cost[resource] * 1.12);
                     });
                     
                     this.showNotification(`🏢 扩建了${dept.name}！开始更大规模的剥削！`);
@@ -1482,22 +1533,6 @@
                     this.saveGame();
                     
                     // 同步到服务器
-                    this.socket.emit('updateGameData', this.gameData);
-                }
-            }
-            
-            unlockTalent(talentKey) {
-                const talent = this.talents[talentKey];
-                if (this.canAfford(talent.cost)) {
-                    this.payCost(talent.cost);
-                    this.gameData.talents[talentKey].unlocked = true;
-                    
-                    this.showNotification(`🌟 解锁邪恶天赋：${talent.name}！`);
-                    this.updateDisplay();
-                    this.renderTalents();
-                    this.renderManipulations(); // 更新操控选项
-                    this.saveGame();
-                    
                     this.socket.emit('updateGameData', this.gameData);
                 }
             }
@@ -1518,34 +1553,20 @@
                 });
             }
             
-            executeManipulation(manipulationId) {
-                const manipulation = this.manipulations.find(m => m.id === manipulationId);
-                if (manipulation && this.canAfford(manipulation.cost)) {
-                    // 检查天赋前置条件
-                    if (manipulation.requiresTalent && !this.gameData.talents[manipulation.requiresTalent].unlocked) {
-                        this.showNotification('需要先解锁相关天赋！');
-                        return;
-                    }
-                    
-                    // 应用腐败折扣
-                    let cost = { ...manipulation.cost };
-                    if (this.gameData.talents.global_corruption.unlocked) {
-                        Object.keys(cost).forEach(resource => {
-                            cost[resource] = Math.floor(cost[resource] * 0.7);
-                        });
-                    }
-                    
-                    this.payCost(cost);
-                    
-                    this.socket.emit('executeManipulation', {
-                        manipulationId: manipulationId,
-                        companyName: this.companyName
-                    });
-                    
-                    this.updateDisplay();
-                    this.renderManipulations();
-                    this.saveGame();
-                }
+            buyStock(companyId) {
+                this.socket.emit('stockTrade', {
+                    action: 'buy',
+                    companyId: companyId,
+                    shares: 1
+                });
+            }
+            
+            sellStock(companyId) {
+                this.socket.emit('stockTrade', {
+                    action: 'sell',
+                    companyId: companyId,
+                    shares: 1
+                });
             }
             
             sendMessage() {
@@ -1584,7 +1605,9 @@
             }
             
             formatNumber(num) {
-                if (num >= 1000000) {
+                if (num >= 1000000000) {
+                    return (num / 1000000000).toFixed(1) + 'B';
+                } else if (num >= 1000000) {
                     return (num / 1000000).toFixed(1) + 'M';
                 } else if (num >= 1000) {
                     return (num / 1000).toFixed(1) + 'K';
@@ -1612,8 +1635,7 @@
             
             getDepartmentEmoji(key) {
                 const emojis = {
-                    hr: '👥', manufacturing: '🏭', rd: '🔬', marketing: '📢',
-                    finance: '💳', legal: '⚖️', lobbying: '🏛️'
+                    hr: '👥', manufacturing: '🏭', rd: '🔬', marketing: '📢', finance: '💳'
                 };
                 return emojis[key] || '🏢';
             }
@@ -1636,15 +1658,17 @@
                             // 生产
                             if (deptData.production) {
                                 Object.keys(deptData.production).forEach(resource => {
-                                    const efficiency = this.getDepartmentEfficiency(key) / 100;
-                                    this.gameData.resources[resource] += deptData.production[resource] * dept.count * efficiency / 10;
+                                    this.gameData.resources[resource] += deptData.production[resource] * dept.count / 10;
                                 });
                             }
                             
-                            // 消耗
+                            // 消耗（优化：确保挂机游戏大部分时候都是正收益）
                             if (deptData.consumption) {
                                 Object.keys(deptData.consumption).forEach(resource => {
-                                    this.gameData.resources[resource] -= deptData.consumption[resource] * dept.count / 10;
+                                    const consumption = deptData.consumption[resource] * dept.count / 10;
+                                    // 如果资源不足，降低消耗而不是停止生产
+                                    const actualConsumption = Math.min(consumption, this.gameData.resources[resource] * 0.8);
+                                    this.gameData.resources[resource] -= actualConsumption;
                                     this.gameData.resources[resource] = Math.max(0, this.gameData.resources[resource]);
                                 });
                             }
