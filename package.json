@@ -1,15 +1,18 @@
+json
+复制
 {
   "name": "fantasy-company-game",
   "version": "1.0.0",
   "description": "幻想公司经营游戏",
   "main": "index.html",
   "scripts": {
-    "start": "serve -s . -l 3000"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
-    "serve": "^14.0.0"
+    "express": "^4.18.2"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.0.0"
   }
 }
