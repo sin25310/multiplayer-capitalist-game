@@ -1417,7 +1417,7 @@
                 this.warehouseChart = null;
                 
                 this.gameData = {
-                    version: '2.3.0',
+                    version: '2.3.1',
                     inventory: { money: 1000000 },
                     factories: {},
                     technologies: [],
@@ -1444,6 +1444,7 @@
                 this.chatMessages = [];
                 this.selectedCompanyType = 'tech';
                 this.globalEvent = null;
+                this.stockPriceHistory = { labels: [], datasets: {} };
                 
                 this.init();
             }
@@ -1763,7 +1764,7 @@
             updateProductionProgress() {
                 let hasUpdates = false;
                 
-                // 实时更新生产进度
+                // 实时更新生产进度和资源显示
                 Object.keys(this.gameData.factories).forEach(factoryType => {
                     const factory = this.gameData.factories[factoryType];
                     if (factory.productionTasks) {
@@ -1780,7 +1781,7 @@
                                 
                                 const timeElement = document.getElementById(`time_${task.id}`);
                                 if (timeElement) {
-                                    const remainingTime = task.completionTime - Date.now();
+                                    const remainingTime = task.completionTime ? task.completionTime - Date.now() : 0;
                                     timeElement.textContent = this.formatTime(Math.max(0, remainingTime));
                                     hasUpdates = true;
                                 }
@@ -1792,13 +1793,17 @@
                 if (hasUpdates) {
                     this.updateProductionChart();
                 }
+                
+                // 更新资源显示
+                this.updateDisplay();
             }
 
             calculateTaskProgress(task) {
-                if (!task) return 0;
-                const elapsed = Date.now() - task.startTime;
-                const total = task.completionTime - task.startTime;
-                return Math.min(elapsed / total, 1);
+                if (!task || task.completed) return 1;
+                if (!task.startTime || !task.totalTime) return 0;
+                
+                const elapsed = Date.now() - task.startTime - (task.pausedDuration || 0);
+                return Math.min(Math.max(elapsed / task.totalTime, 0), 1);
             }
 
             setupSocketListeners() {
@@ -1826,6 +1831,7 @@
                         this.techTree = data.techTree || {};
                         this.aiCompanies = data.aiCompanies || [];
                         this.playerCompanies = data.playerCompanies || [];
+                        this.stockPriceHistory = data.stockPriceHistory || { labels: [], datasets: {} };
                         
                         this.renderAll();
                         this.updateGlobalEvent();
@@ -1850,8 +1856,8 @@
                 this.socket.on('factoryBuilt', (data) => {
                     this.showNotification(`🏭 ${data.message}`, 'success');
                     if (data.playerData) {
-                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
-                        this.gameData.factories = data.playerData.factories || this.gameData.factories;
+                        this.gameData.inventory = { ...this.gameData.inventory, ...data.playerData.inventory };
+                        this.gameData.factories = { ...this.gameData.factories, ...data.playerData.factories };
                     }
                     this.updateDisplay();
                     this.renderFactories();
@@ -1862,17 +1868,18 @@
                 this.socket.on('productionStarted', (data) => {
                     this.showNotification(`⚙️ 开始生产：${this.getProductName(data.task.productId)}`, 'success');
                     if (data.playerData) {
-                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
-                        this.gameData.factories = data.playerData.factories || this.gameData.factories;
+                        this.gameData.inventory = { ...this.gameData.inventory, ...data.playerData.inventory };
+                        this.gameData.factories = { ...this.gameData.factories, ...data.playerData.factories };
                     }
                     this.updateDisplay();
                     this.renderProduction();
+                    this.updateWarehouseChart();
                 });
                 
                 this.socket.on('productionCompleted', (data) => {
                     this.showNotification(`✅ ${data.message}`, 'success');
                     if (data.playerData) {
-                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
+                        this.gameData.inventory = { ...this.gameData.inventory, ...data.playerData.inventory };
                         this.gameData.experience = data.playerData.experience || this.gameData.experience;
                     }
                     this.updateDisplay();
@@ -1883,7 +1890,7 @@
                 this.socket.on('tradeSuccess', (data) => {
                     this.showNotification(`💰 ${data.message}`, 'success');
                     if (data.playerData) {
-                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
+                        this.gameData.inventory = { ...this.gameData.inventory, ...data.playerData.inventory };
                         if (data.playerData.stockPortfolio) {
                             this.gameData.stockPortfolio = data.playerData.stockPortfolio;
                         }
@@ -1898,7 +1905,7 @@
                 this.socket.on('loanApproved', (data) => {
                     this.showNotification(`💰 ${data.message}`, 'success');
                     if (data.playerData) {
-                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
+                        this.gameData.inventory = { ...this.gameData.inventory, ...data.playerData.inventory };
                         this.gameData.loans = data.playerData.loans || this.gameData.loans;
                         this.gameData.debt = data.playerData.debt || this.gameData.debt;
                     }
@@ -1910,7 +1917,7 @@
                 this.socket.on('loanRepaid', (data) => {
                     this.showNotification(`💰 ${data.message}`, 'success');
                     if (data.playerData) {
-                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
+                        this.gameData.inventory = { ...this.gameData.inventory, ...data.playerData.inventory };
                         this.gameData.loans = data.playerData.loans || this.gameData.loans;
                         this.gameData.debt = data.playerData.debt || this.gameData.debt;
                     }
@@ -1922,7 +1929,7 @@
                 this.socket.on('techResearched', (data) => {
                     this.showNotification(`🔬 ${data.message}`, 'success');
                     if (data.playerData) {
-                        this.gameData.inventory = data.playerData.inventory || this.gameData.inventory;
+                        this.gameData.inventory = { ...this.gameData.inventory, ...data.playerData.inventory };
                         this.gameData.technologies = data.playerData.technologies || this.gameData.technologies;
                     }
                     this.updateDisplay();
@@ -1946,12 +1953,24 @@
                     this.updateCompanyStats();
                 });
                 
+                // 股价更新
+                this.socket.on('stockPricesUpdate', (data) => {
+                    this.aiCompanies = data.companies.filter(c => !c.isPlayer) || this.aiCompanies;
+                    this.playerCompanies = data.companies.filter(c => c.isPlayer) || this.playerCompanies;
+                    this.stockPriceHistory = data.history || this.stockPriceHistory;
+                    
+                    this.updateGlobalStockChart();
+                    this.renderFinance();
+                    this.updateFinanceChart();
+                });
+                
                 this.socket.on('error', (data) => {
                     this.showNotification(`❌ ${data.message || '发生错误'}`, 'error');
                 });
             }
 
-            // 完整的渲染方法
+            // 继续下一部分...
+
             renderFactories() {
                 const container = document.getElementById('factories');
                 if (!container || !this.factoryTypes) return;
@@ -2051,7 +2070,7 @@
                         const progress = this.calculateTaskProgress(task);
                         const product = this.getProductByKey(task.productId);
                         const isPaused = task.paused;
-                        const remainingTime = Math.max(0, task.completionTime - Date.now());
+                        const remainingTime = task.getRemainingTime ? task.getRemainingTime() : 0;
                         
                         progressBars += `
                             <div style="margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
@@ -2542,7 +2561,7 @@
                 container.scrollTop = container.scrollHeight;
             }
 
-            // 完整的图表更新方法
+            // 继续完整的图表更新方法
             updateFactoryChart() {
                 if (!this.factoryChart) return;
                 
@@ -2658,9 +2677,10 @@
                 
                 // 计算股票投资价值
                 if (this.gameData.stockPortfolio) {
+                    const allCompanies = [...this.aiCompanies, ...this.playerCompanies];
                     Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
                         const shares = this.gameData.stockPortfolio[companyId];
-                        const company = [...this.aiCompanies, ...this.playerCompanies].find(c => c.id === companyId);
+                        const company = allCompanies.find(c => c.id === companyId);
                         if (company && shares > 0) {
                             stockValue += shares * company.sharePrice;
                         }
@@ -2698,43 +2718,29 @@
                 if (!this.globalStockChart) return;
                 
                 try {
-                    const now = new Date();
-                    const timeLabel = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
+                    this.globalStockChart.data.labels = this.stockPriceHistory.labels || [];
                     
-                    // 限制数据点数量
-                    if (this.globalStockChart.data.labels.length >= 50) {
-                        this.globalStockChart.data.labels.shift();
-                    }
-                    this.globalStockChart.data.labels.push(timeLabel);
+                    // 清空旧数据集
+                    this.globalStockChart.data.datasets = [];
                     
-                    // 显示前6家公司的股价
-                    const allCompanies = [...this.aiCompanies, ...this.playerCompanies];
-                    const topCompanies = allCompanies.slice(0, 6);
+                    // 添加新数据集
                     const colors = ['#fdcb6e', '#74b9ff', '#fd79a8', '#00b894', '#a29bfe', '#fab1a0'];
+                    let colorIndex = 0;
                     
-                    topCompanies.forEach((company, index) => {
-                        if (!this.globalStockChart.data.datasets[index]) {
-                            this.globalStockChart.data.datasets[index] = {
-                                label: company.name,
-                                data: [],
-                                borderColor: colors[index % colors.length],
-                                backgroundColor: colors[index % colors.length] + '20',
-                                tension: 0.4,
-                                fill: false,
-                                pointRadius: 0,
-                                pointHoverRadius: 4,
-                                borderWidth: 2
-                            };
-                        }
-                        
-                        const dataset = this.globalStockChart.data.datasets[index];
-                        dataset.label = company.name;
-                        
-                        if (dataset.data.length >= 50) {
-                            dataset.data.shift();
-                        }
-                        
-                        dataset.data.push(company.sharePrice || 0);
+                    Object.keys(this.stockPriceHistory.datasets || {}).forEach(companyId => {
+                        const dataset = this.stockPriceHistory.datasets[companyId];
+                        this.globalStockChart.data.datasets.push({
+                            label: dataset.label,
+                            data: dataset.data || [],
+                            borderColor: colors[colorIndex % colors.length],
+                            backgroundColor: colors[colorIndex % colors.length] + '20',
+                            tension: 0.4,
+                            fill: false,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            borderWidth: 2
+                        });
+                        colorIndex++;
                     });
                     
                     this.globalStockChart.update('none');
@@ -2743,6 +2749,7 @@
                 }
             }
 
+            // 游戏操作方法
             joinGame() {
                 const companyInput = document.getElementById('companyName');
                 const name = companyInput ? companyInput.value.trim() : '';
@@ -2938,7 +2945,7 @@
                 this.socket.emit('buildFactory', { factoryType, quantity });
             }
 
-            batchBuildFactory() {
+           batchBuildFactory() {
                 const factorySelect = document.getElementById('batchFactoryType');
                 const quantityInput = document.getElementById('batchQuantity');
                 
@@ -2953,7 +2960,7 @@
                 this.socket.emit('buildFactory', { factoryType, quantity });
             }
 
-           startProduction(factoryType) {
+            startProduction(factoryType) {
                 const productSelect = document.getElementById(`product_${factoryType}`);
                 const quantityInput = document.getElementById(`quantity_prod_${factoryType}`);
                 
@@ -3219,9 +3226,10 @@
                     let totalInvestment = 0;
                     
                     if (this.gameData.stockPortfolio) {
+                        const allCompanies = [...this.aiCompanies, ...this.playerCompanies];
                         Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
                             const shares = this.gameData.stockPortfolio[companyId];
-                            const company = [...this.aiCompanies, ...this.playerCompanies].find(c => c.id === companyId);
+                            const company = allCompanies.find(c => c.id === companyId);
                             if (company && shares > 0) {
                                 totalReturn += shares * company.sharePrice;
                                 totalInvestment += shares * 100; // 假设平均买入价
@@ -3323,6 +3331,30 @@
                 } else {
                     return `${seconds}s`;
                 }
+            }
+
+            // 构建依赖链方法
+            buildDependencyChain(productId, visited) {
+                if (visited.has(productId)) {
+                    return [this.getProductName(productId) + ' (循环)'];
+                }
+                
+                visited.add(productId);
+                const product = this.getProductByKey(productId);
+                
+                if (!product || !product.recipe) {
+                    return [this.getProductName(productId)];
+                }
+                
+                const chain = [this.getProductName(productId)];
+                const dependencies = [];
+                
+                Object.keys(product.recipe).forEach(materialId => {
+                    const subChain = this.buildDependencyChain(materialId, new Set(visited));
+                    dependencies.push(subChain[subChain.length - 1]);
+                });
+                
+                return [...dependencies, ...chain];
             }
         }
         
@@ -3477,30 +3509,6 @@
             content.innerHTML = html;
             modal.style.display = 'flex';
         }
-        
-        // 为 game 对象添加依赖链构建方法
-        ComplexManufacturingTycoon.prototype.buildDependencyChain = function(productId, visited) {
-            if (visited.has(productId)) {
-                return [this.getProductName(productId) + ' (循环)'];
-            }
-            
-            visited.add(productId);
-            const product = this.getProductByKey(productId);
-            
-            if (!product || !product.recipe) {
-                return [this.getProductName(productId)];
-            }
-            
-            const chain = [this.getProductName(productId)];
-            const dependencies = [];
-            
-            Object.keys(product.recipe).forEach(materialId => {
-                const subChain = this.buildDependencyChain(materialId, new Set(visited));
-                dependencies.push(subChain[subChain.length - 1]);
-            });
-            
-            return [...dependencies, ...chain];
-        };
         
         window.onload = () => {
             game = new ComplexManufacturingTycoon();
