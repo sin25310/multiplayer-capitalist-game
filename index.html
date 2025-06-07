@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幻想公司经营游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .company-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .employee-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .activity-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .battle-zone-card {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            transition: width 0.3s;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .item-card {
+            background: linear-gradient(135deg, #96fbc4 0%, #f9f586 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 2000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .quality-common { border-left: 5px solid #9e9e9e; }
+        .quality-rare { border-left: 5px solid #2196f3; }
+        .quality-epic { border-left: 5px solid #9c27b0; }
+        .quality-legendary { border-left: 5px solid #ff9800; }
+
+        .battle-zone-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .battle-zone-stat {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .company-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="companyTitle">幻想公司经营游戏</h1>
+            <div class="company-stats">
+                <div class="stat-card">
+                    <div>金币: <span id="gold">1000</span></div>
+                </div>
+                <div class="stat-card">
+                    <div>木材: <span id="wood">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <div>石材: <span id="stone">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <div>铁矿: <span id="iron">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <div>魔法水晶: <span id="crystal">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <div>公司等级: <span id="companyLevel">1</span></div>
+                </div>
+                <div class="stat-card">
+                    <div>天赋点: <span id="talentPoints">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="employees">员工管理</button>
+            <button class="tab" data-tab="activities">工作活动</button>
+            <button class="tab" data-tab="battle">战斗区域</button>
+            <button class="tab" data-tab="workshop">装备工坊</button>
+            <button class="tab" data-tab="inventory">仓库</button>
+            <button class="tab" data-tab="talents">天赋树</button>
+        </div>
+
+        <div id="employees-content" class="content">
+            <h2>员工管理</h2>
+            <button class="btn" onclick="game.recruitEmployee()">招募员工 (500金币)</button>
+            <div id="employeesList"></div>
+        </div>
+
+        <div id="activities-content" class="content" style="display: none;">
+            <h2>工作活动</h2>
+            <div class="filter-buttons">
+                <button class="btn" onclick="game.filterActivities('all')">全部</button>
+                <button class="btn" onclick="game.filterActivities('gathering')">采集</button>
+                <button class="btn" onclick="game.filterActivities('crafting')">制作</button>
+                <button class="btn" onclick="game.filterActivities('research')">研究</button>
+            </div>
+            <div id="activitiesList"></div>
+        </div>
+
+        <div id="battle-content" class="content" style="display: none;">
+            <h2>战斗区域</h2>
+            <div id="battleZonesList"></div>
+        </div>
+
+        <div id="workshop-content" class="content" style="display: none;">
+            <h2>装备工坊</h2>
+            <div class="tabs">
+                <button class="btn" onclick="game.showCraftingTab()">制作装备</button>
+                <button class="btn" onclick="game.showEnhanceTab()">强化装备</button>
+                <button class="btn" onclick="game.showSetsTab()">套装系统</button>
+            </div>
+            <div id="workshopContent"></div>
+        </div>
+
+        <div id="inventory-content" class="content" style="display: none;">
+            <h2>仓库</h2>
+            <div class="tabs">
+                <button class="btn" onclick="game.showInventoryTab('materials')">材料</button>
+                <button class="btn" onclick="game.showInventoryTab('equipment')">装备</button>
+            </div>
+            <div id="inventoryContent"></div>
+        </div>
+
+        <div id="talents-content" class="content" style="display: none;">
+            <h2>天赋树</h2>
+            <div id="talentTree"></div>
+        </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div id="equipmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="game.closeModal('equipmentModal')">&times;</span>
+            <h2>装备管理</h2>
+            <div id="equipmentModalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        class FantasyCompany {
+            constructor() {
+                this.gameData = {
+                    companyName: '',
+                    companyLevel: 1,
+                    gold: 1000,
+                    wood: 0,
+                    stone: 0,
+                    iron: 0,
+                    crystal: 0,
+                    talentPoints: 0,
+                    employees: [],
+                    materials: {},
+                    equipment: [],
+                    unlockedTalents: {},
+                    activeActivities: {},
+                    battleZoneProgress: {}
+                };
+
+                this.activities = [
+                    { 
+                        id: 'wood_gathering', 
+                        name: '采集木材', 
+                        type: 'gathering', 
+                        duration: 30000, 
+                        rewards: { wood: 10, gold: 20 },
+                        requiredLevel: 1
+                    },
+                    { 
+                        id: 'stone_gathering', 
+                        name: '采集石材', 
+                        type: 'gathering', 
+                        duration: 45000, 
+                        rewards: { stone: 8, gold: 30 },
+                        requiredLevel: 2
+                    },
+                    { 
+                        id: 'iron_mining', 
+                        name: '开采铁矿', 
+                        type: 'gathering', 
+                        duration: 60000, 
+                        rewards: { iron: 5, gold: 50 },
+                        requiredLevel: 3
+                    },
+                    { 
+                        id: 'crystal_mining', 
+                        name: '开采魔法水晶', 
+                        type: 'gathering', 
+                        duration: 120000, 
+                        rewards: { crystal: 2, gold: 100 },
+                        requiredLevel: 5
+                    },
+                    { 
+                        id: 'basic_crafting', 
+                        name: '基础制作', 
+                        type: 'crafting', 
+                        duration: 90000, 
+                        rewards: { gold: 80 },
+                        requiredLevel: 2
+                    },
+                    { 
+                        id: 'advanced_research', 
+                        name: '高级研究', 
+                        type: 'research', 
+                        duration: 180000, 
+                        rewards: { gold: 200, crystal: 1 },
+                        requiredLevel: 4
+                    }
+                ];
+
+                this.battleZones = [
+                    {
+                        id: 'forest',
+                        name: '新手森林',
+                        difficulty: 1,
+                        duration: 60000,
+                        rewards: { gold: 100, wood: 15 },
+                        materials: ['普通木材', '草药'],
+                        equipment: ['新手剑', '布衣'],
+                        requiredLevel: 1
+                    },
+                    {
+                        id: 'cave',
+                        name: '石洞矿场',
+                        difficulty: 2,
+                        duration: 90000,
+                        rewards: { gold: 200, stone: 20, iron: 5 },
+                        materials: ['普通石材', '铁矿石'],
+                        equipment: ['铁剑', '皮甲'],
+                        requiredLevel: 3
+                    },
+                    {
+                        id: 'ruins',
+                        name: '古代遗迹',
+                        difficulty: 3,
+                        duration: 120000,
+                        rewards: { gold: 350, crystal: 3 },
+                        materials: ['古代碎片', '魔法粉尘'],
+                        equipment: ['魔法杖', '法师袍'],
+                        requiredLevel: 5
+                    },
+                    {
+                        id: 'volcano',
+                        name: '火山熔岩',
+                        difficulty: 4,
+                        duration: 150000,
+                        rewards: { gold: 500, crystal: 5 },
+                        materials: ['火焰精华', '熔岩石'],
+                        equipment: ['烈焰剑', '火抗护甲'],
+                        requiredLevel: 7
+                    },
+                    {
+                        id: 'abyss',
+                        name: '深渊裂隙',
+                        difficulty: 5,
+                        duration: 200000,
+                        rewards: { gold: 800, crystal: 8 },
+                        materials: ['暗影水晶', '深渊之核'],
+                        equipment: ['深渊之刃', '暗影斗篷'],
+                        requiredLevel: 10
+                    },
+                    {
+                        id: 'celestial',
+                        name: '天界试炼',
+                        difficulty: 6,
+                        duration: 300000,
+                        rewards: { gold: 1200, crystal: 12 },
+                        materials: ['天界精华', '光明结晶'],
+                        equipment: ['天使之剑', '圣光铠甲'],
+                        requiredLevel: 15
+                    }
+                ];
+
+                this.talents = {
+                    efficiency1: { name: '效率 I', cost: 1, effect: 'workTime-10%', unlocked: false, prereq: null },
+                    resource1: { name: '资源 I', cost: 1, effect: 'resources+20%', unlocked: false, prereq: null },
+                    experience1: { name: '经验 I', cost: 1, effect: 'exp+30%', unlocked: false, prereq: null },
+                    efficiency2: { name: '效率 II', cost: 2, effect: 'workTime-20%', unlocked: false, prereq: 'efficiency1' },
+                    resource2: { name: '资源 II', cost: 2, effect: 'resources+40%', unlocked: false, prereq: 'resource1' },
+                    experience2: { name: '经验 II', cost: 2, effect: 'exp+60%', unlocked: false, prereq: 'experience1' },
+                    automation: { name: '自动化', cost: 5, effect: 'autoComplete', unlocked: false, prereq: 'efficiency2' },
+                    legendary: { name: '传说工艺', cost: 4, effect: 'legendaryChance+10%', unlocked: false, prereq: 'resource2' },
+                    timeMaster: { name: '时间掌控', cost: 6, effect: 'timeBonus+50%', unlocked: false, prereq: 'experience2' },
+                    grandMaster: { name: '大师之道', cost: 10, effect: 'allBonus+100%', unlocked: false, prereq: ['automation', 'legendary', 'timeMaster'] }
+                };
+
+                this.equipmentRecipes = {
+                    ironSword: {
+                        name: '铁剑',
+                        materials: { iron: 3, wood: 1 },
+                        quality: 'common',
+                        stats: { attack: 10 }
+                    },
+                    steelArmor: {
+                        name: '钢甲',
+                        materials: { iron: 5, stone: 2 },
+                        quality: 'rare',
+                        stats: { defense: 15 }
+                    },
+                    magicRing: {
+                        name: '魔法戒指',
+                        materials: { crystal: 2, gold: 100 },
+                        quality: 'epic',
+                        stats: { magic: 20 }
+                    }
+                };
+
+                this.init();
+            }
+
+            init() {
+                this.loadGame();
+                this.setupTabSwitching();
+                this.renderAll();
+                this.startGameLoop();
+            }
+
+            setupTabSwitching() {
+                const tabs = document.querySelectorAll('.tab');
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const targetTab = tab.dataset.tab;
+                        this.switchTab(targetTab);
+                    });
+                });
+            }
+
+            switchTab(tabName) {
+                // 隐藏所有内容
+                const contents = document.querySelectorAll('.content');
+                contents.forEach(content => content.style.display = 'none');
+                
+                // 移除所有标签的活动状态
+                const tabs = document.querySelectorAll('.tab');
+                tabs.forEach(tab => tab.classList.remove('active'));
+                
+                // 显示目标内容
+                const targetContent = document.getElementById(`${tabName}-content`);
+                if (targetContent) {
+                    targetContent.style.display = 'block';
+                }
+                
+                // 激活目标标签
+                const targetTab = document.querySelector(`[data-tab="${tabName}"]`);
+                if (targetTab) {
+                    targetTab.classList.add('active');
+                }
+                
+                // 渲染对应内容
+                switch(tabName) {
+                    case 'employees':
+                        this.renderEmployees();
+                        break;
+                    case 'activities':
+                        this.renderActivities();
+                        break;
+                    case 'battle':
+                        this.renderBattleZones();
+                        break;
+                    case 'workshop':
+                        this.renderWorkshop();
+                        break;
+                    case 'inventory':
+                        this.renderInventory();
+                        break;
+                    case 'talents':
+                        this.renderTalentTree();
+                        break;
+                }
+            }
+
+            recruitEmployee() {
+                if (this.gameData.gold < 500) {
+                    this.showNotification('金币不足！需要500金币');
+                    return;
+                }
+                
+                this.gameData.gold -= 500;
+                
+                const names = ['艾莉丝', '鲍勃', '卡洛琳', '大卫', '艾玛', '弗兰克', '格蕾丝', '亨利', '艾薇', '杰克'];
+                const classes = ['战士', '法师', '盗贼', '牧师', '游侠'];
+                
+                const newEmployee = {
+                    id: Date.now(),
+                    name: names[Math.floor(Math.random() * names.length)],
+                    class: classes[Math.floor(Math.random() * classes.length)],
+                    level: 1,
+                    exp: 0,
+                    maxExp: 100,
+                    hp: 100,
+                    maxHp: 100,
+                    attack: Math.floor(Math.random() * 10) + 5,
+                    defense: Math.floor(Math.random() * 5) + 3,
+                    magic: Math.floor(Math.random() * 8) + 2,
+                    currentActivity: null,
+                    equipment: {},
+                    talentPoints: 0
+                };
+                
+                this.gameData.employees.push(newEmployee);
+                this.showNotification(`成功招募员工 ${newEmployee.name}！`);
+                this.renderEmployees();
+                this.updateDisplay();
+                this.saveGame();
+            }
+
+            assignActivity(employeeId, activityId) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                const activity = this.activities.find(a => a.id === activityId);
+                
+                if (!employee || !activity) return;
+                
+                if (employee.level < activity.requiredLevel) {
+                    this.showNotification(`${employee.name} 等级不足！需要等级 ${activity.requiredLevel}`);
+                    return;
+                }
+                
+                employee.currentActivity = activityId;
+                this.gameData.activeActivities[employeeId] = {
+                    activityId: activityId,
+                    startTime: Date.now(),
+                    duration: activity.duration
+                };
+                
+                this.showNotification(`${employee.name} 开始执行 ${activity.name}`);
+                this.renderEmployees();
+                this.saveGame();
+            }
+
+            assignBattle(employeeId, zoneId) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                const zone = this.battleZones.find(z => z.id === zoneId);
+                
+                if (!employee || !zone) return;
+                
+                if (employee.level < zone.requiredLevel) {
+                    this.showNotification(`${employee.name} 等级不足！需要等级 ${zone.requiredLevel}`);
+                    return;
+                }
+                
+                employee.currentActivity = `battle_${zoneId}`;
+                this.gameData.battleZoneProgress[employeeId] = {
+                    zoneId: zoneId,
+                    startTime: Date.now(),
+                    duration: zone.duration
+                };
+                
+                this.showNotification(`${employee.name} 进入 ${zone.name} 战斗！`);
+                this.renderEmployees();
+                this.renderBattleZones();
+                this.saveGame();
+            }
+
+            checkActivityProgress() {
+                const currentTime = Date.now();
+                
+                // 检查工作活动
+                Object.keys(this.gameData.activeActivities).forEach(employeeId => {
+                    const activityData = this.gameData.activeActivities[employeeId];
+                    const timeElapsed = currentTime - activityData.startTime;
+                    
+                    if (timeElapsed >= activityData.duration) {
+                        this.completeActivity(parseInt(employeeId), activityData.activityId);
+                        delete this.gameData.activeActivities[employeeId];
+                    }
+                });
+                
+                // 检查战斗进度
+                Object.keys(this.gameData.battleZoneProgress).forEach(employeeId => {
+                    const battleData = this.gameData.battleZoneProgress[employeeId];
+                    const timeElapsed = currentTime - battleData.startTime;
+                    
+                    if (timeElapsed >= battleData.duration) {
+                        this.completeBattle(parseInt(employeeId), battleData.zoneId);
+                        delete this.gameData.battleZoneProgress[employeeId];
+                    }
+                });
+            }
+
+            completeActivity(employeeId, activityId) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                const activity = this.activities.find(a => a.id === activityId);
+                
+                if (!employee || !activity) return;
+                
+                // 给予奖励
+                Object.keys(activity.rewards).forEach(resource => {
+                    const amount = activity.rewards[resource];
+                    const bonusAmount = Math.floor(amount * this.getResourceBonus());
+                    this.gameData[resource] = (this.gameData[resource] || 0) + bonusAmount;
+                });
+                
+                // 给予经验
+                const expGain = Math.floor(30 * this.getExpBonus());
+                employee.exp += expGain;
+                
+                // 检查升级
+                if (employee.exp >= employee.maxExp) {
+                    this.levelUpEmployee(employee);
+                }
+                
+                employee.currentActivity = null;
+                this.showNotification(`${employee.name} 完成了 ${activity.name}！获得丰厚奖励！`);
+                this.renderAll();
+                this.saveGame();
+            }
+
+            completeBattle(employeeId, zoneId) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                const zone = this.battleZones.find(z => z.id === zoneId);
+                
+                if (!employee || !zone) return;
+                
+                // 给予基础奖励
+                Object.keys(zone.rewards).forEach(resource => {
+                    const amount = zone.rewards[resource];
+                    const bonusAmount = Math.floor(amount * this.getResourceBonus());
+                    this.gameData[resource] = (this.gameData[resource] || 0) + bonusAmount;
+                });
+                
+                // 随机掉落材料
+                if (Math.random() < 0.6) {
+                    const randomMaterial = zone.materials[Math.floor(Math.random() * zone.materials.length)];
+                    this.addMaterial(randomMaterial, 1);
+                }
+                
+                // 随机掉落装备
+                if (Math.random() < 0.3) {
+                    const randomEquipment = zone.equipment[Math.floor(Math.random() * zone.equipment.length)];
+                    this.addEquipment(randomEquipment, this.getRandomQuality());
+                }
+                
+                // 给予经验
+                const expGain = Math.floor(50 * zone.difficulty * this.getExpBonus());
+                employee.exp += expGain;
+                
+                // 检查升级
+                if (employee.exp >= employee.maxExp) {
+                    this.levelUpEmployee(employee);
+                }
+                
+                employee.currentActivity = null;
+                this.showNotification(`${employee.name} 完成了 ${zone.name} 的战斗！获得丰厚奖励！`);
+                this.renderAll();
+                this.saveGame();
+            }
+
+            addMaterial(materialName, quantity) {
+                if (!this.gameData.materials[materialName]) {
+                    this.gameData.materials[materialName] = 0;
+                }
+                this.gameData.materials[materialName] += quantity;
+                this.showNotification(`获得 ${materialName} x${quantity}`);
+            }
+
+            addEquipment(equipmentName, quality) {
+                const equipment = {
+                    id: Date.now(),
+                    name: equipmentName,
+                    quality: quality,
+                    level: 0,
+                    stats: this.generateEquipmentStats(quality)
+                };
+                
+                this.gameData.equipment.push(equipment);
+                this.showNotification(`获得 ${quality} 品质的 ${equipmentName}！`);
+            }
+
+            generateEquipmentStats(quality) {
+                const baseStats = { attack: 5, defense: 5, magic: 5 };
+                const multipliers = {
+                    common: 1,
+                    rare: 1.5,
+                    epic: 2,
+                    legendary: 3
+                };
+                
+                const multiplier = multipliers[quality] || 1;
+                return {
+                    attack: Math.floor(baseStats.attack * multiplier * (0.8 + Math.random() * 0.4)),
+                    defense: Math.floor(baseStats.defense * multiplier * (0.8 + Math.random() * 0.4)),
+                    magic: Math.floor(baseStats.magic * multiplier * (0.8 + Math.random() * 0.4))
+                };
+            }
+
+            getRandomQuality() {
+                const rand = Math.random();
+                if (rand < 0.5) return 'common';
+                if (rand < 0.8) return 'rare';
+                if (rand < 0.95) return 'epic';
+                return 'legendary';
+            }
+
+            levelUpEmployee(employee) {
+                employee.level++;
+                employee.exp = 0;
+                employee.maxExp = Math.floor(employee.maxExp * 1.2);
+                employee.maxHp += 20;
+                employee.hp = employee.maxHp;
+                employee.attack += Math.floor(Math.random() * 3) + 1;
+                employee.defense += Math.floor(Math.random() * 2) + 1;
+                employee.magic += Math.floor(Math.random() * 2) + 1;
+                employee.talentPoints++;
+                this.gameData.talentPoints++;
+                
+                this.showNotification(`${employee.name} 升级到 ${employee.level} 级！获得1天赋点！`);
+                this.updateCompanyLevel();
+            }
+
+            updateCompanyLevel() {
+                const avgLevel = this.gameData.employees.reduce((sum, emp) => sum + emp.level, 0) / this.gameData.employees.length;
+                const newLevel = Math.floor(avgLevel / 2) + 1;
+                
+                if (newLevel > this.gameData.companyLevel) {
+                    this.gameData.companyLevel = newLevel;
+                    this.gameData.talentPoints += 2;
+                    this.showNotification(`公司升级到 ${newLevel} 级！获得2天赋点！`);
+                }
+            }
+
+            craftEquipment(recipeId) {
+                const recipe = this.equipmentRecipes[recipeId];
+                if (!recipe) return;
+                
+                // 检查材料
+                for (const [material, required] of Object.entries(recipe.materials)) {
+                    const available = this.gameData[material] || this.gameData.materials[material] || 0;
+                    if (available < required) {
+                        this.showNotification(`材料不足！需要 ${material} x${required}`);
+                        return;
+                    }
+                }
+                
+                // 消耗材料
+                for (const [material, required] of Object.entries(recipe.materials)) {
+                    if (this.gameData[material] !== undefined) {
+                        this.gameData[material] -= required;
+                    } else if (this.gameData.materials[material] !== undefined) {
+                        this.gameData.materials[material] -= required;
+                    }
+                }
+                
+                // 创建装备
+                this.addEquipment(recipe.name, recipe.quality);
+                this.renderWorkshop();
+                this.renderInventory();
+                this.updateDisplay();
+                this.saveGame();
+            }
+
+            enhanceEquipment(equipmentId) {
+                const equipment = this.gameData.equipment.find(e => e.id === equipmentId);
+                if (!equipment) return;
+                
+                if (equipment.level >= 15) {
+                    this.showNotification('装备已达到最大强化等级！');
+                    return;
+                }
+                
+                const cost = (equipment.level + 1) * 100;
+                if (this.gameData.gold < cost) {
+                    this.showNotification(`强化失败！需要 ${cost} 金币`);
+                    return;
+                }
+                
+                const successRate = Math.max(0.1, 1 - (equipment.level * 0.1));
+                
+                this.gameData.gold -= cost;
+                
+                if (Math.random() < successRate) {
+                    equipment.level++;
+                    Object.keys(equipment.stats).forEach(stat => {
+                        equipment.stats[stat] = Math.floor(equipment.stats[stat] * 1.1);
+                    });
+                    this.showNotification(`${equipment.name} 强化成功！等级 +${equipment.level}`);
+                } else {
+                    this.showNotification(`${equipment.name} 强化失败！`);
+                }
+                
+                this.renderWorkshop();
+                this.renderInventory();
+                this.updateDisplay();
+                this.saveGame();
+            }
+
+            unlockTalent(talentId) {
+                const talent = this.talents[talentId];
+                if (!talent || this.gameData.unlockedTalents[talentId]) return;
+                
+                if (this.gameData.talentPoints < talent.cost) {
+                    this.showNotification(`天赋点不足！需要 ${talent.cost} 点`);
+                    return;
+                }
+                
+                // 检查前置条件
+                if (talent.prereq) {
+                    if (Array.isArray(talent.prereq)) {
+                        if (!talent.prereq.every(prereq => this.gameData.unlockedTalents[prereq])) {
+                            this.showNotification('前置天赋未解锁！');
+                            return;
+                        }
+                    } else {
+                        if (!this.gameData.unlockedTalents[talent.prereq]) {
+                            this.showNotification('前置天赋未解锁！');
+                            return;
+                        }
+                    }
+                }
+                
+                this.gameData.talentPoints -= talent.cost;
+                this.gameData.unlockedTalents[talentId] = true;
+                
+                this.showNotification(`解锁天赋：${talent.name}！`);
+                this.renderTalentTree();
+                this.updateDisplay();
+                this.saveGame();
+            }
+
+            getResourceBonus() {
+                let bonus = 1;
+                if (this.gameData.unlockedTalents.resource1) bonus += 0.2;
+                if (this.gameData.unlockedTalents.resource2) bonus += 0.4;
+                if (this.gameData.unlockedTalents.grandMaster) bonus += 1;
+                return bonus;
+            }
+
+            getExpBonus() {
+                let bonus = 1;
+                if (this.gameData.unlockedTalents.experience1) bonus += 0.3;
+                if (this.gameData.unlockedTalents.experience2) bonus += 0.6;
+                if (this.gameData.unlockedTalents.grandMaster) bonus += 1;
+                return bonus;
+            }
+
+            filterActivities(type) {
+                this.currentFilter = type;
+                this.renderActivities();
+            }
+
+            showCraftingTab() {
+                this.renderWorkshop('crafting');
+            }
+
+            showEnhanceTab() {
+                this.renderWorkshop('enhance');
+            }
+
+            showSetsTab() {
+                this.renderWorkshop('sets');
+            }
+
+            showInventoryTab(type) {
+                this.renderInventory(type);
+            }
+
+            dismissEmployee(employeeId) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                if (!employee) return;
+                
+                if (confirm(`确定要解雇 ${employee.name} 吗？`)) {
+                    this.gameData.employees = this.gameData.employees.filter(e => e.id !== employeeId);
+                    this.showNotification(`${employee.name} 已被解雇`);
+                    this.renderEmployees();
+                    this.updateDisplay();
+                    this.saveGame();
+                }
+            }
+
+            openEquipmentModal(employeeId) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                if (!employee) return;
+                
+                const modal = document.getElementById('equipmentModal');
+                const content = document.getElementById('equipmentModalContent');
+                
+                let html = `<h3>${employee.name} 的装备</h3>`;
+                html += '<div class="inventory-grid">';
+                
+                this.gameData.equipment.forEach(equipment => {
+                    const qualityClass = `quality-${equipment.quality}`;
+                    html += `
+                        <div class="item-card ${qualityClass}">
+                            <div>
+                                <strong>${equipment.name}</strong> +${equipment.level}<br>
+                                <small>${equipment.quality}</small><br>
+                                <small>攻击: ${equipment.stats.attack} 防御: ${equipment.stats.defense} 魔法: ${equipment.stats.magic}</small>
+                            </div>
+                            <button class="btn btn-success" onclick="game.equipItem(${employeeId}, ${equipment.id})">装备</button>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                content.innerHTML = html;
+                modal.style.display = 'block';
+            }
+
+            equipItem(employeeId, equipmentId) {
+                const employee = this.gameData.employees.find(e => e.id === employeeId);
+                const equipment = this.gameData.equipment.find(e => e.id === equipmentId);
+                
+                if (!employee || !equipment) return;
+                
+                // 简单的装备系统，这里可以扩展为不同装备位
+                employee.equipment.weapon = equipment;
+                
+                this.showNotification(`${employee.name} 装备了 ${equipment.name}`);
+                this.closeModal('equipmentModal');
+                this.renderEmployees();
+                this.saveGame();
+            }
+
+            closeModal(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+
+            renderAll() {
+                this.updateDisplay();
+                this.renderEmployees();
+                this.renderActivities();
+                this.renderBattleZones();
+                this.renderWorkshop();
+                this.renderInventory();
+                this.renderTalentTree();
+            }
+
+            updateDisplay() {
+                document.getElementById('gold').textContent = this.gameData.gold;
+                document.getElementById('wood').textContent = this.gameData.wood;
+                document.getElementById('stone').textContent = this.gameData.stone;
+                document.getElementById('iron').textContent = this.gameData.iron;
+                document.getElementById('crystal').textContent = this.gameData.crystal;
+                document.getElementById('companyLevel').textContent = this.gameData.companyLevel;
+                document.getElementById('talentPoints').textContent = this.gameData.talentPoints;
+                
+                if (this.gameData.companyName) {
+                    document.getElementById('companyTitle').textContent = this.gameData.companyName;
+                }
+            }
+
+            renderEmployees() {
+                const container = document.getElementById('employeesList');
+                if (!container) return;
+                
+                let html = '';
+                
+                this.gameData.employees.forEach(employee => {
+                    const activity = this.getEmployeeCurrentActivity(employee);
+                    const progress = this.getEmployeeProgress(employee.id);
+                    
+                    html += `
+                        <div class="employee-card">
+                            <h3>${employee.name} (${employee.class}) - 等级 ${employee.level}</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 10px 0;">
+                                <div>HP: ${employee.hp}/${employee.maxHp}</div>
+                                <div>攻击: ${employee.attack}</div>
+                                <div>防御: ${employee.defense}</div>
+                                <div>魔法: ${employee.magic}</div>
+                                <div>经验: ${employee.exp}/${employee.maxExp}</div>
+                                <div>天赋点: ${employee.talentPoints}</div>
+                            </div>
+                            
+                            ${activity ? `
+                                <div>当前活动: ${activity}</div>
+                                ${progress.active ? `
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${progress.percentage}%"></div>
+                                    </div>
+                                    <div>剩余时间: ${progress.timeLeft}</div>
+                                ` : ''}
+                            ` : ''}
+                            
+                            <div style="margin-top: 15px;">
+                                <button class="btn" onclick="game.openEquipmentModal(${employee.id})">装备管理</button>
+                                <button class="btn btn-danger" onclick="game.dismissEmployee(${employee.id})">解雇</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (this.gameData.employees.length === 0) {
+                    html = '<p>暂无员工，请先招募员工。</p>';
+                }
+                
+                container.innerHTML = html;
+            }
+
+            renderActivities() {
+                const container = document.getElementById('activitiesList');
+                if (!container) return;
+                
+                let html = '';
+                
+                const filteredActivities = this.currentFilter && this.currentFilter !== 'all' 
+                    ? this.activities.filter(a => a.type === this.currentFilter)
+                    : this.activities;
+                
+                filteredActivities.forEach(activity => {
+                    html += `
+                        <div class="activity-card">
+                            <h3>${activity.name}</h3>
+                            <p>类型: ${activity.type} | 持续时间: ${Math.floor(activity.duration/1000)}秒 | 需要等级: ${activity.requiredLevel}</p>
+                            <p>奖励: ${Object.entries(activity.rewards).map(([key, value]) => `${key} +${value}`).join(', ')}</p>
+                            
+                            <div style="margin-top: 15px;">
+                                <select id="employee-select-${activity.id}" style="margin-right: 10px; padding: 5px;">
+                                    <option value="">选择员工</option>
+                                    ${this.gameData.employees
+                                        .filter(emp => emp.level >= activity.requiredLevel && !emp.currentActivity)
+                                        .map(emp => `<option value="${emp.id}">${emp.name} (等级 ${emp.level})</option>`)
+                                        .join('')}
+                                </select>
+                                <button class="btn" onclick="game.assignActivityFromSelect('${activity.id}')">分配任务</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            }
+
+            renderBattleZones() {
+                const container = document.getElementById('battleZonesList');
+                if (!container) return;
+                
+                let html = '';
+                
+                this.battleZones.forEach(zone => {
+                    html += `
+                        <div class="battle-zone-card">
+                            <h3>${zone.name}</h3>
+                            <div class="battle-zone-stats">
+                                <div class="battle-zone-stat">难度: ${zone.difficulty}</div>
+                                <div class="battle-zone-stat">时长: ${Math.floor(zone.duration/1000)}秒</div>
+                                <div class="battle-zone-stat">需要等级: ${zone.requiredLevel}</div>
+                                <div class="battle-zone-stat">经验倍率: ${zone.difficulty}x</div>
+                            </div>
+                            <p>基础奖励: ${Object.entries(zone.rewards).map(([key, value]) => `${key} +${value}`).join(', ')}</p>
+                            <p>可能掉落: ${zone.materials.join(', ')}</p>
+                            <p>装备掉落: ${zone.equipment.join(', ')}</p>
+                            
+                            <div style="margin-top: 15px;">
+                                <select id="battle-employee-select-${zone.id}" style="margin-right: 10px; padding: 5px;">
+                                    <option value="">选择员工</option>
+                                    ${this.gameData.employees
+                                        .filter(emp => emp.level >= zone.requiredLevel && !emp.currentActivity)
+                                        .map(emp => `<option value="${emp.id}">${emp.name} (等级 ${emp.level})</option>`)
+                                        .join('')}
+                                </select>
+                                <button class="btn" onclick="game.assignBattleFromSelect('${zone.id}')">开始战斗</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            }
+
+            renderWorkshop(tab = 'crafting') {
+                const container = document.getElementById('workshopContent');
+                if (!container) return;
+                
+                let html = '';
+                
+                switch(tab) {
+                    case 'crafting':
+                        html = '<h3>装备制作</h3><div class="grid">';
+                        Object.entries(this.equipmentRecipes).forEach(([id, recipe]) => {
+                            const canCraft = Object.entries(recipe.materials).every(([material, required]) => {
+                                const available = this.gameData[material] || this.gameData.materials[material] || 0;
+                                return available >= required;
+                            });
+                            
+                            html += `
+                                <div class="item-card quality-${recipe.quality}">
+                                    <h4>${recipe.name}</h4>
+                                    <p>品质: ${recipe.quality}</p>
+                                    <p>属性: ${Object.entries(recipe.stats).map(([stat, value]) => `${stat} +${value}`).join(', ')}</p>
+                                    <p>材料: ${Object.entries(recipe.materials).map(([material, required]) => {
+                                        const available = this.gameData[material] || this.gameData.materials[material] || 0;
+                                        return `${material} ${available}/${required}`;
+                                    }).join(', ')}</p>
+                                    <button class="btn ${canCraft ? '' : 'btn-danger'}" 
+                                            onclick="game.craftEquipment('${id}')" 
+                                            ${canCraft ? '' : 'disabled'}>
+                                        ${canCraft ? '制作' : '材料不足'}
+                                    </button>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        break;
+                        
+                    case 'enhance':
+                        html = '<h3>装备强化</h3><div class="inventory-grid">';
+                        this.gameData.equipment.forEach(equipment => {
+                            const cost = (equipment.level + 1) * 100;
+                            const successRate = Math.max(10, 100 - (equipment.level * 10));
+                            
+                            html += `
+                                <div class="item-card quality-${equipment.quality}">
+                                    <h4>${equipment.name} +${equipment.level}</h4>
+                                    <p>品质: ${equipment.quality}</p>
+                                    <p>属性: ${Object.entries(equipment.stats).map(([stat, value]) => `${stat} ${value}`).join(', ')}</p>
+                                    <p>强化费用: ${cost} 金币</p>
+                                    <p>成功率: ${successRate}%</p>
+                                    <button class="btn ${this.gameData.gold >= cost ? '' : 'btn-danger'}" 
+                                            onclick="game.enhanceEquipment(${equipment.id})"
+                                            ${equipment.level >= 15 ? 'disabled' : ''}>
+                                        ${equipment.level >= 15 ? '已满级' : '强化'}
+                                    </button>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        break;
+                        
+                    case 'sets':
+                        html = `
+                            <h3>套装系统</h3>
+                            <div class="grid">
+                                <div class="item-card">
+                                    <h4>火焰套装</h4>
+                                    <p>2件: 火焰伤害 +20%</p>
+                                    <p>4件: 暴击率 +15%</p>
+                                    <p>6件: 火焰爆发技能</p>
+                                </div>
+                                <div class="item-card">
+                                    <h4>冰霜套装</h4>
+                                    <p>2件: 冰霜伤害 +20%</p>
+                                    <p>4件: 冰冻几率 +25%</p>
+                                    <p>6件: 冰霜护盾技能</p>
+                                </div>
+                                <div class="item-card">
+                                    <h4>闪电套装</h4>
+                                    <p>2件: 雷电伤害 +20%</p>
+                                    <p>4件: 攻击速度 +30%</p>
+                                    <p>6件: 连锁闪电技能</p>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                }
+                
+                container.innerHTML = html;
+            }
+
+            renderInventory(tab = 'materials') {
+                const container = document.getElementById('inventoryContent');
+                if (!container) return;
+                
+                let html = '';
+                
+                switch(tab) {
+                    case 'materials':
+                        html = '<h3>材料仓库</h3><div class="inventory-grid">';
+                        if (Object.keys(this.gameData.materials).length === 0) {
+                            html += '<p>暂无材料</p>';
+                        } else {
+                            Object.entries(this.gameData.materials).forEach(([material, quantity]) => {
+                                if (quantity > 0) {
+                                    html += `
+                                        <div class="item-card">
+                                            <h4>${material}</h4>
+                                            <p>数量: ${quantity}</p>
+                                        </div>
+                                    `;
+                                }
+                            });
+                        }
+                        html += '</div>';
+                        break;
+                        
+                    case 'equipment':
+                        html = '<h3>装备仓库</h3><div class="inventory-grid">';
+                        if (this.gameData.equipment.length === 0) {
+                            html += '<p>暂无装备</p>';
+                        } else {
+                            this.gameData.equipment.forEach(equipment => {
+                                html += `
+                                    <div class="item-card quality-${equipment.quality}">
+                                        <h4>${equipment.name} +${equipment.level}</h4>
+                                        <p>品质: ${equipment.quality}</p>
+                                        <p>属性: ${Object.entries(equipment.stats).map(([stat, value]) => `${stat} ${value}`).join(', ')}</p>
+                                        <button class="btn btn-danger" onclick="game.sellEquipment(${equipment.id})">出售</button>
+                                    </div>
+                                `;
+                            });
+                        }
+                        html += '</div>';
+                        break;
+                }
+                
+                container.innerHTML = html;
+            }
+
+            renderTalentTree() {
+                const container = document.getElementById('talentTree');
+                if (!container) return;
+                
+                let html = '<div class="grid">';
+                
+                Object.entries(this.talents).forEach(([id, talent]) => {
+                    const isUnlocked = this.gameData.unlockedTalents[id];
+                    const canUnlock = this.canUnlockTalent(id);
+                    
+                    html += `
+                        <div class="item-card ${isUnlocked ? 'quality-legendary' : canUnlock ? 'quality-epic' : 'quality-common'}">
+                            <h4>${talent.name}</h4>
+                            <p>消耗: ${talent.cost} 天赋点</p>
+                            <p>效果: ${talent.effect}</p>
+                            ${talent.prereq ? `<p>前置: ${Array.isArray(talent.prereq) ? talent.prereq.join(', ') : talent.prereq}</p>` : ''}
+                            <button class="btn ${isUnlocked ? 'btn-success' : canUnlock ? '' : 'btn-danger'}" 
+                                    onclick="game.unlockTalent('${id}')"
+                                    ${isUnlocked ? 'disabled' : ''}>
+                                ${isUnlocked ? '已解锁' : canUnlock ? '解锁' : '条件不足'}
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+            canUnlockTalent(talentId) {
+                const talent = this.talents[talentId];
+                if (!talent || this.gameData.unlockedTalents[talentId]) return false;
+                
+                if (this.gameData.talentPoints < talent.cost) return false;
+                
+                if (talent.prereq) {
+                    if (Array.isArray(talent.prereq)) {
+                        return talent.prereq.every(prereq => this.gameData.unlockedTalents[prereq]);
+                    } else {
+                        return this.gameData.unlockedTalents[talent.prereq];
+                    }
+                }
+                
+                return true;
+            }
+
+            assignActivityFromSelect(activityId) {
+                const select = document.getElementById(`employee-select-${activityId}`);
+                const employeeId = parseInt(select.value);
+                if (employeeId) {
+                    this.assignActivity(employeeId, activityId);
+                }
+            }
+
+            assignBattleFromSelect(zoneId) {
+                const select = document.getElementById(`battle-employee-select-${zoneId}`);
+                const employeeId = parseInt(select.value);
+                if (employeeId) {
+                    this.assignBattle(employeeId, zoneId);
+                }
+            }
+
+            getEmployeeCurrentActivity(employee) {
+                if (!employee.currentActivity) return null;
+                
+                if (employee.currentActivity.startsWith('battle_')) {
+                    const zoneId = employee.currentActivity.replace('battle_', '');
+                    const zone = this.battleZones.find(z => z.id === zoneId);
+                    return zone ? `战斗: ${zone.name}` : '未知战斗';
+                }
+                
+                const activity = this.activities.find(a => a.id === employee.currentActivity);
+                return activity ? activity.name : '未知活动';
+            }
+
+            getEmployeeProgress(employeeId) {
+                const currentTime = Date.now();
+                
+                // 检查工作活动
+                if (this.gameData.activeActivities[employeeId]) {
+                    const activityData = this.gameData.activeActivities[employeeId];
+                    const timeElapsed = currentTime - activityData.startTime;
+                    const percentage = Math.min(100, (timeElapsed / activityData.duration) * 100);
+                    const timeLeft = Math.max(0, activityData.duration - timeElapsed);
+                    
+                    return {
+                        active: true,
+                        percentage: percentage,
+                        timeLeft: this.formatTime(timeLeft)
+                    };
+                }
+                
+                // 检查战斗进度
+                if (this.gameData.battleZoneProgress[employeeId]) {
+                    const battleData = this.gameData.battleZoneProgress[employeeId];
+                    const timeElapsed = currentTime - battleData.startTime;
+                    const percentage = Math.min(100, (timeElapsed / battleData.duration) * 100);
+                    const timeLeft = Math.max(0, battleData.duration - timeElapsed);
+                    
+                    return {
+                        active: true,
+                        percentage: percentage,
+                        timeLeft: this.formatTime(timeLeft)
+                    };
+                }
+                
+                return { active: false };
+            }
+
+            formatTime(milliseconds) {
+                const seconds = Math.floor(milliseconds / 1000);
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+
+            sellEquipment(equipmentId) {
+                const equipment = this.gameData.equipment.find(e => e.id === equipmentId);
+                if (!equipment) return;
+                
+                const sellPrice = (equipment.level + 1) * 50;
+                this.gameData.gold += sellPrice;
+                this.gameData.equipment = this.gameData.equipment.filter(e => e.id !== equipmentId);
+                
+                this.showNotification(`出售 ${equipment.name}，获得 ${sellPrice} 金币`);
+                this.renderInventory();
+                this.updateDisplay();
+                this.saveGame();
+            }
+
+            showNotification(message) {
+                // 移除现有通知
+                const existingNotification = document.querySelector('.notification');
+                if (existingNotification) {
+                    existingNotification.remove();
+                }
+                
+                // 创建新通知
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                // 3秒后自动移除
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 3000);
+            }
+
+            startGameLoop() {
+                setInterval(() => {
+                    this.checkActivityProgress();
+                    this.renderEmployees();
+                    this.renderBattleZones();
+                }, 1000);
+            }
+
+            saveGame() {
+                localStorage.setItem('fantasyCompanyGame', JSON.stringify(this.gameData));
+            }
+
+            loadGame() {
+                const savedData = localStorage.getItem('fantasyCompanyGame');
+                if (savedData) {
+                    this.gameData = { ...this.gameData, ...JSON.parse(savedData) };
+                }
+            }
+        }
+
+        // 全局变量和函数
+        let game;
+
+        window.onload = () => {
+            game = new FantasyCompany();
+        };
+
+        window.onbeforeunload = () => {
+            if (game && game.gameData.companyName) {
+                game.saveGame();
+            }
+        };
+    </script>
+</body>
+</html>
