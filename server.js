@@ -48,60 +48,114 @@ app.get('/stats', (req, res) => {
     }
 });
 
-// 产品定义系统
+// 扩展产品定义系统 - 多产业线
 const PRODUCT_TIERS = {
     T1: { // 原材料
         steel: { name: '钢铁', basePrice: 100, category: 'metal', productionTime: 5 },
         oil: { name: '石油', basePrice: 80, category: 'energy', productionTime: 3 },
         silicon: { name: '硅', basePrice: 150, category: 'tech', productionTime: 8 },
         wood: { name: '木材', basePrice: 60, category: 'natural', productionTime: 2 },
-        rare_earth: { name: '稀土', basePrice: 300, category: 'tech', productionTime: 15 }
+        rare_earth: { name: '稀土', basePrice: 300, category: 'tech', productionTime: 15 },
+        // 新增农业原料
+        wheat: { name: '小麦', basePrice: 40, category: 'agriculture', productionTime: 10 },
+        cotton: { name: '棉花', basePrice: 55, category: 'agriculture', productionTime: 12 },
+        livestock: { name: '牲畜', basePrice: 120, category: 'agriculture', productionTime: 20 },
+        // 新增其他原料
+        sand: { name: '沙子', basePrice: 25, category: 'construction', productionTime: 1 },
+        coal: { name: '煤炭', basePrice: 70, category: 'energy', productionTime: 4 }
     },
     T2: { // 初级产品
         plastic: { name: '塑料', basePrice: 200, category: 'material', recipe: { oil: 2 }, productionTime: 10 },
         chips: { name: '芯片', basePrice: 800, category: 'tech', recipe: { silicon: 1, rare_earth: 1 }, productionTime: 30 },
         steel_bar: { name: '钢材', basePrice: 250, category: 'material', recipe: { steel: 3 }, productionTime: 15 },
         fuel: { name: '燃料', basePrice: 180, category: 'energy', recipe: { oil: 2 }, productionTime: 8 },
-        paper: { name: '纸张', basePrice: 120, category: 'material', recipe: { wood: 2 }, productionTime: 5 }
+        paper: { name: '纸张', basePrice: 120, category: 'material', recipe: { wood: 2 }, productionTime: 5 },
+        // 新增农业初级产品
+        flour: { name: '面粉', basePrice: 80, category: 'food', recipe: { wheat: 3 }, productionTime: 8 },
+        fabric: { name: '布料', basePrice: 140, category: 'textile', recipe: { cotton: 2 }, productionTime: 12 },
+        meat: { name: '肉类', basePrice: 280, category: 'food', recipe: { livestock: 1 }, productionTime: 15 },
+        // 新增建材
+        glass: { name: '玻璃', basePrice: 160, category: 'construction', recipe: { sand: 4, coal: 1 }, productionTime: 18 },
+        cement: { name: '水泥', basePrice: 90, category: 'construction', recipe: { sand: 2, coal: 2 }, productionTime: 12 }
     },
     T3: { // 中级产品
         components: { name: '电子组件', basePrice: 1500, category: 'tech', recipe: { chips: 2, plastic: 1 }, productionTime: 60 },
         machinery: { name: '机械零件', basePrice: 1200, category: 'industrial', recipe: { steel_bar: 3, plastic: 1 }, productionTime: 45 },
         software: { name: '软件', basePrice: 2000, category: 'tech', recipe: { chips: 1 }, productionTime: 90 },
-        textiles: { name: '纺织品', basePrice: 800, category: 'consumer', recipe: { plastic: 2, paper: 1 }, productionTime: 30 }
+        textiles: { name: '纺织品', basePrice: 800, category: 'consumer', recipe: { fabric: 2, plastic: 1 }, productionTime: 30 },
+        // 新增消费品中级产品
+        processed_food: { name: '加工食品', basePrice: 350, category: 'food', recipe: { flour: 2, meat: 1 }, productionTime: 25 },
+        cosmetics: { name: '化妆品', basePrice: 600, category: 'beauty', recipe: { plastic: 1, paper: 1 }, productionTime: 35 },
+        // 新增建材中级产品
+        windows: { name: '门窗', basePrice: 450, category: 'construction', recipe: { glass: 2, steel_bar: 1 }, productionTime: 40 },
+        furniture: { name: '家具', basePrice: 700, category: 'home', recipe: { wood: 4, fabric: 1 }, productionTime: 50 }
     },
     T4: { // 高级产品
         smartphone: { name: '智能手机', basePrice: 8000, category: 'consumer', recipe: { components: 3, software: 1 }, productionTime: 180 },
         car: { name: '汽车', basePrice: 25000, category: 'consumer', recipe: { machinery: 8, components: 2, fuel: 5 }, productionTime: 300 },
         computer: { name: '计算机', basePrice: 12000, category: 'tech', recipe: { components: 5, software: 2 }, productionTime: 240 },
-        clothing: { name: '服装', basePrice: 500, category: 'consumer', recipe: { textiles: 2 }, productionTime: 45 }
+        clothing: { name: '服装', basePrice: 500, category: 'consumer', recipe: { textiles: 2 }, productionTime: 45 },
+        // 新增消费品高级产品
+        restaurant_meal: { name: '精品餐饮', basePrice: 120, category: 'food', recipe: { processed_food: 2 }, productionTime: 20 },
+        luxury_cosmetics: { name: '高端化妆品', basePrice: 2500, category: 'beauty', recipe: { cosmetics: 3, rare_earth: 1 }, productionTime: 120 },
+        // 新增其他高级产品
+        house: { name: '房屋', basePrice: 80000, category: 'real_estate', recipe: { cement: 50, windows: 10, furniture: 5 }, productionTime: 600 },
+        appliances: { name: '家电', basePrice: 3500, category: 'home', recipe: { components: 4, steel_bar: 2 }, productionTime: 150 }
     },
     T5: { // 奢侈品
         luxury_car: { name: '豪华汽车', basePrice: 100000, category: 'luxury', recipe: { car: 1, components: 5 }, productionTime: 600 },
         premium_phone: { name: '限量手机', basePrice: 20000, category: 'luxury', recipe: { smartphone: 1, rare_earth: 2 }, productionTime: 360 },
-        designer_clothes: { name: '设计师服装', basePrice: 5000, category: 'luxury', recipe: { clothing: 3, rare_earth: 1 }, productionTime: 180 }
+        designer_clothes: { name: '设计师服装', basePrice: 5000, category: 'luxury', recipe: { clothing: 3, rare_earth: 1 }, productionTime: 180 },
+        // 新增奢侈消费品
+        michelin_dining: { name: '米其林餐厅', basePrice: 2000, category: 'luxury', recipe: { restaurant_meal: 5, luxury_cosmetics: 1 }, productionTime: 300 },
+        premium_beauty: { name: '顶级美容', basePrice: 8000, category: 'luxury', recipe: { luxury_cosmetics: 4, rare_earth: 2 }, productionTime: 400 },
+        // 新增奢侈品
+        mansion: { name: '豪宅', basePrice: 500000, category: 'luxury', recipe: { house: 1, luxury_car: 1, appliances: 10 }, productionTime: 1200 },
+        private_jet: { name: '私人飞机', basePrice: 2000000, category: 'luxury', recipe: { machinery: 100, components: 50, fuel: 200 }, productionTime: 2400 }
     }
 };
 
-// 工厂类型定义
+// 扩展工厂类型 - 多产业线
 const FACTORY_TYPES = {
     mining: {
         name: '采矿厂',
         emoji: '⛏️',
         unlockLevel: 0,
         cost: { money: 100000 },
-        produces: ['steel', 'oil', 'silicon', 'wood', 'rare_earth'],
-        description: '开采原材料',
-        baseEfficiency: 1.0
+        produces: ['steel', 'oil', 'silicon', 'wood', 'rare_earth', 'sand', 'coal'],
+        description: '开采各种原材料',
+        category: 'extraction',
+        efficiency: 1.0
+    },
+    farming: {
+        name: '农场',
+        emoji: '🌾',
+        unlockLevel: 0,
+        cost: { money: 80000 },
+        produces: ['wheat', 'cotton', 'livestock'],
+        description: '农业生产基地',
+        category: 'agriculture',
+        efficiency: 1.0
     },
     chemical: {
         name: '化工厂',
         emoji: '🧪',
         unlockLevel: 1,
         cost: { money: 300000, steel: 50 },
-        produces: ['plastic', 'fuel'],
-        description: '生产化工产品',
-        baseEfficiency: 1.0
+        produces: ['plastic', 'fuel', 'cosmetics'],
+        description: '化工产品生产',
+        category: 'chemical',
+        efficiency: 1.0
+    },
+    food_processing: {
+        name: '食品加工厂',
+        emoji: '🍞',
+        unlockLevel: 1,
+        cost: { money: 250000, steel: 30 },
+        produces: ['flour', 'meat', 'processed_food'],
+        description: '食品加工生产',
+        category: 'food',
+        efficiency: 1.0
     },
     electronics: {
         name: '电子厂',
@@ -109,35 +163,79 @@ const FACTORY_TYPES = {
         unlockLevel: 1,
         cost: { money: 500000, steel: 30, silicon: 20 },
         produces: ['chips', 'components', 'software'],
-        description: '制造电子产品',
-        baseEfficiency: 1.0
+        description: '电子产品制造',
+        category: 'technology',
+        efficiency: 1.0
+    },
+    textile: {
+        name: '纺织厂',
+        emoji: '🧵',
+        unlockLevel: 1,
+        cost: { money: 200000, steel: 25 },
+        produces: ['fabric', 'textiles', 'clothing'],
+        description: '纺织品生产',
+        category: 'textile',
+        efficiency: 1.0
+    },
+    construction: {
+        name: '建材厂',
+        emoji: '🏗️',
+        unlockLevel: 2,
+        cost: { money: 400000, steel_bar: 80 },
+        produces: ['glass', 'cement', 'windows'],
+        description: '建筑材料生产',
+        category: 'construction',
+        efficiency: 1.0
     },
     manufacturing: {
         name: '制造厂',
         emoji: '🏭',
         unlockLevel: 2,
         cost: { money: 800000, steel_bar: 100, machinery: 10 },
-        produces: ['steel_bar', 'machinery', 'textiles', 'paper'],
-        description: '工业制造',
-        baseEfficiency: 1.0
+        produces: ['steel_bar', 'machinery', 'paper', 'furniture', 'appliances'],
+        description: '重工业制造',
+        category: 'heavy_industry',
+        efficiency: 1.0
     },
     assembly: {
         name: '组装厂',
         emoji: '🔧',
         unlockLevel: 3,
         cost: { money: 1500000, machinery: 50, components: 20 },
-        produces: ['smartphone', 'car', 'computer', 'clothing'],
-        description: '产品组装',
-        baseEfficiency: 1.0
+        produces: ['smartphone', 'car', 'computer'],
+        description: '高级产品组装',
+        category: 'assembly',
+        efficiency: 1.0
+    },
+    restaurant: {
+        name: '餐饮工厂',
+        emoji: '🍽️',
+        unlockLevel: 2,
+        cost: { money: 600000, steel_bar: 30, processed_food: 50 },
+        produces: ['restaurant_meal', 'michelin_dining'],
+        description: '餐饮服务生产',
+        category: 'service',
+        efficiency: 1.0
+    },
+    real_estate: {
+        name: '房地产公司',
+        emoji: '🏘️',
+        unlockLevel: 3,
+        cost: { money: 2000000, cement: 200, windows: 100 },
+        produces: ['house', 'mansion'],
+        description: '房地产开发',
+        category: 'real_estate',
+        efficiency: 1.0
     },
     luxury: {
         name: '奢侈品工坊',
         emoji: '💎',
         unlockLevel: 4,
         cost: { money: 5000000, components: 100, rare_earth: 50 },
-        produces: ['luxury_car', 'premium_phone', 'designer_clothes'],
+        produces: ['luxury_car', 'premium_phone', 'designer_clothes', 'premium_beauty', 'private_jet'],
         description: '奢侈品制造',
-        baseEfficiency: 1.0
+        category: 'luxury',
+        efficiency: 1.0
     }
 };
 
@@ -181,81 +279,202 @@ const MARKET_TIERS = {
     }
 };
 
-// 技术树定义
+// 科技树定义 - 删除自动化相关
 const TECH_TREE = {
-    automation_1: {
-        name: '基础自动化',
-        cost: { money: 500000, chips: 10 },
-        unlockLevel: 1,
-        effect: '工厂效率+20%',
-        description: '基础的生产自动化'
-    },
     efficiency_1: {
-        name: '效率优化',
-        cost: { money: 300000, software: 5 },
+        name: '生产效率优化',
+        cost: { money: 300000, chips: 5 },
         unlockLevel: 1,
-        effect: '生产成本-15%',
-        description: '优化生产流程'
+        effect: '所有工厂生产效率+25%',
+        description: '优化生产流程，提升整体效率',
+        category: 'efficiency'
     },
-    quality_1: {
-        name: '质量控制',
+    quality_control: {
+        name: '质量控制系统',
         cost: { money: 400000, components: 20 },
         unlockLevel: 2,
-        effect: '产品价值+25%',
-        description: '提升产品质量'
+        effect: '产品价值+30%',
+        description: '建立完善的质量管控体系',
+        category: 'quality'
     },
-    automation_2: {
-        name: '高级自动化',
-        cost: { money: 2000000, computer: 5 },
+    supply_chain: {
+        name: '供应链优化',
+        cost: { money: 600000, software: 3 },
+        unlockLevel: 2,
+        effect: '原料消耗-20%',
+        description: '优化供应链管理，降低原料浪费',
+        category: 'logistics'
+    },
+    market_research: {
+        name: '市场研究',
+        cost: { money: 500000, processed_food: 100 },
+        unlockLevel: 2,
+        effect: '市场交易手续费-50%',
+        description: '深入了解市场规律，降低交易成本',
+        category: 'market'
+    },
+    advanced_manufacturing: {
+        name: '先进制造技术',
+        cost: { money: 1500000, machinery: 50 },
         unlockLevel: 3,
-        requires: ['automation_1'],
-        effect: '工厂效率+50%，可设置自动生产',
-        description: '高级自动化系统'
+        requires: ['efficiency_1', 'quality_control'],
+        effect: '解锁高级工厂，生产效率+50%',
+        description: '掌握最新制造技术',
+        category: 'manufacturing'
     },
-    ai_optimization: {
-        name: 'AI优化',
-        cost: { money: 5000000, premium_phone: 2 },
+    ai_analytics: {
+        name: 'AI数据分析',
+        cost: { money: 2500000, computer: 10 },
         unlockLevel: 4,
-        requires: ['automation_2', 'efficiency_1'],
-        effect: '全自动生产，效率+100%',
-        description: 'AI驱动的完全自动化'
+        requires: ['market_research', 'supply_chain'],
+        effect: '预测市场趋势，获得额外收益+30%',
+        description: 'AI驱动的市场分析系统',
+        category: 'ai'
+    },
+    global_expansion: {
+        name: '全球化扩张',
+        cost: { money: 5000000, luxury_car: 5 },
+        unlockLevel: 5,
+        requires: ['advanced_manufacturing', 'ai_analytics'],
+        effect: '解锁全球市场，所有收益+100%',
+        description: '建立全球化商业网络',
+        category: 'expansion'
+    },
+    sustainability: {
+        name: '可持续发展',
+        cost: { money: 3000000, house: 10 },
+        unlockLevel: 4,
+        requires: ['supply_chain'],
+        effect: '环保生产，政府补贴+50%',
+        description: '绿色制造技术',
+        category: 'environment'
     }
 };
 
-// 游戏状态
+// 10个AI公司（neta现实公司名）
 const gameState = {
     companies: new Map(),
     playerNames: new Map(),
     aiCompanies: [
         {
-            id: 'ai_tech_giant',
-            name: '科技巨头公司',
-            value: 50000000,
-            trend: 0,
+            id: 'ai_fruit_tech',
+            name: '水果科技',
+            value: 180000000,
+            trend: 1,
             sector: '科技',
             companyType: 'tech',
-            volatility: 0.15,
-            underAttack: false
-        },
-        {
-            id: 'ai_auto_corp',
-            name: '汽车制造集团',
-            value: 45000000,
-            trend: 1,
-            sector: '制造',
-            companyType: 'manufacturing',
             volatility: 0.12,
-            underAttack: false
+            underAttack: false,
+            specialty: 'electronics',
+            stockHistory: []
         },
         {
-            id: 'ai_luxury_brand',
-            name: '奢侈品帝国',
-            value: 35000000,
+            id: 'ai_micro_soft',
+            name: '微硬公司',
+            value: 165000000,
+            trend: 0,
+            sector: '软件',
+            companyType: 'tech',
+            volatility: 0.08,
+            underAttack: false,
+            specialty: 'software',
+            stockHistory: []
+        },
+        {
+            id: 'ai_google_search',
+            name: '谷歌搜索',
+            value: 170000000,
             trend: -1,
-            sector: '奢侈品',
-            companyType: 'luxury',
-            volatility: 0.20,
-            underAttack: false
+            sector: '互联网',
+            companyType: 'tech',
+            volatility: 0.10,
+            underAttack: false,
+            specialty: 'data_services',
+            stockHistory: []
+        },
+        {
+            id: 'ai_tesla_auto',
+            name: '特斯拉汽车',
+            value: 95000000,
+            trend: 1,
+            sector: '汽车',
+            companyType: 'manufacturing',
+            volatility: 0.18,
+            underAttack: false,
+            specialty: 'automotive',
+            stockHistory: []
+        },
+        {
+            id: 'ai_amazon_retail',
+            name: '亚马逊零售',
+            value: 140000000,
+            trend: 0,
+            sector: '电商',
+            companyType: 'retail',
+            volatility: 0.09,
+            underAttack: false,
+            specialty: 'logistics',
+            stockHistory: []
+        },
+        {
+            id: 'ai_meta_social',
+            name: '元宇宙社交',
+            value: 85000000,
+            trend: -1,
+            sector: '社交媒体',
+            companyType: 'tech',
+            volatility: 0.15,
+            underAttack: false,
+            specialty: 'social_media',
+            stockHistory: []
+        },
+        {
+            id: 'ai_nike_sports',
+            name: '耐克体育',
+            value: 75000000,
+            trend: 1,
+            sector: '服装',
+            companyType: 'retail',
+            volatility: 0.11,
+            underAttack: false,
+            specialty: 'sportswear',
+            stockHistory: []
+        },
+        {
+            id: 'ai_coca_cola',
+            name: '可口可乐',
+            value: 68000000,
+            trend: 0,
+            sector: '饮料',
+            companyType: 'food',
+            volatility: 0.06,
+            underAttack: false,
+            specialty: 'beverages',
+            stockHistory: []
+        },
+        {
+            id: 'ai_loreal_beauty',
+            name: '欧莱雅美妆',
+            value: 55000000,
+            trend: 1,
+            sector: '美妆',
+            companyType: 'beauty',
+            volatility: 0.13,
+            underAttack: false,
+            specialty: 'cosmetics',
+            stockHistory: []
+        },
+        {
+            id: 'ai_mcdonalds',
+            name: '麦当劳餐饮',
+            value: 45000000,
+            trend: 0,
+            sector: '快餐',
+            companyType: 'food',
+            volatility: 0.07,
+            underAttack: false,
+            specialty: 'fast_food',
+            stockHistory: []
         }
     ],
     globalMarkets: {
@@ -272,7 +491,7 @@ const gameState = {
     serverStartTime: Date.now(),
     lastEventTime: Date.now(),
     eventDuration: 10 * 60 * 1000, // 10分钟事件周期
-    gameVersion: '2.0.0' // 版本号，用于重置检测
+    gameVersion: '2.1.0' // 更新版本号
 };
 
 function initializeMarket(marketType) {
@@ -288,13 +507,54 @@ function initializeMarket(marketType) {
                     demand: Math.floor(100 * marketInfo.demandMultiplier),
                     supply: 100,
                     trend: 0,
-                    volume: 0
+                    volume: 0,
+                    priceHistory: []
                 };
             });
         }
     });
     
     return market;
+}
+
+// 生产任务类 - 全自动化
+class ProductionTask {
+    constructor(factoryId, productId, quantity, companyId) {
+        this.id = 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        this.factoryId = factoryId;
+        this.productId = productId;
+        this.quantity = quantity;
+        this.companyId = companyId;
+        this.startTime = Date.now();
+        this.completed = false;
+        
+        const product = this.getProductInfo();
+        this.completionTime = this.startTime + (product.productionTime * 1000 * quantity);
+        this.progress = 0;
+    }
+    
+    getProductInfo() {
+        for (const tier of Object.values(PRODUCT_TIERS)) {
+            if (tier[this.productId]) {
+                return tier[this.productId];
+            }
+        }
+        return null;
+    }
+    
+    isReady() {
+        return Date.now() >= this.completionTime;
+    }
+    
+    getProgress() {
+        const elapsed = Date.now() - this.startTime;
+        const total = this.completionTime - this.startTime;
+        return Math.min(elapsed / total, 1);
+    }
+    
+    getRemainingTime() {
+        return Math.max(0, this.completionTime - Date.now());
+    }
 }
 
 // 联盟系统
@@ -334,48 +594,13 @@ class Alliance {
     }
 }
 
-// 生产任务类
-class ProductionTask {
-    constructor(factoryId, productId, quantity, companyId) {
-        this.id = 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        this.factoryId = factoryId;
-        this.productId = productId;
-        this.quantity = quantity;
-        this.companyId = companyId;
-        this.startTime = Date.now();
-        this.completed = false;
-        
-        const product = this.getProductInfo();
-        this.completionTime = this.startTime + (product.productionTime * 1000 * quantity);
-    }
-    
-    getProductInfo() {
-        for (const tier of Object.values(PRODUCT_TIERS)) {
-            if (tier[this.productId]) {
-                return tier[this.productId];
-            }
-        }
-        return null;
-    }
-    
-    isReady() {
-        return Date.now() >= this.completionTime;
-    }
-    
-    getProgress() {
-        const elapsed = Date.now() - this.startTime;
-        const total = this.completionTime - this.startTime;
-        return Math.min(elapsed / total, 1);
-    }
-}
-
 // 10分钟事件系统
 const TIMED_EVENTS = [
     {
         id: 'supply_shortage',
         name: '原料短缺',
         description: '全球供应链紧张，原材料价格上涨50%',
-        duration: 600000, // 10分钟
+        duration: 600000,
         effects: {
             marketPriceMultiplier: { T1: 1.5 }
         }
@@ -400,36 +625,38 @@ const TIMED_EVENTS = [
         }
     },
     {
-        id: 'recession',
-        name: '经济衰退',
-        description: '经济下滑，消费品需求下降',
+        id: 'agricultural_boom',
+        name: '农业丰收',
+        description: '农产品大丰收，农业产品价格下跌，需求增加',
         duration: 600000,
         effects: {
-            marketDemandMultiplier: { T3: 0.6, T4: 0.5 }
+            marketPriceMultiplier: { agriculture: 0.7 },
+            marketDemandMultiplier: { agriculture: 2.0 }
         }
     },
     {
-        id: 'energy_crisis',
-        name: '能源危机',
-        description: '能源价格飙升，影响制造业',
+        id: 'housing_crisis',
+        name: '房地产热潮',
+        description: '房地产市场火爆，建材需求暴增',
         duration: 600000,
         effects: {
-            marketPriceMultiplier: { oil: 2.0, fuel: 1.8 },
-            productionCostMultiplier: { manufacturing: 1.4, chemical: 1.3 }
+            marketPriceMultiplier: { construction: 1.8 },
+            marketDemandMultiplier: { real_estate: 2.5 }
         }
     },
     {
-        id: 'automation_trend',
-        name: '自动化浪潮',
-        description: '自动化技术普及，生产效率提升',
+        id: 'beauty_trend',
+        name: '美妆潮流',
+        description: '新的美妆潮流兴起，化妆品需求激增',
         duration: 600000,
         effects: {
-            productionEfficiencyMultiplier: { all: 1.2 }
+            marketPriceMultiplier: { beauty: 1.4 },
+            marketDemandMultiplier: { beauty: 2.2 }
         }
     }
 ];
 
-console.log('🏢 黑心公司大亨 v2.0 服务器启动中...');
+console.log('🏢 黑心公司大亨 v2.1 服务器启动中...');
 
 // 错误处理
 process.on('uncaughtException', (error) => {
@@ -492,7 +719,7 @@ io.on('connection', (socket) => {
                 gameState.companies.delete(offlinePlayerWithSameName.id);
                 gameState.playerNames.delete(companyName);
                 socket.emit('versionReset', {
-                    message: '游戏已更新到v2.0，所有进度已重置。欢迎体验全新的多级产品制造系统！'
+                    message: '游戏已更新到v2.1，全新多产业线制造系统！所有进度已重置。'
                 });
             }
             
@@ -505,7 +732,8 @@ io.on('connection', (socket) => {
                 online: true,
                 lastSeen: Date.now(),
                 socket: socket,
-                inheritedFrom: oldPlayerId
+                inheritedFrom: oldPlayerId,
+                stockHistory: []
             };
             
             gameState.companies.set(socket.id, companyData);
@@ -536,11 +764,11 @@ io.on('connection', (socket) => {
             });
             
             if (inheritedData) {
-                addChatMessage('系统', `${companyName} 重新回到了商业战场！`);
+                addChatMessage('系统', `${companyName} 重新回到了商业世界！`);
                 addNewsEvent(`🔄 ${companyName} 王者归来，继承商业帝国重新参战`);
             } else {
-                addChatMessage('系统', `${companyName} 进入了全新的商业世界！`);
-                addNewsEvent(`🏢 ${companyName} 开始了多级产品制造之旅`);
+                addChatMessage('系统', `${companyName} 进入了全新的多产业制造世界！`);
+                addNewsEvent(`🏢 ${companyName} 开始了多产业线制造之旅`);
             }
             
             console.log(`🏢 公司 ${companyName}(${companyType}) ${inheritedData ? '继承存档' : '新建'}加入游戏`);
@@ -591,10 +819,10 @@ io.on('connection', (socket) => {
             company.gameData.factories[factoryId] = {
                 type: factoryType,
                 level: 1,
-                efficiency: factory.baseEfficiency,
-                automation: false,
+                efficiency: factory.efficiency,
+                currentTask: null,
                 productionQueue: [],
-                currentTask: null
+                totalProduced: 0
             };
             
             socket.emit('factoryBuilt', {
@@ -614,7 +842,7 @@ io.on('connection', (socket) => {
         }
     });
     
-    // 开始生产
+    // 开始生产 - 全自动化
     socket.on('startProduction', (data) => {
         try {
             const { factoryId, productId, quantity } = data;
@@ -655,11 +883,12 @@ io.on('connection', (socket) => {
             
             const task = new ProductionTask(factoryId, productId, quantity, socket.id);
             
-            if (factory.automation && !factory.currentTask) {
-                factory.currentTask = task;
-            } else if (!factory.automation) {
+            // 如果工厂空闲，立即开始生产
+            if (!factory.currentTask) {
                 factory.currentTask = task;
             } else {
+                // 否则加入队列
+                if (!factory.productionQueue) factory.productionQueue = [];
                 factory.productionQueue.push(task);
             }
             
@@ -669,7 +898,8 @@ io.on('connection', (socket) => {
                     productId: task.productId,
                     quantity: task.quantity,
                     completionTime: task.completionTime,
-                    progress: task.getProgress()
+                    progress: task.getProgress(),
+                    remainingTime: task.getRemainingTime()
                 },
                 playerData: {
                     inventory: company.gameData.inventory,
@@ -832,7 +1062,7 @@ io.on('connection', (socket) => {
                     name: company.name
                 });
                 
-                addChatMessage('系统', `${company.name} 暂时离开了商业世界`);
+                addChatMessage('系统', `${company.name} 暂时离开了制造世界`);
                 console.log(`👋 公司 ${company.name} 断开连接，数据已保存`);
                 
                 // 7天后删除离线公司数据
@@ -865,14 +1095,15 @@ function createNewCompany(companyType = 'tech') {
             steel: 10,
             oil: 10,
             wood: 20,
-            silicon: 5
+            silicon: 5,
+            wheat: 15,
+            cotton: 8
         },
         factories: {},
         technologies: [],
         companyType: companyType,
         level: 0,
         experience: 0,
-        automationSettings: {},
         lastUpdate: Date.now()
     };
 }
@@ -929,22 +1160,17 @@ function payCost(inventory, cost) {
 
 function applyTechEffects(gameData, techId) {
     switch (techId) {
-        case 'automation_1':
+        case 'efficiency_1':
             Object.keys(gameData.factories).forEach(factoryId => {
-                gameData.factories[factoryId].efficiency *= 1.2;
+                gameData.factories[factoryId].efficiency *= 1.25;
             });
             break;
-        case 'automation_2':
+        case 'advanced_manufacturing':
             Object.keys(gameData.factories).forEach(factoryId => {
                 gameData.factories[factoryId].efficiency *= 1.5;
-                gameData.factories[factoryId].automation = true;
             });
             break;
-        case 'ai_optimization':
-            Object.keys(gameData.factories).forEach(factoryId => {
-                gameData.factories[factoryId].efficiency *= 2.0;
-            });
-            break;
+        // 可以添加更多技术效果
     }
 }
 
@@ -1033,7 +1259,7 @@ function getOnlineStats() {
     };
 }
 
-// 处理生产任务完成
+// 处理生产任务完成 - 全自动化，1秒更新
 function processProductionTasks() {
     gameState.companies.forEach(company => {
         if (!company.gameData.factories) return;
@@ -1041,6 +1267,7 @@ function processProductionTasks() {
         Object.keys(company.gameData.factories).forEach(factoryId => {
             const factory = company.gameData.factories[factoryId];
             
+            // 检查当前任务完成
             if (factory.currentTask && factory.currentTask.isReady()) {
                 const task = factory.currentTask;
                 const product = getProductByKey(task.productId);
@@ -1048,6 +1275,7 @@ function processProductionTasks() {
                 // 完成生产
                 company.gameData.inventory[task.productId] = (company.gameData.inventory[task.productId] || 0) + task.quantity;
                 company.gameData.experience = (company.gameData.experience || 0) + task.quantity * 10;
+                factory.totalProduced += task.quantity;
                 
                 if (company.socket) {
                     company.socket.emit('productionCompleted', {
@@ -1063,10 +1291,25 @@ function processProductionTasks() {
                     });
                 }
                 
-                // 处理队列中的下一个任务
                 factory.currentTask = null;
-                if (factory.automation && factory.productionQueue.length > 0) {
+                
+                // 自动开始下一个任务（如果队列中有）
+                if (factory.productionQueue && factory.productionQueue.length > 0) {
                     factory.currentTask = factory.productionQueue.shift();
+                }
+            }
+            
+            // 更新任务进度
+            if (factory.currentTask) {
+                factory.currentTask.progress = factory.currentTask.getProgress();
+                
+                if (company.socket) {
+                    company.socket.emit('productionProgress', {
+                        factoryId: factoryId,
+                        taskId: factory.currentTask.id,
+                        progress: factory.currentTask.progress,
+                        remainingTime: factory.currentTask.getRemainingTime()
+                    });
                 }
             }
         });
@@ -1116,12 +1359,12 @@ function triggerTimedEvent() {
 
 function applyEventEffects(event) {
     if (event.effects.marketPriceMultiplier) {
-        Object.keys(event.effects.marketPriceMultiplier).forEach(tier => {
+        Object.keys(event.effects.marketPriceMultiplier).forEach(category => {
             Object.keys(gameState.globalMarkets).forEach(marketType => {
                 Object.keys(gameState.globalMarkets[marketType]).forEach(productId => {
                     const product = getProductByKey(productId);
-                    if (product && (tier === 'all' || getTierByProduct(productId) === tier)) {
-                        gameState.globalMarkets[marketType][productId].price *= event.effects.marketPriceMultiplier[tier];
+                    if (product && (category === 'all' || product.category === category || getTierByProduct(productId) === category)) {
+                        gameState.globalMarkets[marketType][productId].price *= event.effects.marketPriceMultiplier[category];
                     }
                 });
             });
@@ -1129,11 +1372,12 @@ function applyEventEffects(event) {
     }
     
     if (event.effects.marketDemandMultiplier) {
-        Object.keys(event.effects.marketDemandMultiplier).forEach(tier => {
+        Object.keys(event.effects.marketDemandMultiplier).forEach(category => {
             Object.keys(gameState.globalMarkets).forEach(marketType => {
                 Object.keys(gameState.globalMarkets[marketType]).forEach(productId => {
-                    if (getTierByProduct(productId) === tier) {
-                        gameState.globalMarkets[marketType][productId].demand *= event.effects.marketDemandMultiplier[tier];
+                    const product = getProductByKey(productId);
+                    if (product && (product.category === category || getTierByProduct(productId) === category)) {
+                        gameState.globalMarkets[marketType][productId].demand *= event.effects.marketDemandMultiplier[category];
                     }
                 });
             });
@@ -1155,18 +1399,30 @@ function updateMarketsAndAI() {
     try {
         // 更新AI公司价值（更频繁，更不可预测）
         gameState.aiCompanies.forEach(company => {
-            const volatility = company.volatility * (1 + Math.random() * 0.5); // 随机增加波动性
-            let change = (Math.random() - 0.5) * volatility * 2; // 增大变化幅度
+            const volatility = company.volatility * (1 + Math.random() * 0.5);
+            let change = (Math.random() - 0.5) * volatility * 2;
             
             // 随机突发事件
-            if (Math.random() < 0.05) { // 5%概率突发大变动
+            if (Math.random() < 0.05) {
                 change *= (Math.random() > 0.5 ? 3 : -3);
                 const direction = change > 0 ? '暴涨' : '暴跌';
                 addNewsEvent(`📊 ${company.name} 突发${direction}${Math.abs(change * 100).toFixed(1)}%！`);
             }
             
+            const oldValue = company.value;
             company.value = Math.max(1000000, Math.floor(company.value * (1 + change)));
             company.trend = change > 0.02 ? 1 : change < -0.02 ? -1 : 0;
+            
+            // 记录股价历史
+            company.stockHistory.push({
+                time: Date.now(),
+                price: company.value,
+                change: change
+            });
+            
+            if (company.stockHistory.length > 50) {
+                company.stockHistory.shift();
+            }
         });
         
         // 更新市场价格（更频繁的波动）
@@ -1181,13 +1437,19 @@ function updateMarketsAndAI() {
                 // 随机市场噪音
                 priceChange += (Math.random() - 0.5) * 0.08;
                 
-                // 应用全局事件效果
-                if (gameState.globalEvent && gameState.globalEvent.effects) {
-                    // 事件效果已在applyEventEffects中应用
-                }
-                
+                const oldPrice = market.price;
                 market.price = Math.max(Math.floor(market.price * 0.3), Math.floor(market.price * (1 + priceChange)));
                 market.trend = priceChange > 0.03 ? 1 : priceChange < -0.03 ? -1 : 0;
+                
+                // 记录价格历史
+                market.priceHistory.push({
+                    time: Date.now(),
+                    price: market.price
+                });
+                
+                if (market.priceHistory.length > 50) {
+                    market.priceHistory.shift();
+                }
                 
                 // 重置供需
                 market.supply = Math.max(50, market.supply * 0.95 + Math.random() * 20);
@@ -1203,7 +1465,7 @@ function updateMarketsAndAI() {
 }
 
 // 定时器设置
-setInterval(processProductionTasks, 5000); // 每5秒检查生产任务
+setInterval(processProductionTasks, 1000); // 每1秒检查生产任务和更新进度
 setInterval(updateMarketsAndAI, 15000); // 每15秒更新市场和AI
 setInterval(triggerTimedEvent, 30000); // 每30秒检查是否触发新事件
 
@@ -1223,10 +1485,10 @@ server.listen(PORT, (error) => {
         console.error('服务器启动失败:', error);
         process.exit(1);
     } else {
-        console.log(`🚀 黑心公司大亨 v2.0 服务器运行在端口 ${PORT}`);
+        console.log(`🚀 黑心公司大亨 v2.1 服务器运行在端口 ${PORT}`);
         console.log(`🌐 访问地址: http://localhost:${PORT}`);
-        console.log(`💼 等待CEO们体验全新的多级制造系统...`);
-        console.log(`📊 新特性: 多级产品 | 专业工厂 | 分层市场 | 10分钟事件周期`);
+        console.log(`💼 等待CEO们体验全新的多产业线制造系统...`);
+        console.log(`📊 新特性: 多产业线 | 全自动化 | 可视化图表 | 10个AI巨头`);
     }
 });
 
