@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多人地精资本家帝国</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 50%, #e74c3c 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        .login-form {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+            border: 3px solid #f39c12;
+            text-align: center;
+            color: #ecf0f1;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .login-title {
+            font-size: 28px;
+            margin-bottom: 30px;
+            color: #f39c12;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .login-input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #ecf0f1;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .login-input::placeholder {
+            color: #bdc3c7;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(231,76,60,0.4);
+        }
+        
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: none;
+        }
+        
+        .header {
+            background: rgba(0,0,0,0.8);
+            color: #f39c12;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 2px solid #e74c3c;
+        }
+        
+        .evil-title {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .online-status {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .offline-status {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .resources {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .resource {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .resource.money { background: linear-gradient(135deg, #FFD700, #FFA500); }
+        .resource.food { background: linear-gradient(135deg, #FF6B35, #F7931E); }
+        .resource.materials { background: linear-gradient(135deg, #8D6E63, #5D4037); }
+        .resource.knowledge { background: linear-gradient(135deg, #9C27B0, #7B1FA2); }
+        .resource.tools { background: linear-gradient(135deg, #607D8B, #455A64); }
+        .resource.trade { background: linear-gradient(135deg, #2196F3, #1976D2); }
+        .resource.magic { background: linear-gradient(135deg, #E91E63, #C2185B); }
+        .resource.equipment { background: linear-gradient(135deg, #795548, #5D4037); }
+        .resource.souls { background: linear-gradient(135deg, #000000, #434343); }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            background: rgba(0,0,0,0.8);
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid #34495e;
+            min-height: 400px;
+        }
+        
+        .section h2 {
+            color: #f39c12;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e74c3c;
+            font-size: 18px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .profession, .market-item, .player-item {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            margin-bottom: 10px;
+        }
+        
+        .profession:hover, .market-item:hover, .player-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231,76,60,0.3);
+            border-color: #e74c3c;
+        }
+        
+        .profession.insufficient, .market-item.expensive {
+            opacity: 0.6;
+            border-color: #e74c3c;
+        }
+        
+        .player-item.online {
+            border-color: #27ae60;
+        }
+        
+        .player-item.offline {
+            opacity: 0.7;
+            border-color: #95a5a6;
+        }
+        
+        .chat-section {
+            grid-column: span 3;
+            background: rgba(0,0,0,0.8);
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid #34495e;
+        }
+        
+        .chat-messages {
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #34495e;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .chat-message {
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        .chat-player {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: #ecf0f1;
+        }
+        
+        .chat-send {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #e74c3c;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(231,76,60,0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            color: #f39c12;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 2px solid #e74c3c;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .chat-section {
+                grid-column: span 1;
+            }
+            .player-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录界面 -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-form">
+            <div class="login-title">👹 加入地精资本家世界 👹</div>
+            <input type="text" class="login-input" id="playerName" placeholder="输入你的邪恶称号" maxlength="20">
+            <button class="login-btn" onclick="joinGame()">开始征服世界</button>
+            <div style="margin-top: 20px; font-size: 14px; color: #bdc3c7;">
+                多人实时放置游戏<br>
+                与全球玩家一起竞争！<br>
+                <div style="margin-top: 10px; font-size: 12px; color: #95a5a6;">
+                    游戏会自动保存进度<br>
+                    随时可以重新进入
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏主界面 -->
+    <div class="game-container" id="gameContainer">
+        <div class="header">
+            <div class="evil-title">👹 多人地精资本家帝国 👹</div>
+            <div class="player-info">
+                <div>
+                    <span style="color: #f39c12;">邪恶领主：</span>
+                    <span id="currentPlayer">未知</span>
+                    <span id="connectionStatus" class="online-status">● 在线</span>
+                </div>
+                <div>
+                    <span style="color: #f39c12;">在线玩家：</span>
+                    <span id="onlineCount">0</span>
+                    <button class="btn" onclick="location.reload()" style="margin-left: 20px;">刷新游戏</button>
+                </div>
+            </div>
+            <div class="resources">
+                <div class="resource money">💰 金币: <span id="money">100</span></div>
+                <div class="resource food">🌾 口粮: <span id="food">0</span></div>
+                <div class="resource materials">🧱 材料: <span id="materials">0</span></div>
+                <div class="resource knowledge">📚 情报: <span id="knowledge">0</span></div>
+                <div class="resource tools">🔨 工具: <span id="tools">0</span></div>
+                <div class="resource trade">🏪 贸易: <span id="trade">0</span></div>
+                <div class="resource magic">🔮 魔力: <span id="magic">0</span></div>
+                <div class="resource equipment">⚔️ 装备: <span id="equipment">0</span></div>
+                <div class="resource souls">💀 灵魂: <span id="souls">0</span></div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="section">
+                <h2>👥 生产部门</h2>
+                <div id="professions"></div>
+            </div>
+            
+            <div class="section">
+                <h2>🏪 全球市场</h2>
+                <div id="market"></div>
+            </div>
+            
+            <div class="section">
+                <h2>🌍 玩家排行榜</h2>
+                <div id="players"></div>
+            </div>
+            
+            <div class="chat-section">
+                <h2>💬 全球聊天</h2>
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="输入消息..." maxlength="200" onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="chat-send" onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class MultiplayerCapitalist {
+            constructor() {
+                this.socket = io();
+                this.playerId = null;
+                this.playerName = '';
+                this.isConnected = false;
+                
+                this.gameData = {
+                    resources: {
+                        money: 100, food: 0, materials: 0, knowledge: 0,
+                        tools: 0, trade: 0, magic: 0, equipment: 0, souls: 0
+                    },
+                    professions: {
+                        beggar: { count: 0, cost: { money: 10 } },
+                        street_vendor: { count: 0, cost: { money: 25 } },
+                        farmer: { count: 0, cost: { money: 40 } },
+                        factory_worker: { count: 0, cost: { money: 60, food: 5 } }
+                    },
+                    efficiency: 1.0,
+                    lastUpdate: Date.now()
+                };
+                
+                this.globalMarket = {};
+                this.onlinePlayers = [];
+                this.chatMessages = [];
+                
+                this.professionData = {
+                    beggar: { production: { money: 3 }, consumption: {} },
+                    street_vendor: { production: { money: 6, trade: 1 }, consumption: {} },
+                    farmer: { production: { food: 8 }, consumption: { money: 2 } },
+                    factory_worker: { production: { materials: 6 }, consumption: { food: 4, money: 3 } }
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                this.setupSocketListeners();
+                this.startGameLoop();
+            }
+            
+            setupSocketListeners() {
+                this.socket.on('connect', () => {
+                    this.isConnected = true;
+                    this.updateConnectionStatus();
+                    console.log('✅ 连接到服务器成功');
+                });
+                
+                this.socket.on('disconnect', () => {
+                    this.isConnected = false;
+                    this.updateConnectionStatus();
+                    console.log('❌ 与服务器断开连接');
+                });
+                
+                this.socket.on('gameState', (data) => {
+                    this.globalMarket = data.globalMarket;
+                    this.onlinePlayers = data.players;
+                    this.chatMessages = data.chatMessages;
+                    this.renderAll();
+                    console.log('📊 接收到游戏状态');
+                });
+                
+                this.socket.on('marketUpdate', (market) => {
+                    this.globalMarket = market;
+                    this.renderMarket();
+                });
+                
+                this.socket.on('playersUpdate', (players) => {
+                    this.onlinePlayers = players;
+                    this.renderPlayers();
+                    document.getElementById('onlineCount').textContent = players.filter(p => p.online).length;
+                });
+                
+                this.socket.on('chatMessage', (message) => {
+                    this.chatMessages.push(message);
+                    if (this.chatMessages.length > 50) {
+                        this.chatMessages.shift();
+                    }
+                    this.renderChat();
+                });
+                
+                this.socket.on('playerJoined', (player) => {
+                    this.showNotification(`🎉 ${player.name} 加入了游戏！`);
+                });
+                
+                this.socket.on('playerLeft', (player) => {
+                    this.showNotification(`👋 ${player.name} 离开了游戏`);
+                });
+                
+                this.socket.on('tradeSuccess', (data) => {
+                    this.showNotification(`💰 ${data.action === 'buy' ? '购买' : '卖出'}成功！`);
+                    this.renderMarket();
+                });
+            }
+            
+            joinGame() {
+                const nameInput = document.getElementById('playerName');
+                const name = nameInput.value.trim();
+                
+                if (!name) {
+                    alert('请输入你的邪恶称号！');
+                    return;
+                }
+                
+                if (name.length > 20) {
+                    alert('称号太长了！请控制在20个字符内');
+                    return;
+                }
+                
+                this.playerName = name;
+                this.playerId = 'player_' + Date.now();
+                
+                // 尝试加载本地存档
+                const savedData = localStorage.getItem('evilCapitalist_' + name);
+                if (savedData) {
+                    try {
+                        this.gameData = JSON.parse(savedData);
+                        console.log('📂 加载存档成功');
+                    } catch (e) {
+                        console.error('❌ 存档加载失败', e);
+                    }
+                }
+                
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('gameContainer').style.display = 'block';
+                document.getElementById('currentPlayer').textContent = this.playerName;
+                
+                // 发送加入游戏请求
+                this.socket.emit('joinGame', {
+                    playerName: this.playerName,
+                    gameData: this.gameData
+                });
+                
+                this.renderAll();
+                this.showNotification(`🎮 欢迎回来，${this.playerName}！`);
+            }
+            
+            updateConnectionStatus() {
+                const statusElement = document.getElementById('connectionStatus');
+                if (this.isConnected) {
+                    statusElement.textContent = '● 在线';
+                    statusElement.className = 'online-status';
+                } else {
+                    statusElement.textContent = '● 离线';
+                    statusElement.className = 'offline-status';
+                }
+            }
+            
+            showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+            
+            renderAll() {
+                this.renderProfessions();
+                this.renderMarket();
+                this.renderPlayers();
+                this.renderChat();
+                this.updateDisplay();
+            }
+            
+            renderProfessions() {
+                const container = document.getElementById('professions');
+                container.innerHTML = '';
+                
+                Object.keys(this.gameData.professions).forEach(key => {
+                    const prof = this.gameData.professions[key];
+                    const profData = this.professionData[key];
+                    const div = document.createElement('div');
+                    
+                    const canAfford = this.canAfford(prof.cost);
+                    div.className = `profession ${canAfford ? '' : 'insufficient'}`;
+                    
+                    const productionText = profData.production ? 
+                        Object.keys(profData.production).map(r => `+${profData.production[r]}/s ${this.getResourceEmoji(r)}`).join(' ') : '';
+                    
+                    div.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: bold; color: #f39c12;">${this.getProfessionEmoji(key)} ${this.getProfessionName(key)}</span>
+                            <span style="background: #e74c3c; color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px;">${prof.count}</span>
+                        </div>
+                        <div style="font-size: 11px; color: #e74c3c; margin-bottom: 5px;">雇佣: ${this.formatCost(prof.cost)}</div>
+                        ${productionText ? `<div style="font-size: 11px; color: #27ae60;">产出: ${productionText}</div>` : ''}
+                        <div style="font-size: 10px; color: #bdc3c7; margin-top: 5px;">${this.getProfessionDescription(key)}</div>
+                    `;
+                    
+                    div.onclick = () => this.hireProfession(key);
+                    container.appendChild(div);
+                });
+            }
+            
+            renderMarket() {
+                const container = document.getElementById('market');
+                container.innerHTML = '';
+                
+                Object.keys(this.globalMarket).forEach(resource => {
+                    const market = this.globalMarket[resource];
+                    const div = document.createElement('div');
+                    
+                    const canBuy = this.gameData.resources.money >= market.price;
+                    const canSell = this.gameData.resources[resource] >= 1;
+                    
+                    div.className = `market-item ${canBuy ? '' : 'expensive'}`;
+                    
+                    const trendIcon = market.trend > 0 ? '📈' : market.trend < 0 ? '📉' : '➡️';
+                    
+                    div.innerHTML = `
+                        <div style="font-weight: bold; color: #f39c12; margin-bottom: 5px;">
+                            ${this.getResourceEmoji(resource)} ${this.getResourceName(resource)}
+                        </div>
+                        <div style="font-size: 12px; color: #ecf0f1; margin-bottom: 5px;">
+                            全球价格: ${market.price}💰 ${trendIcon}
+                        </div>
+                        <div style="font-size: 11px; color: #bdc3c7; margin-bottom: 8px;">
+                            拥有: ${Math.floor(this.gameData.resources[resource])}
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn" style="flex: 1; padding: 4px;" 
+                                onclick="game.buyResource('${resource}')" 
+                                ${canBuy ? '' : 'disabled'}>
+                                买入
+                            </button>
+                            <button class="btn" style="flex: 1; padding: 4px; background: #27ae60;" 
+                                onclick="game.sellResource('${resource}')" 
+                                ${canSell ? '' : 'disabled'}>
+                                卖出
+                            </button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+            
+            renderPlayers() {
+                const container = document.getElementById('players');
+                container.innerHTML = '';
+                
+                // 添加自己到排行榜
+                const myWealth = this.calculateTotalWealth();
+                const allPlayersWithSelf = [...this.onlinePlayers];
+                
+                // 查找是否已经包含自己
+                const myIndex = allPlayersWithSelf.findIndex(p => p.name === this.playerName);
+                if (myIndex === -1) {
+                    allPlayersWithSelf.push({
+                        id: this.playerId,
+                        name: this.playerName + ' (你)',
+                        online: true,
+                        wealth: myWealth
+                    });
+                } else {
+                    allPlayersWithSelf[myIndex].name = this.playerName + ' (你)';
+                    allPlayersWithSelf[myIndex].wealth = myWealth;
+                }
+                
+                // 按财富排序
+                allPlayersWithSelf.sort((a, b) => b.wealth - a.wealth);
+                
+                allPlayersWithSelf.slice(0, 10).forEach((player, index) => {
+                    const div = document.createElement('div');
+                    div.className = `player-item ${player.online ? 'online' : 'offline'}`;
+                    
+                    const isCurrentPlayer = player.name.includes('(你)');
+                    
+                    div.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-weight: bold; color: ${isCurrentPlayer ? '#f39c12' : '#ecf0f1'};">
+                                #${index + 1} ${player.name}
+                            </span>
+                            <span style="color: ${player.online ? '#27ae60' : '#95a5a6'};">
+                                ${player.online ? '🟢' : '🔴'}
+                            </span>
+                        </div>
+                        <div style="font-size: 11px; color: #bdc3c7;">
+                            总财富: ${Math.floor(player.wealth).toLocaleString()}💰
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+            
+            renderChat() {
+                const container = document.getElementById('chatMessages');
+                container.innerHTML = '';
+                
+                this.chatMessages.slice(-20).forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = 'chat-message';
+                    
+                    const time = new Date(msg.timestamp).toLocaleTimeString().slice(0, 5);
+                    const isSystem = msg.player === '系统';
+                    
+                    div.innerHTML = `
+                        <span style="color: #95a5a6; font-size: 10px;">[${time}]</span>
+                        <span class="chat-player" style="color: ${isSystem ? '#e74c3c' : '#f39c12'};">${msg.player}:</span>
+                        <span style="color: #ecf0f1;">${msg.message}</span>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+                
+                container.scrollTop = container.scrollHeight;
+            }
+            
+            calculateTotalWealth() {
+                let wealth = this.gameData.resources.money;
+                
+                Object.keys(this.gameData.resources).forEach(resource => {
+                    if (resource !== 'money' && this.globalMarket[resource]) {
+                        wealth += this.gameData.resources[resource] * this.globalMarket[resource].price;
+                    }
+                });
+                
+                return wealth;
+            }
+            
+            buyResource(resource) {
+                this.socket.emit('marketTrade', {
+                    action: 'buy',
+                    resource: resource,
+                    amount: 1
+                });
+            }
+            
+            sellResource(resource) {
+                this.socket.emit('marketTrade', {
+                    action: 'sell',
+                    resource: resource,
+                    amount: 1
+                });
+            }
+            
+            hireProfession(type) {
+                const prof = this.gameData.professions[type];
+                if (this.canAfford(prof.cost)) {
+                    this.payCost(prof.cost);
+                    prof.count++;
+                    
+                    Object.keys(prof.cost).forEach(resource => {
+                        prof.cost[resource] = Math.floor(prof.cost[resource] * 1.15);
+                    });
+                    
+                    this.showNotification(`👥 雇佣了${this.getProfessionName(type)}！`);
+                    this.updateDisplay();
+                    this.renderProfessions();
+                    this.saveGame();
+                    
+                    // 同步到服务器
+                    this.socket.emit('updateGameData', this.gameData);
+                }
+            }
+            
+            sendMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                
+                if (message && this.playerName) {
+                    this.socket.emit('chatMessage', message);
+                    input.value = '';
+                }
+            }
+            
+            saveGame() {
+                this.gameData.lastUpdate = Date.now();
+                localStorage.setItem('evilCapitalist_' + this.playerName, JSON.stringify(this.gameData));
+            }
+            
+            updateDisplay() {
+                Object.keys(this.gameData.resources).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.textContent = Math.floor(this.gameData.resources[key]).toLocaleString();
+                    }
+                });
+            }
+            
+            canAfford(cost) {
+                return Object.keys(cost).every(resource => 
+                    this.gameData.resources[resource] >= cost[resource]);
+            }
+            
+            payCost(cost) {
+                Object.keys(cost).forEach(resource => {
+                    this.gameData.resources[resource] -= cost[resource];
+                });
+            }
+            
+            // 辅助函数
+            getResourceEmoji(resource) {
+                const emojis = {
+                    money: '💰', food: '🌾', materials: '🧱', knowledge: '📚',
+                    tools: '🔨', trade: '🏪', magic: '🔮', equipment: '⚔️', souls: '💀'
+                };
+                return emojis[resource] || '❓';
+            }
+            
+            getResourceName(resource) {
+                const names = {
+                    money: '金币', food: '食物', materials: '材料', knowledge: '知识',
+                    tools: '工具', trade: '贸易', magic: '魔力', equipment: '装备', souls: '灵魂'
+                };
+                return names[resource] || resource;
+            }
+            
+            getProfessionEmoji(key) {
+                const emojis = {
+                    beggar: '🤲', street_vendor: '👨‍💼', farmer: '👨‍🌾', factory_worker: '👷‍♂️'
+                };
+                return emojis[key] || '👤';
+            }
+            
+            getProfessionName(key) {
+                const names = {
+                    beggar: '乞丐', street_vendor: '小贩', farmer: '农民', factory_worker: '工人'
+                };
+                return names[key] || key;
+            }
+            
+            getProfessionDescription(key) {
+                const descriptions = {
+                    beggar: '街头乞讨者，稳定的金币来源',
+                    street_vendor: '街头小商贩，开始贸易之路',
+                    farmer: '农业生产者，提供基础食物',
+                    factory_worker: '工厂工人，生产基础材料'
+                };
+                return descriptions[key] || '';
+            }
+            
+            formatCost(cost) {
+                return Object.keys(cost).map(r => 
+                    `${cost[r]}${this.getResourceEmoji(r)}`).join(' ');
+            }
+            
+            startGameLoop() {
+                setInterval(() => {
+                    if (!this.playerName) return;
+                    
+                    // 生产循环
+                    Object.keys(this.gameData.professions).forEach(key => {
+                        const prof = this.gameData.professions[key];
+                        const profData = this.professionData[key];
+                        
+                        if (prof.count > 0 && profData.production) {
+                            Object.keys(profData.production).forEach(resource => {
+                                this.gameData.resources[resource] += profData.production[resource] * prof.count * this.gameData.efficiency / 10;
+                            });
+                        }
+                        
+                        if (prof.count > 0 && profData.consumption) {
+                            Object.keys(profData.consumption).forEach(resource => {
+                                this.gameData.resources[resource] -= profData.consumption[resource] * prof.count / 10;
+                                this.gameData.resources[resource] = Math.max(0, this.gameData.resources[resource]);
+                            });
+                        }
+                    });
+                    
+                    this.updateDisplay();
+                    
+                    // 定期保存和同步
+                    if (Date.now() - this.gameData.lastUpdate > 10000) {
+                        this.saveGame();
+                        this.socket.emit('updateGameData', this.gameData);
+                        this.gameData.lastUpdate = Date.now();
+                    }
+                }, 200);
+            }
+        }
+        
+        // 全局变量
+        let game;
+        
+        // 全局函数
+        function joinGame() {
+            if (!game) {
+                game = new MultiplayerCapitalist();
+            }
+            game.joinGame();
+        }
+        
+        function sendMessage() {
+            if (game) {
+                game.sendMessage();
+            }
+        }
+        
+        window.onload = () => {
+            game = new MultiplayerCapitalist();
+        };
+        
+        // 防止意外关闭
+        window.onbeforeunload = () => {
+            if (game && game.playerName) {
+                game.saveGame();
+            }
+        };
+    </script>
+</body>
+</html>
