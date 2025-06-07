@@ -1835,6 +1835,152 @@
                 });
             }
 
-            setMultiplier(multiplier) {
+           setMultiplier(multiplier) {
                 this.selectedMultiplier = multiplier;
-                this.render
+                this.renderMarkets();
+            }
+
+            buyProduct(productId, marketType) {
+                this.socket.emit('marketTrade', {
+                    action: 'buy',
+                    productId: productId,
+                    quantity: 1,
+                    marketType: marketType,
+                    multiplier: this.selectedMultiplier
+                });
+            }
+
+            sellProduct(productId, marketType) {
+                this.socket.emit('marketTrade', {
+                    action: 'sell',
+                    productId: productId,
+                    quantity: 1,
+                    marketType: marketType,
+                    multiplier: this.selectedMultiplier
+                });
+            }
+
+            researchTech(techId) {
+                this.socket.emit('researchTech', { techId });
+            }
+
+            toggleAutomation(factoryId) {
+                // 这里可以添加自动化切换逻辑
+                const factory = this.gameData.factories[factoryId];
+                if (factory) {
+                    factory.automation = !factory.automation;
+                    this.showNotification(`🤖 ${factory.automation ? '启用' : '关闭'}了工厂自动化`);
+                    this.renderAutomation();
+                    this.socket.emit('updateGameData', this.gameData);
+                }
+            }
+
+            sendMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                
+                if (message && this.companyName) {
+                    this.socket.emit('chatMessage', message);
+                    input.value = '';
+                }
+            }
+
+            // 辅助方法
+            getProductByKey(productId) {
+                for (const tier of Object.values(this.productTiers)) {
+                    if (tier[productId]) {
+                        return tier[productId];
+                    }
+                }
+                return null;
+            }
+
+            getProductName(productId) {
+                const product = this.getProductByKey(productId);
+                return product ? product.name : productId;
+            }
+
+            getProductTier(productId) {
+                for (const [tierName, products] of Object.entries(this.productTiers)) {
+                    if (products[productId]) {
+                        return tierName;
+                    }
+                }
+                return null;
+            }
+
+            getCompanyTypeEmoji(companyType) {
+                const emojis = {
+                    tech: '💻',
+                    manufacturing: '🏭',
+                    luxury: '💎',
+                    energy: '⚡'
+                };
+                return emojis[companyType] || '🏢';
+            }
+
+            canAfford(cost) {
+                return Object.keys(cost).every(item => 
+                    (this.gameData.inventory[item] || 0) >= cost[item]);
+            }
+
+            formatNumber(num) {
+                if (num >= 1000000000) {
+                    return (num / 1000000000).toFixed(1) + 'B';
+                } else if (num >= 1000000) {
+                    return (num / 1000000).toFixed(1) + 'M';
+                } else if (num >= 1000) {
+                    return (num / 1000).toFixed(1) + 'K';
+                } else {
+                    return Math.floor(num).toString();
+                }
+            }
+
+            formatCost(cost) {
+                return Object.keys(cost).map(item => {
+                    if (item === 'money') {
+                        return `${this.formatNumber(cost[item])}💰`;
+                    } else {
+                        const product = this.getProductByKey(item);
+                        return `${this.formatNumber(cost[item])}${product ? product.name : item}`;
+                    }
+                }).join(' ');
+            }
+        }
+        
+        // 全局变量
+        let game;
+        
+        // 全局函数
+        function joinGame() {
+            if (!game) {
+                game = new ManufacturingTycoon();
+            }
+            game.joinGame();
+        }
+        
+        function sendMessage() {
+            if (game) {
+                game.sendMessage();
+            }
+        }
+        
+        function switchTab(tabName) {
+            if (game) {
+                game.switchTab(tabName);
+            }
+        }
+        
+        window.onload = () => {
+            game = new ManufacturingTycoon();
+        };
+        
+        // 防止意外关闭
+        window.onbeforeunload = () => {
+            if (game && game.companyName) {
+                // 可以在这里保存游戏状态
+            }
+        };
+    </script>
+</body>
+</html>
