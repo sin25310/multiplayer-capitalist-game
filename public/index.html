@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>黑心公司大亨 v2.1 - 多产业线制造系统</title>
+    <title>黑心公司大亨 v2.2 - 金融交易系统</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -55,7 +55,34 @@
             border-bottom: 2px solid #fdcb6e;
         }
         
-        /* 登录界面 */
+        /* 股价K线图容器 */
+        .stock-chart-container {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .stock-chart-header {
+            color: #fdcb6e;
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stock-chart {
+            position: relative;
+            height: 200px;
+            margin-bottom: 15px;
+        }
+        
+        /* 登录界面保持原样 */
         .login-screen {
             position: fixed;
             top: 0;
@@ -552,7 +579,7 @@
         }
         
         /* 工厂、市场、产品项目样式 */
-        .factory-item, .market-section, .product-item, .tech-item, .production-item {
+        .factory-item, .market-section, .product-item, .tech-item, .production-item, .stock-item {
             background: linear-gradient(135deg, rgba(45,52,54,0.8), rgba(99,110,114,0.8));
             padding: 15px;
             border-radius: 10px;
@@ -562,7 +589,7 @@
             margin-bottom: 12px;
         }
         
-        .factory-item:hover, .product-item:hover, .tech-item:hover {
+        .factory-item:hover, .product-item:hover, .tech-item:hover, .stock-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(253,203,110,0.2);
             border-color: rgba(253,203,110,0.5);
@@ -573,20 +600,20 @@
             border-color: rgba(214,48,49,0.5);
         }
         
-        .factory-header, .product-header, .tech-header, .production-header {
+        .factory-header, .product-header, .tech-header, .production-header, .stock-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
         
-        .factory-name, .product-name, .tech-name, .production-name {
+        .factory-name, .product-name, .tech-name, .production-name, .stock-name {
             font-weight: bold;
             color: #fdcb6e;
             font-size: 16px;
         }
         
-        .factory-count, .product-price {
+        .factory-count, .product-price, .stock-price {
             background: linear-gradient(135deg, #e17055, #d63031);
             color: white;
             padding: 4px 10px;
@@ -606,11 +633,6 @@
             border-radius: 10px;
             padding: 15px;
             border: 2px solid rgba(253,203,110,0.3);
-        }
-        
-        .market-tier.locked {
-            opacity: 0.5;
-            border-color: rgba(214,48,49,0.5);
         }
         
         .market-tier-header {
@@ -677,6 +699,39 @@
             font-size: 11px;
             color: #bbb;
             margin-top: 5px;
+        }
+        
+        /* 股票交易样式 */
+        .stock-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 8px;
+        }
+        
+        .stock-btn {
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .stock-btn.buy {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+        }
+        
+        .stock-btn.sell {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: white;
+        }
+        
+        .stock-btn.short {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
         }
         
         /* 产品等级标识 */
@@ -826,13 +881,13 @@
 <body>
     <!-- 版本更新横幅 -->
     <div class="version-banner">
-        🎉 欢迎来到黑心公司大亨 v2.1！全新多产业线制造系统 + 全自动化生产！🎉
+        🎉 欢迎来到黑心公司大亨 v2.2！全新金融交易系统 + 合并同类工厂！🎉
     </div>
 
     <!-- 新闻滚动条 -->
     <div class="news-ticker" id="newsTicker">
         <div class="news-content" id="newsContent">
-            📰 v2.1全新上线：12种工厂类型 | 🏭 全自动化生产线 | 📊 实时可视化图表 | 🏢 10个AI巨头公司...
+            📰 v2.2重磅更新：金融市场交易 | 📈 股票买卖做空 | 🏭 工厂智能合并 | 💰 股东节点事件...
         </div>
     </div>
 
@@ -840,10 +895,10 @@
     <div class="login-screen" id="loginScreen">
         <div class="login-form">
             <div class="login-title">🏢 黑心公司大亨 🏢</div>
-            <div class="version-tag">v2.1 多产业线制造系统</div>
-            <div class="login-subtitle">"从农业到奢侈品的完整产业帝国"</div>
+            <div class="version-tag">v2.2 金融交易系统</div>
+            <div class="login-subtitle">"从制造业到金融业的完整商业帝国"</div>
             
-            <input type="text" class="login-input" id="companyName" placeholder="输入你的制造帝国名称" maxlength="25">
+            <input type="text" class="login-input" id="companyName" placeholder="输入你的商业帝国名称" maxlength="25">
             
             <div style="color: #fdcb6e; font-weight: bold; margin: 20px 0 10px 0;">选择你的专业方向：</div>
             <div class="company-type-selector">
@@ -855,9 +910,9 @@
                     <div class="company-type-title">🏭 重工业</div>
                     <div class="company-type-desc">钢铁机械大规模生产</div>
                 </div>
-                <div class="company-type" data-type="agriculture">
-                    <div class="company-type-title">🌾 农业帝国</div>
-                    <div class="company-type-desc">农产品全产业链</div>
+                <div class="company-type" data-type="finance">
+                    <div class="company-type-title">💰 金融投资</div>
+                    <div class="company-type-desc">股票交易投资专家</div>
                 </div>
                 <div class="company-type" data-type="luxury">
                     <div class="company-type-title">💎 奢侈品</div>
@@ -865,29 +920,29 @@
                 </div>
             </div>
             
-            <button class="login-btn" onclick="joinGame()">开始制造之旅</button>
+            <button class="login-btn" onclick="joinGame()">开始商业之旅</button>
             
             <div class="feature-list">
-                <div style="color: #fdcb6e; font-weight: bold; margin-bottom: 10px;">🆕 v2.1 全新特性：</div>
+                <div style="color: #fdcb6e; font-weight: bold; margin-bottom: 10px;">🆕 v2.2 全新特性：</div>
                 <div class="feature-item">
-                    <span class="feature-icon">🏭</span>
-                    <span>12种工厂类型：农场、化工厂、食品厂、纺织厂等</span>
+                    <span class="feature-icon">📈</span>
+                    <span>金融市场：买入、卖出、做空其他公司股票</span>
                 </div>
                 <div class="feature-item">
-                    <span class="feature-icon">⚙️</span>
-                    <span>全自动化生产：可视化进度条，实时显示生产状态</span>
+                    <span class="feature-icon">🏭</span>
+                    <span>智能工厂：合并同类工厂，计算产能和时间</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">💰</span>
+                    <span>股东事件：持股达到节点触发特殊事件</span>
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">📊</span>
-                    <span>智能图表：K线图、生产监控、科技趋势分析</span>
+                    <span>K线图表：实时显示公司股价走势</span>
                 </div>
                 <div class="feature-item">
-                    <span class="feature-icon">🏢</span>
-                    <span>10个AI巨头：水果科技、微硬公司、特斯拉汽车等</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">🌍</span>
-                    <span>多产业耦合：农业、工业、科技、奢侈品产业链</span>
+                    <span class="feature-icon">🚫</span>
+                    <span>删除等级限制：所有功能立即可用</span>
                 </div>
             </div>
         </div>
@@ -896,7 +951,7 @@
     <!-- 游戏主界面 -->
     <div class="game-container" id="gameContainer">
         <div class="header">
-            <div class="company-title">🏭 多产业线制造帝国：全自动化生产系统 🏭</div>
+            <div class="company-title">🏭 商业帝国：制造业 + 金融投资系统 💰</div>
             
             <!-- 全球事件横幅 -->
             <div class="global-event-banner" id="globalEventBanner" style="display: none;">
@@ -932,14 +987,25 @@
                         <div class="stat-value" id="companyValue">0</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">经验值</div>
-                        <div class="stat-value" id="experience">0</div>
+                        <div class="stat-label">股票收益</div>
+                        <div class="stat-value" id="stockReturn">+0%</div>
                     </div>
                 </div>
             </div>
             
             <div class="inventory" id="inventory">
                 <!-- 库存将动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 股价K线图 -->
+        <div class="stock-chart-container">
+            <div class="stock-chart-header">
+                📈 全球公司股价走势
+                <span style="font-size: 12px; color: #bbb;">实时更新</span>
+            </div>
+            <div class="stock-chart">
+                <canvas id="globalStockChart"></canvas>
             </div>
         </div>
         
@@ -950,6 +1016,7 @@
                         <button class="tab-button active" onclick="switchTab('factories')">🏭 工厂建造</button>
                         <button class="tab-button" onclick="switchTab('production')">⚙️ 生产管理</button>
                         <button class="tab-button" onclick="switchTab('markets')">🏪 市场交易</button>
+                        <button class="tab-button" onclick="switchTab('finance')">💰 金融投资</button>
                         <button class="tab-button" onclick="switchTab('research')">🔬 科技研发</button>
                     </div>
                     
@@ -976,7 +1043,7 @@
                     </div>
                     
                     <div class="tab-content" id="markets-tab">
-                        <!-- 市场K线图 -->
+                        <!-- 市场价格走势图 -->
                         <div class="chart-section">
                             <div class="chart-header">📈 市场价格走势</div>
                             <div class="chart-container">
@@ -984,6 +1051,17 @@
                             </div>
                         </div>
                         <div id="markets"></div>
+                    </div>
+                    
+                    <div class="tab-content" id="finance-tab">
+                        <!-- 金融投资图表 -->
+                        <div class="chart-section">
+                            <div class="chart-header">💰 投资组合分析</div>
+                            <div class="chart-container">
+                                <canvas id="financeChart"></canvas>
+                            </div>
+                        </div>
+                        <div id="finance"></div>
                     </div>
                     
                     <div class="tab-content" id="research-tab">
@@ -1002,20 +1080,20 @@
             <div class="right-panel">
                 <div class="chat-section">
                     <div class="chat-header">
-                        💬 制造商聊天室
-                        <span style="font-size: 12px; color: #bbb;">全球制造商交流</span>
+                        💬 CEO聊天室
+                        <span style="font-size: 12px; color: #bbb;">全球商业交流</span>
                     </div>
                     <div class="chat-messages" id="chatMessages"></div>
                     <div class="chat-input-container">
-                        <input type="text" class="chat-input" id="chatInput" placeholder="分享制造心得..." maxlength="200" onkeypress="if(event.key==='Enter') sendMessage()">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="分享投资心得..." maxlength="200" onkeypress="if(event.key==='Enter') sendMessage()">
                         <button class="chat-send" onclick="sendMessage()">发送</button>
                     </div>
                 </div>
                 
                 <div class="leaderboard">
                     <div class="leaderboard-header">
-                        🏆 制造商排行榜
-                        <span style="font-size: 12px; color: #bbb;">全球制造帝国排名</span>
+                        🏆 商业帝国排行榜
+                        <span style="font-size: 12px; color: #bbb;">全球企业实时排名</span>
                     </div>
                     <div id="leaderboard"></div>
                 </div>
@@ -1024,7 +1102,7 @@
     </div>
 
     <script>
-        class ManufacturingTycoon {
+        class BusinessTycoon {
             constructor() {
                 this.socket = io();
                 this.playerId = null;
@@ -1039,17 +1117,17 @@
                 this.factoryChart = null;
                 this.productionChart = null;
                 this.marketChart = null;
+                this.financeChart = null;
                 this.techChart = null;
-                
-                // 数据存储
-                this.productionTasks = new Map();
-                this.marketPriceHistory = {};
+                this.globalStockChart = null;
                 
                 this.gameData = {
-                    version: '2.1.0',
+                    version: '2.2.0',
                     inventory: { money: 500000 },
                     factories: {},
                     technologies: [],
+                    stockPortfolio: {},
+                    shortPositions: {},
                     companyType: 'tech',
                     level: 0,
                     experience: 0,
@@ -1061,6 +1139,7 @@
                 this.marketTiers = {};
                 this.techTree = {};
                 this.globalMarkets = {};
+                this.aiCompanies = [];
                 this.leaderboard = [];
                 this.chatMessages = [];
                 this.selectedCompanyType = 'tech';
@@ -1091,6 +1170,41 @@
             }
             
             initCharts() {
+                // 全局股价K线图
+                const globalStockCtx = document.getElementById('globalStockChart').getContext('2d');
+                this.globalStockChart = new Chart(globalStockCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: []
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { 
+                                labels: { color: '#ddd' },
+                                position: 'bottom'
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                ticks: { color: '#bbb' }, 
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            y: { 
+                                ticks: { 
+                                    color: '#bbb',
+                                    callback: function(value) {
+                                        return '$' + value;
+                                    }
+                                }, 
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            }
+                        }
+                    }
+                });
+                
                 // 工厂产能图表
                 const factoryCtx = document.getElementById('factoryChart').getContext('2d');
                 this.factoryChart = new Chart(factoryCtx, {
@@ -1100,7 +1214,7 @@
                         datasets: [{
                             label: '工厂数量',
                             data: [],
-                            backgroundColor: ['#fdcb6e', '#74b9ff', '#a29bfe', '#fd79a8', '#00b894', '#fab1a0'],
+                            backgroundColor: ['#fdcb6e', '#74b9ff', '#a29bfe', '#fd79a8', '#00b894'],
                             borderColor: '#e17055',
                             borderWidth: 2
                         }]
@@ -1123,7 +1237,7 @@
                 this.productionChart = new Chart(productionCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['空闲工厂', '生产中', '排队中'],
+                        labels: ['空闲产能', '生产中', '待生产'],
                         datasets: [{
                             data: [1, 0, 0],
                             backgroundColor: ['#636e72', '#00b894', '#fdcb6e'],
@@ -1173,6 +1287,28 @@
                     }
                 });
 
+                // 金融投资图表
+                const financeCtx = document.getElementById('financeChart').getContext('2d');
+                this.financeChart = new Chart(financeCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['现金', '股票投资', '做空持仓'],
+                        datasets: [{
+                            data: [100, 0, 0],
+                            backgroundColor: ['#fdcb6e', '#00b894', '#e74c3c'],
+                            borderWidth: 2,
+                            borderColor: '#2d3436'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#ddd' } }
+                        }
+                    }
+                });
+
                 // 科技研发进度图表
                 const techCtx = document.getElementById('techChart').getContext('2d');
                 this.techChart = new Chart(techCtx, {
@@ -1215,7 +1351,6 @@
             }
 
             startProductionUpdate() {
-                // 每秒更新生产进度
                 setInterval(() => {
                     this.updateProductionProgress();
                 }, 1000);
@@ -1223,14 +1358,14 @@
 
             updateNews() {
                 const newsTemplates = [
-                    "🏭 全球制造业指数稳步上升",
-                    "📦 供应链优化技术取得突破", 
-                    "⚡ 新能源政策推动产业升级",
-                    "🤖 智能制造成为行业新趋势",
-                    "💎 奢侈品消费市场持续火热",
-                    "🔬 新材料技术革新制造工艺",
-                    "🌍 国际贸易合作不断深化",
-                    "📈 数字化转型助力企业增长"
+                    "📈 全球股市今日收涨，投资者信心增强",
+                    "🏭 制造业PMI指数创新高",
+                    "💰 央行降息刺激经济增长",
+                    "📊 科技股领涨，AI概念火热",
+                    "🌍 国际贸易协议签署成功",
+                    "⚡ 新能源政策推动绿色转型",
+                    "💎 奢侈品消费回暖趋势明显",
+                    "🔬 生物科技突破引发投资热潮"
                 ];
 
                 const news = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
@@ -1248,22 +1383,29 @@
             }
 
             updateProductionProgress() {
-                // 更新所有工厂的生产进度
-                Object.keys(this.gameData.factories).forEach(factoryId => {
-                    const factory = this.gameData.factories[factoryId];
-                    if (factory.currentTask) {
-                        const progress = this.calculateTaskProgress(factory.currentTask);
-                        factory.currentTask.progress = progress;
-                        
-                        // 如果在生产管理页面，实时更新进度条
-                        const progressBar = document.getElementById(`progress_${factoryId}`);
-                        if (progressBar) {
-                            progressBar.style.width = `${progress * 100}%`;
-                        }
+                // 实时更新生产进度
+                Object.keys(this.gameData.factories).forEach(factoryType => {
+                    const factory = this.gameData.factories[factoryType];
+                    if (factory.productionTasks) {
+                        factory.productionTasks.forEach(task => {
+                            if (!task.completed) {
+                                const progress = this.calculateTaskProgress(task);
+                                task.progress = progress;
+                                
+                                const progressBar = document.getElementById(`progress_${task.id}`);
+                                if (progressBar) {
+                                    progressBar.style.width = `${progress * 100}%`;
+                                }
+                                
+                                const timeElement = document.getElementById(`time_${task.id}`);
+                                if (timeElement) {
+                                    timeElement.textContent = this.formatTime(task.remainingTime);
+                                }
+                            }
+                        });
                     }
                 });
                 
-                // 更新生产监控图表
                 this.updateProductionChart();
             }
 
@@ -1274,11 +1416,11 @@
                 return Math.min(elapsed / total, 1);
             }
 
-            setupSocketListeners() {
+setupSocketListeners() {
                 this.socket.on('connect', () => {
                     this.isConnected = true;
                     this.updateConnectionStatus();
-                    console.log('🔗 连接到制造业服务器');
+                    console.log('🔗 连接到商业帝国服务器');
                 });
                 
                 this.socket.on('disconnect', () => {
@@ -1318,8 +1460,10 @@
                     this.factoryTypes = data.factoryTypes;
                     this.marketTiers = data.marketTiers;
                     this.techTree = data.techTree;
+                    this.aiCompanies = data.aiCompanies;
                     this.renderAll();
                     this.updateGlobalEvent();
+                    this.updateGlobalStockChart();
                     console.log('📊 接收到游戏状态数据');
                 });
                 
@@ -1333,10 +1477,26 @@
                     this.updateMarketChart();
                 });
                 
+                this.socket.on('stockUpdate', (data) => {
+                    this.aiCompanies = data;
+                    this.updateGlobalStockChart();
+                    this.renderFinance();
+                });
+                
+                this.socket.on('stockPriceUpdate', (data) => {
+                    const company = this.aiCompanies.find(ai => ai.id === data.companyId);
+                    if (company) {
+                        company.sharePrice = data.sharePrice;
+                        company.tradingVolume = data.tradingVolume;
+                        this.updateGlobalStockChart();
+                    }
+                });
+                
                 this.socket.on('leaderboardUpdate', (leaderboard) => {
                     this.leaderboard = leaderboard;
                     this.renderLeaderboard();
                     this.updateCompanyStats();
+                    this.updateGlobalStockChart();
                 });
                 
                 this.socket.on('globalEvent', (event) => {
@@ -1366,21 +1526,22 @@
                 });
                 
                 this.socket.on('productionProgress', (data) => {
-                    // 实时更新生产进度
-                    const factory = this.gameData.factories[data.factoryId];
-                    if (factory && factory.currentTask && factory.currentTask.id === data.taskId) {
-                        factory.currentTask.progress = data.progress;
-                        factory.currentTask.remainingTime = data.remainingTime;
-                        
-                        // 更新UI进度条
-                        const progressBar = document.getElementById(`progress_${data.factoryId}`);
-                        if (progressBar) {
-                            progressBar.style.width = `${data.progress * 100}%`;
-                        }
-                        
-                        const timeElement = document.getElementById(`time_${data.factoryId}`);
-                        if (timeElement) {
-                            timeElement.textContent = this.formatTime(data.remainingTime);
+                    const factory = this.gameData.factories[data.factoryType];
+                    if (factory && factory.productionTasks) {
+                        const task = factory.productionTasks.find(t => t.id === data.taskId);
+                        if (task) {
+                            task.progress = data.progress;
+                            task.remainingTime = data.remainingTime;
+                            
+                            const progressBar = document.getElementById(`progress_${data.taskId}`);
+                            if (progressBar) {
+                                progressBar.style.width = `${data.progress * 100}%`;
+                            }
+                            
+                            const timeElement = document.getElementById(`time_${data.taskId}`);
+                            if (timeElement) {
+                                timeElement.textContent = this.formatTime(data.remainingTime);
+                            }
                         }
                     }
                 });
@@ -1397,6 +1558,28 @@
                     this.showNotification(`💰 ${data.message}`);
                     this.gameData.inventory = data.playerData.inventory;
                     this.updateDisplay();
+                });
+                
+                this.socket.on('stockTradeSuccess', (data) => {
+                    this.showNotification(`📈 ${data.message}`);
+                    this.gameData.inventory.money = data.playerData.money;
+                    if (data.playerData.stockPortfolio) {
+                        this.gameData.stockPortfolio = data.playerData.stockPortfolio;
+                    }
+                    if (data.playerData.shortPositions) {
+                        this.gameData.shortPositions = data.playerData.shortPositions;
+                    }
+                    this.updateDisplay();
+                    this.renderFinance();
+                    this.updateFinanceChart();
+                });
+                
+                this.socket.on('shareholderEvent', (data) => {
+                    this.showNotification(`🎉 股东特权：${data.message}`);
+                    if (data.amount) {
+                        this.gameData.inventory.money += data.amount;
+                        this.updateDisplay();
+                    }
                 });
                 
                 this.socket.on('techResearched', (data) => {
@@ -1419,7 +1602,7 @@
                 });
                 
                 this.socket.on('companyJoined', (company) => {
-                    this.showNotification(`🏢 ${company.name} 进入了制造业！`);
+                    this.showNotification(`🏢 ${company.name} 进入了商业世界！`);
                 });
                 
                 this.socket.on('companyLeft', (company) => {
@@ -1484,7 +1667,7 @@
                 
                 welcomeDiv.innerHTML = `
                     <div style="font-size: 32px; margin-bottom: 15px;">🎉 欢迎回来！ 🎉</div>
-                    <div style="margin-bottom: 10px;">成功继承制造帝国</div>
+                    <div style="margin-bottom: 10px;">成功继承商业帝国</div>
                     <div style="font-size: 14px; color: #636e72;">
                         继承价值: ${this.formatNumber(data.inheritedValue)} 💰<br>
                         上次在线: ${new Date(data.lastSeen).toLocaleString()}
@@ -1503,7 +1686,7 @@
                 const name = companyInput.value.trim();
                 
                 if (!name) {
-                    alert('请输入你的制造帝国名称！');
+                    alert('请输入你的商业帝国名称！');
                     return;
                 }
                 
@@ -1562,6 +1745,10 @@
                         this.renderMarkets();
                         this.updateMarketChart();
                         break;
+                    case 'finance':
+                        this.renderFinance();
+                        this.updateFinanceChart();
+                        break;
                     case 'research':
                         this.renderResearch();
                         this.updateTechChart();
@@ -1607,6 +1794,7 @@
                 this.renderFactories();
                 this.renderProduction();
                 this.renderMarkets();
+                this.renderFinance();
                 this.renderResearch();
                 this.renderLeaderboard();
                 this.renderChat();
@@ -1618,17 +1806,62 @@
                 this.updateFactoryChart();
                 this.updateProductionChart();
                 this.updateMarketChart();
+                this.updateFinanceChart();
                 this.updateTechChart();
+                this.updateGlobalStockChart();
+            }
+
+            updateGlobalStockChart() {
+                if (!this.globalStockChart) return;
+                
+                const now = new Date();
+                const timeLabel = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                // 限制数据点数量
+                if (this.globalStockChart.data.labels.length >= 30) {
+                    this.globalStockChart.data.labels.shift();
+                }
+                this.globalStockChart.data.labels.push(timeLabel);
+                
+                // 显示前6家公司的股价
+                const topCompanies = [...this.aiCompanies, ...this.leaderboard.filter(c => c.isPlayer)].slice(0, 6);
+                const colors = ['#fdcb6e', '#74b9ff', '#fd79a8', '#00b894', '#a29bfe', '#fab1a0'];
+                
+                topCompanies.forEach((company, index) => {
+                    if (!this.globalStockChart.data.datasets[index]) {
+                        this.globalStockChart.data.datasets[index] = {
+                            label: company.name,
+                            data: [],
+                            borderColor: colors[index % colors.length],
+                            backgroundColor: colors[index % colors.length] + '20',
+                            tension: 0.1,
+                            fill: false
+                        };
+                    }
+                    
+                    const dataset = this.globalStockChart.data.datasets[index];
+                    dataset.label = company.name;
+                    
+                    if (dataset.data.length >= 30) {
+                        dataset.data.shift();
+                    }
+                    
+                    const price = company.sharePrice || Math.floor((company.value || 0) / 1000000);
+                    dataset.data.push(price);
+                });
+                
+                this.globalStockChart.update();
             }
 
             updateFactoryChart() {
                 if (!this.factoryChart) return;
                 
                 const factoryTypes = {};
-                Object.values(this.gameData.factories).forEach(factory => {
+                Object.keys(this.gameData.factories).forEach(factoryType => {
+                    const factory = this.gameData.factories[factoryType];
                     const type = this.factoryTypes[factory.type];
                     if (type) {
-                        factoryTypes[type.name] = (factoryTypes[type.name] || 0) + 1;
+                        factoryTypes[type.name] = factory.count;
                     }
                 });
                 
@@ -1642,16 +1875,14 @@
                 
                 let idle = 0, producing = 0, queued = 0;
                 
-                Object.values(this.gameData.factories).forEach(factory => {
-                    if (factory.currentTask) {
-                        producing++;
-                    } else {
-                        idle++;
-                    }
+                Object.keys(this.gameData.factories).forEach(factoryType => {
+                    const factory = this.gameData.factories[factoryType];
+                    const activeTasks = (factory.productionTasks || []).filter(task => !task.completed);
+                    const maxConcurrent = Math.min(factory.count, 10);
                     
-                    if (factory.productionQueue && factory.productionQueue.length > 0) {
-                        queued += factory.productionQueue.length;
-                    }
+                    producing += Math.min(activeTasks.length, maxConcurrent);
+                    queued += Math.max(0, activeTasks.length - maxConcurrent);
+                    idle += Math.max(0, factory.count - Math.min(activeTasks.length, maxConcurrent));
                 });
                 
                 this.productionChart.data.datasets[0].data = [idle, producing, queued];
@@ -1664,20 +1895,17 @@
                 const now = new Date();
                 const timeLabel = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
                 
-                // 限制数据点数量
                 if (this.marketChart.data.labels.length >= 20) {
                     this.marketChart.data.labels.shift();
                 }
                 this.marketChart.data.labels.push(timeLabel);
                 
-                // 选择几个主要产品显示价格走势
                 const trackedProducts = ['steel', 'chips', 'smartphone', 'luxury_car'];
                 const colors = ['#fdcb6e', '#74b9ff', '#fd79a8', '#fab1a0'];
                 
                 trackedProducts.forEach((productId, index) => {
                     let price = 0;
                     
-                    // 从各个市场中找到该产品的价格
                     for (const marketType of Object.keys(this.globalMarkets)) {
                         if (this.globalMarkets[marketType][productId]) {
                             price = this.globalMarkets[marketType][productId].price;
@@ -1705,6 +1933,38 @@
                 });
                 
                 this.marketChart.update();
+            }
+
+            updateFinanceChart() {
+                if (!this.financeChart) return;
+                
+                const cash = this.gameData.inventory.money || 0;
+                let stockValue = 0;
+                let shortValue = 0;
+                
+                // 计算股票投资价值
+                if (this.gameData.stockPortfolio) {
+                    Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
+                        const shares = this.gameData.stockPortfolio[companyId];
+                        const company = this.aiCompanies.find(ai => ai.id === companyId);
+                        if (company && shares > 0) {
+                            stockValue += shares * company.sharePrice;
+                        }
+                    });
+                }
+                
+                // 计算做空持仓价值
+                if (this.gameData.shortPositions) {
+                    Object.keys(this.gameData.shortPositions).forEach(companyId => {
+                        const positions = this.gameData.shortPositions[companyId] || [];
+                        positions.forEach(position => {
+                            shortValue += position.shares * position.entryPrice * 0.5; // 保证金
+                        });
+                    });
+                }
+                
+                this.financeChart.data.datasets[0].data = [cash, stockValue, shortValue];
+                this.financeChart.update();
             }
 
             updateTechChart() {
@@ -1739,10 +1999,10 @@
                     const div = document.createElement('div');
                     
                     const canAfford = this.canAfford(factory.cost);
-                    const canUnlock = this.gameData.level >= factory.unlockLevel;
-                    const ownedCount = Object.values(this.gameData.factories).filter(f => f.type === factoryType).length;
+                    const ownedFactory = this.gameData.factories[factoryType];
+                    const ownedCount = ownedFactory ? ownedFactory.count : 0;
                     
-                    div.className = `factory-item ${canAfford && canUnlock ? '' : 'insufficient'}`;
+                    div.className = `factory-item ${canAfford ? '' : 'insufficient'}`;
                     
                     div.innerHTML = `
                         <div class="factory-header">
@@ -1750,9 +2010,6 @@
                             <div class="factory-count">拥有: ${ownedCount}</div>
                         </div>
                         <div style="font-size: 11px; color: #bbb; margin-bottom: 10px;">${factory.description}</div>
-                        <div style="font-size: 10px; color: #888; margin-bottom: 8px;">
-                            解锁等级: ${factory.unlockLevel} ${canUnlock ? '✅' : '🔒'}
-                        </div>
                         <div style="font-size: 12px; color: #ddd; margin-bottom: 8px;">
                             建造费用: ${this.formatCost(factory.cost)}
                         </div>
@@ -1760,7 +2017,7 @@
                             可生产: ${factory.produces.slice(0, 3).map(p => this.getProductName(p)).join(', ')}${factory.produces.length > 3 ? '...' : ''}
                         </div>
                         <button class="btn build" onclick="game.buildFactory('${factoryType}')" 
-                            ${canAfford && canUnlock ? '' : 'disabled'} style="width: 100%;">
+                            ${canAfford ? '' : 'disabled'} style="width: 100%;">
                             建造工厂
                         </button>
                     `;
@@ -1778,60 +2035,60 @@
                     return;
                 }
                 
-                Object.keys(this.gameData.factories).forEach(factoryId => {
-                    const factory = this.gameData.factories[factoryId];
-                    const factoryType = this.factoryTypes[factory.type];
+                Object.keys(this.gameData.factories).forEach(factoryType => {
+                    const factory = this.gameData.factories[factoryType];
+                    const factoryTypeData = this.factoryTypes[factory.type];
                     const div = document.createElement('div');
                     
                     div.className = 'production-item';
                     
-                    let statusText = '工厂空闲';
-                    let progressBar = '';
-                    let queueInfo = '';
+                    const activeTasks = (factory.productionTasks || []).filter(task => !task.completed);
+                    const maxConcurrent = Math.min(factory.count, 10);
+                    const producing = Math.min(activeTasks.length, maxConcurrent);
+                    const queued = Math.max(0, activeTasks.length - maxConcurrent);
                     
-                    if (factory.currentTask) {
-                        const progress = factory.currentTask.progress || 0;
-                        const remainingTime = factory.currentTask.remainingTime || 0;
-                        statusText = `生产中: ${this.getProductName(factory.currentTask.productId)} x${factory.currentTask.quantity}`;
-                        progressBar = `
-                            <div class="production-progress">
-                                <div class="production-progress-bar" id="progress_${factoryId}" style="width: ${progress * 100}%"></div>
-                            </div>
-                            <div class="production-status">
-                                进度: ${Math.floor(progress * 100)}% | 剩余时间: <span id="time_${factoryId}">${this.formatTime(remainingTime)}</span>
+                    let statusText = `${factory.count} 个工厂，${producing} 个生产中，${queued} 个排队`;
+                    let progressBars = '';
+                    
+                    activeTasks.slice(0, 3).forEach(task => {
+                        const progress = task.progress || 0;
+                        progressBars += `
+                            <div style="margin: 5px 0;">
+                                <div style="font-size: 11px; color: #ddd;">${this.getProductName(task.productId)} x${task.quantity}</div>
+                                <div class="production-progress">
+                                    <div class="production-progress-bar" id="progress_${task.id}" style="width: ${progress * 100}%"></div>
+                                </div>
+                                <div style="font-size: 10px; color: #bbb;">
+                                    进度: ${Math.floor(progress * 100)}% | 剩余: <span id="time_${task.id}">${this.formatTime(task.remainingTime || 0)}</span>
+                                </div>
                             </div>
                         `;
-                    }
+                    });
                     
-                    if (factory.productionQueue && factory.productionQueue.length > 0) {
-                        queueInfo = `
-                            <div class="production-queue">
-                                队列中: ${factory.productionQueue.length} 个任务等待生产
-                            </div>
-                        `;
+                    if (activeTasks.length > 3) {
+                        progressBars += `<div style="font-size: 10px; color: #888; margin-top: 5px;">还有 ${activeTasks.length - 3} 个任务...</div>`;
                     }
                     
                     div.innerHTML = `
                         <div class="production-header">
-                            <div class="production-name">${factoryType.emoji} ${factoryType.name}</div>
+                            <div class="production-name">${factoryTypeData.emoji} ${factoryTypeData.name}</div>
                             <div style="font-size: 12px; color: #00b894;">
-                                等级: ${factory.level} | 效率: ${Math.floor((factory.efficiency || 1) * 100)}%
+                                效率: ${Math.floor((factory.efficiency || 1) * 100)}%
                             </div>
                         </div>
                         <div style="font-size: 12px; color: #ddd; margin-bottom: 8px;">
                             状态: ${statusText}
                         </div>
-                        ${progressBar}
-                        ${queueInfo}
+                        ${progressBars}
                         <div style="margin-top: 10px;">
-                            <select id="product_${factoryId}" style="width: 45%; margin-right: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; background: #2d3436; color: #ddd;">
-                                ${factoryType.produces.map(productId => 
+                            <select id="product_${factoryType}" style="width: 45%; margin-right: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; background: #2d3436; color: #ddd;">
+                                ${factoryTypeData.produces.map(productId => 
                                     `<option value="${productId}">${this.getProductName(productId)}</option>`
                                 ).join('')}
                             </select>
-                            <input type="number" id="quantity_${factoryId}" placeholder="数量" min="1" value="1" 
+                            <input type="number" id="quantity_${factoryType}" placeholder="数量" min="1" value="1" 
                                 style="width: 25%; margin-right: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; background: #2d3436; color: #ddd;">
-                            <button class="btn" onclick="game.startProduction('${factoryId}')" 
+                            <button class="btn" onclick="game.startProduction('${factoryType}')" 
                                 style="width: 20%; padding: 5px;">
                                 开始生产
                             </button>
@@ -1852,58 +2109,52 @@
                 Object.keys(this.marketTiers).forEach(marketType => {
                     const marketInfo = this.marketTiers[marketType];
                     const market = this.globalMarkets[marketType] || {};
-                    const canAccess = this.gameData.level >= marketInfo.unlockLevel;
                     
                     const marketDiv = document.createElement('div');
-                    marketDiv.className = `market-tier ${canAccess ? '' : 'locked'}`;
+                    marketDiv.className = 'market-tier';
                     
                     let productsHtml = '';
-                    if (canAccess) {
-                        Object.keys(market).forEach(productId => {
-                            const productData = market[productId];
-                            const product = this.getProductByKey(productId);
-                            if (product) {
-                                const trendIcon = productData.trend > 0 ? '📈' : productData.trend < 0 ? '📉' : '➡️';
-                                const tier = this.getProductTier(productId);
-                                
-                                productsHtml += `
-                                    <div class="product-item" style="margin-bottom: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                                            <span style="font-size: 12px; font-weight: bold;">${product.name}
-                                                <span class="tier-badge ${tier}">${tier}</span>
-                                            </span>
-                                            <span>${trendIcon}</span>
-                                        </div>
-                                        <div style="font-size: 11px; color: #bbb; margin: 4px 0;">
-                                            价格: ${this.formatNumber(productData.price)} 💰 | 库存: ${this.formatNumber(this.gameData.inventory[productId] || 0)}
-                                        </div>
-                                        <div class="multiplier-selector">
-                                            <button class="multiplier-btn ${this.selectedMultiplier === 1 ? 'active' : ''}" onclick="game.setMultiplier(1)">1x</button>
-                                            <button class="multiplier-btn ${this.selectedMultiplier === 100 ? 'active' : ''}" onclick="game.setMultiplier(100)">100x</button>
-                                            <button class="multiplier-btn ${this.selectedMultiplier === 10000 ? 'active' : ''}" onclick="game.setMultiplier(10000)">10K</button>
-                                        </div>
-                                        <div style="display: flex; gap: 4px; margin-top: 4px;">
-                                            <button class="btn buy" style="flex: 1; padding: 4px; font-size: 10px;" 
-                                                onclick="game.buyProduct('${productId}', '${marketType}')">
-                                                买入
-                                            </button>
-                                            <button class="btn sell" style="flex: 1; padding: 4px; font-size: 10px;" 
-                                                onclick="game.sellProduct('${productId}', '${marketType}')">
-                                                卖出
-                                            </button>
-                                        </div>
+                    Object.keys(market).forEach(productId => {
+                        const productData = market[productId];
+                        const product = this.getProductByKey(productId);
+                        if (product) {
+                            const trendIcon = productData.trend > 0 ? '📈' : productData.trend < 0 ? '📉' : '➡️';
+                            const tier = this.getProductTier(productId);
+                            
+                            productsHtml += `
+                                <div class="product-item" style="margin-bottom: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-size: 12px; font-weight: bold;">${product.name}
+                                            <span class="tier-badge ${tier}">${tier}</span>
+                                        </span>
+                                        <span>${trendIcon}</span>
                                     </div>
-                                `;
-                            }
-                        });
-                    } else {
-                        productsHtml = `<div style="text-align: center; color: #bbb; margin-top: 20px;">需要等级 ${marketInfo.unlockLevel} 解锁</div>`;
-                    }
+                                    <div style="font-size: 11px; color: #bbb; margin: 4px 0;">
+                                        价格: ${this.formatNumber(productData.price)} 💰 | 库存: ${this.formatNumber(this.gameData.inventory[productId] || 0)}
+                                    </div>
+                                    <div class="multiplier-selector">
+                                        <button class="multiplier-btn ${this.selectedMultiplier === 1 ? 'active' : ''}" onclick="game.setMultiplier(1)">1x</button>
+                                        <button class="multiplier-btn ${this.selectedMultiplier === 100 ? 'active' : ''}" onclick="game.setMultiplier(100)">100x</button>
+                                        <button class="multiplier-btn ${this.selectedMultiplier === 10000 ? 'active' : ''}" onclick="game.setMultiplier(10000)">10K</button>
+                                    </div>
+                                    <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                        <button class="btn buy" style="flex: 1; padding: 4px; font-size: 10px;" 
+                                            onclick="game.buyProduct('${productId}', '${marketType}')">
+                                            买入
+                                        </button>
+                                        <button class="btn sell" style="flex: 1; padding: 4px; font-size: 10px;" 
+                                            onclick="game.sellProduct('${productId}', '${marketType}')">
+                                            卖出
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
                     
                     marketDiv.innerHTML = `
                         <div class="market-tier-header">
                             ${marketInfo.emoji} ${marketInfo.name}
-                            ${canAccess ? '✅' : '🔒'}
                         </div>
                         <div style="font-size: 11px; color: #bbb; margin-bottom: 10px;">
                             ${marketInfo.description}
@@ -1919,6 +2170,98 @@
                 container.appendChild(marketGrid);
             }
 
+            renderFinance() {
+                const container = document.getElementById('finance');
+                container.innerHTML = '';
+                
+                // AI公司股票列表
+                this.aiCompanies.forEach(company => {
+                    const div = document.createElement('div');
+                    const ownedShares = this.gameData.stockPortfolio[company.id] || 0;
+                    const shortPositions = this.gameData.shortPositions[company.id] || [];
+                    const totalShortShares = shortPositions.reduce((sum, pos) => sum + pos.shares, 0);
+                    
+                    div.className = 'stock-item';
+                    
+                    const trendIcon = company.trend > 0 ? '📈' : company.trend < 0 ? '📉' : '➡️';
+                    const changePercent = ((company.sharePrice / (company.sharePrice - (company.sharePrice * 0.02))) - 1) * 100;
+                    
+                    div.innerHTML = `
+                        <div class="stock-header">
+                            <div class="stock-name">${this.getCompanyTypeEmoji(company.companyType)} ${company.name}</div>
+                            <div class="stock-price">$${company.sharePrice}</div>
+                        </div>
+                        <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">
+                            ${company.sector} | 波动率: ${(company.volatility * 100).toFixed(1)}%
+                        </div>
+                        <div style="font-size: 12px; color: #ddd; margin-bottom: 6px;">
+                            持股: ${this.formatNumber(ownedShares)} | 做空: ${this.formatNumber(totalShortShares)}
+                        </div>
+                        <div style="font-size: 10px; color: ${changePercent >= 0 ? '#00b894' : '#e74c3c'}; margin-bottom: 8px;">
+                            ${trendIcon} ${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%
+                        </div>
+                        
+                        <div class="multiplier-selector">
+                            <span style="color: #bbb; font-size: 11px; margin-right: 10px;">数量:</span>
+                            <button class="multiplier-btn ${this.selectedMultiplier === 1 ? 'active' : ''}" onclick="game.setMultiplier(1)">1x</button>
+                            <button class="multiplier-btn ${this.selectedMultiplier === 100 ? 'active' : ''}" onclick="game.setMultiplier(100)">100x</button>
+                            <button class="multiplier-btn ${this.selectedMultiplier === 10000 ? 'active' : ''}" onclick="game.setMultiplier(10000)">10K</button>
+                        </div>
+                        
+                        <div class="stock-controls">
+                            <button class="stock-btn buy" onclick="game.buyStock('${company.id}')">
+                                买入
+                            </button>
+                            <button class="stock-btn sell" onclick="game.sellStock('${company.id}')" 
+                                ${ownedShares > 0 ? '' : 'disabled'}>
+                                卖出
+                            </button>
+                            <button class="stock-btn short" onclick="game.shortStock('${company.id}')">
+                                做空
+                            </button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+                
+                // 显示投资组合总结
+                if (Object.keys(this.gameData.stockPortfolio).length > 0 || Object.keys(this.gameData.shortPositions).length > 0) {
+                    const summaryDiv = document.createElement('div');
+                    summaryDiv.style.cssText = `
+                        background: rgba(0,0,0,0.6);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-top: 20px;
+                        border: 2px solid #fdcb6e;
+                    `;
+                    
+                    let totalStockValue = 0;
+                    let totalInvestment = 0;
+                    
+                    Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
+                        const shares = this.gameData.stockPortfolio[companyId];
+                        const company = this.aiCompanies.find(ai => ai.id === companyId);
+                        if (company && shares > 0) {
+                            totalStockValue += shares * company.sharePrice;
+                            totalInvestment += shares * 100; // 假设平均买入价格
+                        }
+                    });
+                    
+                    const returnRate = totalInvestment > 0 ? ((totalStockValue - totalInvestment) / totalInvestment * 100) : 0;
+                    
+                    summaryDiv.innerHTML = `
+                        <div style="color: #fdcb6e; font-weight: bold; margin-bottom: 10px;">📊 投资组合总结</div>
+                        <div style="font-size: 12px; color: #ddd;">
+                            总市值: ${this.formatNumber(totalStockValue)} 💰<br>
+                            总收益率: <span style="color: ${returnRate >= 0 ? '#00b894' : '#e74c3c'};">${returnRate >= 0 ? '+' : ''}${returnRate.toFixed(2)}%</span>
+                        </div>
+                    `;
+                    
+                    container.appendChild(summaryDiv);
+                }
+            }
+
             renderResearch() {
                 const container = document.getElementById('research');
                 container.innerHTML = '';
@@ -1928,11 +2271,10 @@
                     const div = document.createElement('div');
                     
                     const canAfford = this.canAfford(tech.cost);
-                    const canUnlock = this.gameData.level >= tech.unlockLevel;
                     const isResearched = this.gameData.technologies.includes(techId);
                     const requirementsMet = !tech.requires || tech.requires.every(reqTech => this.gameData.technologies.includes(reqTech));
                     
-                    div.className = `tech-item ${canAfford && canUnlock && requirementsMet && !isResearched ? '' : 'insufficient'}`;
+                    div.className = `tech-item ${canAfford && requirementsMet && !isResearched ? '' : 'insufficient'}`;
                     
                     let requirementsText = '';
                     if (tech.requires) {
@@ -1951,9 +2293,6 @@
                             </div>
                         </div>
                         <div style="font-size: 11px; color: #bbb; margin-bottom: 8px;">${tech.description}</div>
-                        <div style="font-size: 10px; color: #888; margin-bottom: 6px;">
-                            解锁等级: ${tech.unlockLevel} ${canUnlock ? '✅' : '🔒'}
-                        </div>
                         ${requirementsText}
                         <div style="font-size: 12px; color: #ddd; margin-bottom: 8px;">
                             研发费用: ${this.formatCost(tech.cost)}
@@ -1962,7 +2301,7 @@
                             效果: ${tech.effect}
                         </div>
                         <button class="btn" onclick="game.researchTech('${techId}')" 
-                            ${canAfford && canUnlock && requirementsMet && !isResearched ? '' : 'disabled'} style="width: 100%;">
+                            ${canAfford && requirementsMet && !isResearched ? '' : 'disabled'} style="width: 100%;">
                             ${isResearched ? '已研发' : '开始研发'}
                         </button>
                     `;
@@ -1990,6 +2329,7 @@
                             </div>
                             <div class="rank-value">
                                 价值: ${this.formatNumber(company.value)} 💰
+                                ${company.sharePrice ? ` | 股价: $${company.sharePrice}` : ''}
                             </div>
                         </div>
                     `;
@@ -2007,7 +2347,7 @@
                     div.className = 'chat-message';
                     
                     const time = new Date(msg.timestamp).toLocaleTimeString().slice(0, 5);
-                    const isSystem = msg.player === '系统' || msg.player === '市场快讯' || msg.player === '全球事件';
+                    const isSystem = msg.player === '系统' || msg.player === '市场快讯' || msg.player === '全球事件' || msg.player === '金融快讯';
                     
                     div.innerHTML = `
                         <span class="chat-time">[${time}]</span>
@@ -2052,8 +2392,24 @@
                 document.getElementById('globalRank').textContent = myRank > 0 ? `#${myRank}` : '#-';
                 document.getElementById('onlineCount').textContent = this.leaderboard.filter(c => c.isPlayer && c.online !== false).length;
                 document.getElementById('companyValue').textContent = myCompany ? this.formatNumber(myCompany.value) : '0';
-                document.getElementById('experience').textContent = this.formatNumber(this.gameData.experience);
                 document.getElementById('companyLevel').textContent = this.gameData.level;
+                
+                // 计算股票收益率
+                let totalReturn = 0;
+                if (this.gameData.stockPortfolio) {
+                    Object.keys(this.gameData.stockPortfolio).forEach(companyId => {
+                        const shares = this.gameData.stockPortfolio[companyId];
+                        const company = this.aiCompanies.find(ai => ai.id === companyId);
+                        if (company && shares > 0) {
+                            totalReturn += shares * company.sharePrice;
+                        }
+                    });
+                }
+                
+                const returnPercent = totalReturn > 0 ? ((totalReturn / 100000) - 1) * 100 : 0;
+                const stockReturnElement = document.getElementById('stockReturn');
+                stockReturnElement.textContent = `${returnPercent >= 0 ? '+' : ''}${returnPercent.toFixed(1)}%`;
+                stockReturnElement.style.color = returnPercent >= 0 ? '#00b894' : '#e74c3c';
             }
 
             // 游戏操作方法
@@ -2061,15 +2417,15 @@
                 this.socket.emit('buildFactory', { factoryType });
             }
 
-            startProduction(factoryId) {
-                const productSelect = document.getElementById(`product_${factoryId}`);
-                const quantityInput = document.getElementById(`quantity_${factoryId}`);
+            startProduction(factoryType) {
+                const productSelect = document.getElementById(`product_${factoryType}`);
+                const quantityInput = document.getElementById(`quantity_${factoryType}`);
                 
                 const productId = productSelect.value;
                 const quantity = parseInt(quantityInput.value) || 1;
                 
                 this.socket.emit('startProduction', {
-                    factoryId: factoryId,
+                    factoryType: factoryType,
                     productId: productId,
                     quantity: quantity
                 });
@@ -2078,6 +2434,7 @@
             setMultiplier(multiplier) {
                 this.selectedMultiplier = multiplier;
                 this.renderMarkets();
+                this.renderFinance();
             }
 
             buyProduct(productId, marketType) {
@@ -2096,6 +2453,33 @@
                     productId: productId,
                     quantity: 1,
                     marketType: marketType,
+                    multiplier: this.selectedMultiplier
+                });
+            }
+
+            buyStock(companyId) {
+                this.socket.emit('stockTrade', {
+                    action: 'buy',
+                    companyId: companyId,
+                    shares: 1,
+                    multiplier: this.selectedMultiplier
+                });
+            }
+
+            sellStock(companyId) {
+                this.socket.emit('stockTrade', {
+                    action: 'sell',
+                    companyId: companyId,
+                    shares: 1,
+                    multiplier: this.selectedMultiplier
+                });
+            }
+
+            shortStock(companyId) {
+                this.socket.emit('stockTrade', {
+                    action: 'short',
+                    companyId: companyId,
+                    shares: 1,
                     multiplier: this.selectedMultiplier
                 });
             }
@@ -2146,7 +2530,8 @@
                     luxury: '💎',
                     food: '🍔',
                     beauty: '💄',
-                    retail: '🛒'
+                    retail: '🛒',
+                    finance: '💰'
                 };
                 return emojis[companyType] || '🏢';
             }
@@ -2200,7 +2585,7 @@
         // 全局函数
         function joinGame() {
             if (!game) {
-                game = new ManufacturingTycoon();
+                game = new BusinessTycoon();
             }
             game.joinGame();
         }
@@ -2218,7 +2603,7 @@
         }
         
         window.onload = () => {
-            game = new ManufacturingTycoon();
+            game = new BusinessTycoon();
         };
         
         // 防止意外关闭
